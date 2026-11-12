@@ -151,7 +151,6 @@ window.DashboardModule = {
         </div>
       `;
     };
-    };
 
     return `
       <div class="space-y-8 animate-fadeIn">
