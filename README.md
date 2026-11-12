@@ -49,13 +49,19 @@ Aplikasi ini mengadopsi arsitektur modular di mana seluruh sub-aplikasi berada d
 
 7. **📊 PELAKU (Perhitungan Laporan Keuangan) (`#/pelaku`)**:
    - Modul analisis rasio keuangan calon debitur atau rekanan penjaminan.
+   - **🤖 Fitur Unggulan AI OCR Vision Laporan Keuangan (Diadopsi dari ASCA)**:
+     - Pemindaian berkas Laporan Keuangan Neraca & Laba Rugi otomatis berbasis **Google Gemini Multimodal Vision API** (`gemini-2.5-flash` / `gemini-3.5-flash`).
+     - Mendukung *multi-file upload* (PDF, JPG, PNG, WEBP) hingga 25 MB per berkas dengan *drag & drop*.
+     - Rekonsiliasi data akuntansi standar Indonesia: deteksi otomatis format desimal/ribuan, konversi skala (Rupiah penuh, ribuan, jutaan), serta otomatisasi penggabungan akun fisik **Kas & Bank** menjadi satu pos kas dengan *breakdown tooltip*.
+     - **Tabel Verifikasi & Review Interaktif**: 27 akun keuangan, pengecekan *balance* Aset vs Liabilitas + Ekuitas secara *real-time*, tombol cerdas *"Seimbangkan Neraca Otomatis"*, serta deteksi opini audit KAP (WTP, WDP, Tidak Wajar, Tidak Memberikan Pendapat / In-House).
+     - Tombol saklar periode komparasi 2 tahun buku (*Tahun Terakhir* vs *Tahun Sebelumnya*) langsung ke formulir evaluasi underwriting.
    - Input komponen Neraca (Aset Lancar, Kas, Piutang, Persediaan, Aset Tetap, Kewajiban Lancar, Hutang Bank, Ekuitas) dan Laba Rugi (Omset, HPP, Laba Bersih).
    - Perhitungan rasio otomatis:
      - **Likuiditas**: Current Ratio, Quick Ratio.
      - **Solvabilitas**: Debt to Equity Ratio (DER), Debt to Asset Ratio (DAR).
      - **Profitabilitas**: Net Profit Margin (NPM), Return on Assets (ROA), Return on Equity (ROE).
    - *Automated Scoring & Underwriting Assessment* (Grade A Sehat, Grade B Standar, Grade C Bersyarat, Grade D Berisiko Tinggi) dilengkapi narasi rekomendasi komite penjaminan.
-   - Ekspor lembar evaluasi rasio keuangan ke format cetak PDF.
+   - Ekspor lembar evaluasi rasio keuangan ke format cetak PDF resmi berstandar Askrindo.
 
 ---
 
