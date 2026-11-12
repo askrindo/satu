@@ -266,7 +266,7 @@ class AskrindoDB {
       localStorage.setItem(DB_KEYS.SETTINGS, JSON.stringify({
         appName: 'Askrindo SATU',
         companyName: 'PT Asuransi Kredit Indonesia (Askrindo)',
-        memberOf: 'Indonesia Financial Group (IFG)',
+        memberOf: '',
         maintenanceMode: false,
         notificationBanner: 'Portal Terpadu Askrindo SATU terhubung dengan Cloud Database Supabase (PostgreSQL).'
       }));

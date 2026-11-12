@@ -373,7 +373,7 @@ window.BusModule = {
               <img src="assets/images/logo-corporate.png" alt="Askrindo Logo" class="h-14 object-contain" />
               <div>
                 <h2 class="text-base font-black text-[#002B49] tracking-tight">PT ASURANSI KREDIT INDONESIA</h2>
-                <p class="text-[11px] text-slate-600">Member of Indonesia Financial Group (IFG)</p>
+                <p class="text-[11px] text-slate-600">Sistem Aplikasi Terpadu</p>
                 <p class="text-[10px] text-slate-400">Kantor Cabang Penerbit: ${user.branch}</p>
               </div>
             </div>

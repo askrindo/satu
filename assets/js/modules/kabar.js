@@ -435,7 +435,7 @@ window.KabarModule = {
               <img src="assets/images/logo-corporate.png" alt="Askrindo SATU" class="h-12 object-contain" />
               <div>
                 <h2 class="text-sm font-extrabold text-[#002B49]">PT ASURANSI KREDIT INDONESIA</h2>
-                <p class="text-[10px] text-slate-500">Anggota Holding Indonesia Financial Group (IFG)</p>
+                <p class="text-[10px] text-slate-500">Sistem Aplikasi Terpadu</p>
               </div>
             </div>
             <div class="text-right">

@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS public.system_settings (
     id TEXT PRIMARY KEY DEFAULT 'config',
     app_name TEXT DEFAULT 'Askrindo SATU',
     company_name TEXT DEFAULT 'PT Asuransi Kredit Indonesia',
-    member_of TEXT DEFAULT 'Indonesia Financial Group (IFG)',
+    member_of TEXT DEFAULT '',
     maintenance_mode BOOLEAN DEFAULT FALSE,
     notification_banner TEXT,
     updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW())
@@ -115,7 +115,7 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.system_settings (id, app_name, company_name, member_of, maintenance_mode, notification_banner)
 VALUES
-('config', 'Askrindo SATU', 'PT Asuransi Kredit Indonesia (Askrindo)', 'Indonesia Financial Group (IFG)', FALSE, 'Portal Terpadu Askrindo SATU kini terhubung ke Cloud Database Supabase secara real-time.')
+('config', 'Askrindo SATU', 'PT Asuransi Kredit Indonesia (Askrindo)', '', FALSE, 'Portal Terpadu Askrindo SATU kini terhubung ke Cloud Database Supabase secara real-time.')
 ON CONFLICT (id) DO UPDATE SET
     notification_banner = EXCLUDED.notification_banner,
     updated_at = NOW();

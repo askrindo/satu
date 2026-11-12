@@ -282,7 +282,7 @@ class AskrindoApp {
             <footer class="bg-white border-t border-slate-200 py-4 px-6 text-center text-xs text-slate-500 no-print flex flex-col sm:flex-row items-center justify-between gap-2">
               <div class="flex items-center gap-2">
                 <span class="font-extrabold text-[#002B49]">Askrindo SATU</span>
-                <span>— PT Asuransi Kredit Indonesia (Member of IFG)</span>
+                <span>— PT Asuransi Kredit Indonesia</span>
               </div>
               <p class="text-[11px] text-slate-400">Terdaftar dan diawasi oleh Otoritas Jasa Keuangan (OJK)</p>
             </footer>
@@ -437,7 +437,7 @@ class AskrindoApp {
             </div>
 
             <div class="pt-6 border-t border-white/10 text-[10px] text-slate-400">
-              PT Asuransi Kredit Indonesia (Askrindo) — Member of IFG
+              PT Asuransi Kredit Indonesia (Askrindo)
             </div>
           </div>
 
