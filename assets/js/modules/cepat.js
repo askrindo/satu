@@ -74,22 +74,6 @@ window.CepatModule = {
           </div>
         </div>
 
-        <!-- Admin Testing Mode Notice -->
-        <div class="bg-gradient-to-r from-amber-500 to-cyan-600 text-white p-3.5 rounded-2xl flex items-center justify-between text-xs shadow-md shadow-amber-500/15">
-          <div class="flex items-center gap-2.5 font-medium">
-            <div class="w-7 h-7 rounded-lg bg-black/20 flex items-center justify-center shrink-0">
-              <i data-lucide="flask-conical" class="w-4 h-4 text-amber-200"></i>
-            </div>
-            <div>
-              <span class="font-bold">Mode Pengujian Administrator (Testing Mode)</span>
-              <p class="text-[11px] text-amber-100 mt-0.5">Modul ini dinonaktifkan untuk pengguna umum dan hanya dapat diakses oleh Administrator untuk uji coba integrasi.</p>
-            </div>
-          </div>
-          <span class="px-2.5 py-1 rounded-lg bg-black/20 text-[10px] font-mono font-bold tracking-wider uppercase shrink-0">
-            Admin Test
-          </span>
-        </div>
-
         <!-- Tab Body -->
         <div>
           ${this.currentTab === 'create' ? this.renderCreateWizard() : this.renderCoverNoteList(coverNotes)}

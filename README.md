@@ -96,13 +96,13 @@ Untuk memudahkan pengujian fungsionalitas dan matriks hak akses, Anda dapat meng
 
 | Nama Pengguna | NIP / Email | Peran (Role) | Akses Sub-Aplikasi |
 | :--- | :--- | :--- | :--- |
-| **Ahmad Faisal, S.E.** | `19850101` / `admin.satu@askrindo.co.id` | **Super Administrator** | Akses Penuh: PELAKU (Aktif), KABAR, TTK, BUSET, CEPAT (Mode Testing Admin), Web Admin |
+| **Ahmad Faisal, S.E.** | `19850101` / `admin.satu@askrindo.co.id` | **Super Administrator** | Akses Penuh: PELAKU (Aktif), Pratinjau KABAR, TTK, BUSET, CEPAT (Segera Hadir), Web Admin |
 | **Budi Santoso, AAIJ** | `19900315` / `budi.santoso@askrindo.co.id` | **Senior Underwriter** | PELAKU (Modul Aktif Operasional) |
 | **Siti Rahmawati, S.E.** | `19940722` / `siti.rahma@askrindo.co.id` | **Account Officer KUR** | PELAKU (Modul Aktif Operasional) |
 | **Dian Permana, S.Kom.** | `19971105` / `dian.permana@askrindo.co.id` | **Marketing Officer** | PELAKU (Modul Aktif Operasional) |
 | **Rizky Pratama** | `20010910` / `rizky.pratama@askrindo.co.id` | **Staff Operasional** | PELAKU (Modul Aktif Operasional) |
 
-> **Tahap Pengembangan Bertahap**: Saat ini modul **PELAKU** telah rilis penuh untuk operasional. Modul **KABAR, TTK, BUSET, CEPAT, dan SURETY** dinonaktifkan untuk publik dan hanya dapat diakses oleh akun **Super Administrator** untuk keperluan pengujian (*testing*). Pengguna non-admin yang membuka modul tersebut akan diarahkan ke layar informasi pengembangan bertahap.
+> **Tahap Peluncuran Bertahap**: Saat ini modul **PELAKU** telah rilis penuh untuk operasional. Modul **KABAR, TTK, BUSET, CEPAT, dan SURETY** berstatus **Segera Hadir**. Pengguna yang membuka modul tersebut akan diarahkan ke layar informasi Segera Hadir.
 
 ---
 

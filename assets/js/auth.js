@@ -103,9 +103,13 @@ class AuthService {
     const key = (appId || '').toLowerCase();
     const devMap = window.APP_DEPLOYMENT_STATUS;
     if (devMap && devMap[key]) {
-      return devMap[key].status === 'development' || devMap[key].status === 'coming_soon';
+      return devMap[key].status === 'coming_soon' || devMap[key].status === 'development';
     }
     return ['kabar', 'ttk', 'bus', 'cepat', 'surety'].includes(key);
+  }
+
+  isAppComingSoon(appId) {
+    return this.isAppInDevelopment(appId);
   }
 
   hasAccess(appId) {
@@ -113,9 +117,9 @@ class AuthService {
     const key = (appId || '').toLowerCase();
     const isAdmin = this.currentUser.role === 'Super Administrator' || (this.currentUser.allowedApps && this.currentUser.allowedApps.includes('admin'));
 
-    // Pengaturan Bertahap: Aplikasi KABAR, TTK, BUSET, CEPAT, SURETY dinonaktifkan untuk publik.
-    // Namun akun Super Administrator tetap bisa mengaksesnya secara penuh untuk kebutuhan testing.
-    if (this.isAppInDevelopment(key)) {
+    // Pengaturan Bertahap: Modul KABAR, TTK, BUSET, CEPAT, SURETY berstatus Segera Hadir.
+    // Akun Super Administrator dapat mengakses pratinjau modul.
+    if (this.isAppComingSoon(key)) {
       return isAdmin;
     }
 

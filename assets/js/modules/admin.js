@@ -279,10 +279,10 @@ window.AdminModule = {
   renderMatrixTab(allUsers) {
     const appsList = [
       { id: 'pelaku', name: 'PELAKU', label: 'Laporan Keuangan (Aktif)', color: 'text-purple-600' },
-      { id: 'kabar', name: 'KABAR', label: 'Kalkulator Kebakaran (Testing)', color: 'text-orange-600' },
-      { id: 'ttk', name: 'TTK', label: 'Tanya KUR (Testing)', color: 'text-blue-600' },
-      { id: 'bus', name: 'BUSET', label: 'Buat SPPA (Testing)', color: 'text-emerald-600' },
-      { id: 'cepat', name: 'CEPAT', label: 'Cover Note (Testing)', color: 'text-cyan-600' },
+      { id: 'kabar', name: 'KABAR', label: 'Kalkulator Kebakaran (Segera)', color: 'text-orange-600' },
+      { id: 'ttk', name: 'TTK', label: 'Tanya KUR (Segera)', color: 'text-blue-600' },
+      { id: 'bus', name: 'BUSET', label: 'Buat SPPA (Segera)', color: 'text-emerald-600' },
+      { id: 'cepat', name: 'CEPAT', label: 'Cover Note (Segera)', color: 'text-cyan-600' },
       { id: 'admin', name: 'ADMIN', label: 'Web Admin Portal', color: 'text-amber-600' }
     ];
 
@@ -291,9 +291,9 @@ window.AdminModule = {
         <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-start gap-3">
           <i data-lucide="info" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5"></i>
           <div>
-            <h4 class="text-xs font-bold text-amber-900">Rencana Implementasi Bertahap & Mode Testing</h4>
+            <h4 class="text-xs font-bold text-amber-900">Rencana Implementasi Bertahap (Roadmap Ekosistem)</h4>
             <p class="text-xs text-amber-800 mt-0.5 leading-relaxed">
-              Saat ini modul <b>PELAKU</b> telah aktif untuk operasional. Modul <b>KABAR, TTK, BUSET, CEPAT</b> dinonaktifkan untuk publik dan hanya dapat diakses oleh akun Administrator untuk pengujian bertahap sebelum dirilis penuh.
+              Saat ini modul <b>PELAKU</b> telah aktif untuk operasional. Modul <b>KABAR, TTK, BUSET, CEPAT</b> berstatus <b>Segera Hadir</b> dan disiapkan untuk peluncuran bertahap bagi seluruh unit kerja.
             </p>
           </div>
         </div>

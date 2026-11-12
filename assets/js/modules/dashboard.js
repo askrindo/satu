@@ -74,35 +74,23 @@ window.DashboardModule = {
               </div>
               <div class="flex flex-col items-end">
                 ${isDev 
-                  ? (isAdmin 
-                      ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                          <i data-lucide="flask-conical" class="w-3 h-3 text-amber-600"></i> Testing Admin
-                         </span>`
-                      : `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
-                          <i data-lucide="wrench" class="w-3 h-3 text-slate-400"></i> Tahap Pengembangan
-                         </span>`
-                    )
+                  ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                      <i data-lucide="sparkles" class="w-3 h-3 text-amber-600"></i> Segera Hadir
+                     </span>
+                     <span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 mt-1">
+                      <i data-lucide="clock" class="w-3 h-3 text-slate-400"></i> Segera Hadir
+                     </span>`
                   : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${styling.badgeBg} border">
                       <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> ${app.badge}
-                     </span>`
-                }
-                ${isDev 
-                  ? (isAdmin 
-                      ? `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-amber-600 mt-1">
-                          <span class="w-2 h-2 rounded-full bg-amber-500"></span> Akses Uji Coba
-                         </span>`
-                      : `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 mt-1">
-                          <i data-lucide="clock" class="w-3 h-3 text-slate-400"></i> Segera Hadir
-                         </span>`
-                    )
-                  : (hasAccess 
-                      ? `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 mt-1">
-                          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Siap Digunakan
-                         </span>`
-                      : `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 mt-1">
-                          <i data-lucide="lock" class="w-3 h-3 text-slate-400"></i> Akses Terbatas
-                         </span>`
-                    )
+                     </span>
+                     ${hasAccess 
+                       ? `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 mt-1">
+                           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Siap Digunakan
+                          </span>`
+                       : `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 mt-1">
+                           <i data-lucide="lock" class="w-3 h-3 text-slate-400"></i> Akses Terbatas
+                          </span>`
+                     }`
                 }
               </div>
             </div>
@@ -139,13 +127,13 @@ window.DashboardModule = {
             ${isDev 
               ? (isAdmin 
                   ? `<a href="${app.route}" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition-all duration-200 ${styling.btnBg}">
-                      <i data-lucide="flask-conical" class="w-4 h-4"></i>
-                      <span>Buka Modul (Testing Admin)</span>
+                      <i data-lucide="eye" class="w-4 h-4"></i>
+                      <span>Pratinjau Modul</span>
                       <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>
                      </a>`
                   : `<button onclick="window.askrindoApp.showDevelopmentNoticeModal('${app.name}')" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm text-slate-400 bg-slate-100 hover:bg-slate-200 transition-colors">
-                      <i data-lucide="wrench" class="w-4 h-4 text-slate-400"></i>
-                      <span>Dalam Pengembangan (Segera Hadir)</span>
+                      <i data-lucide="sparkles" class="w-4 h-4 text-amber-500"></i>
+                      <span>Segera Hadir</span>
                      </button>`
                 )
               : (hasAccess 
@@ -204,7 +192,7 @@ window.DashboardModule = {
             <div class="bg-white/10 backdrop-blur-xl border border-white/20 p-5 rounded-2xl w-full lg:w-auto shrink-0 space-y-3 text-slate-100">
               <div class="text-xs font-semibold uppercase tracking-wider text-amber-300 flex items-center justify-between">
                 <span class="flex items-center gap-1.5"><i data-lucide="zap" class="w-4 h-4 text-amber-400"></i> Aksi Cepat</span>
-                ${window.authService.canAccessAdmin() ? `<span class="text-[9px] font-mono bg-black/20 px-2 py-0.5 rounded text-amber-200 font-bold uppercase tracking-wider">Admin Test Mode</span>` : ''}
+                ${window.authService.canAccessAdmin() ? `<span class="text-[9px] font-mono bg-black/20 px-2 py-0.5 rounded text-amber-200 font-bold uppercase tracking-wider">Akses Pratinjau Admin</span>` : ''}
               </div>
               ${window.authService.canAccessAdmin() ? `
                 <div class="grid grid-cols-2 gap-2 text-xs font-medium">
@@ -212,21 +200,21 @@ window.DashboardModule = {
                     <i data-lucide="calculator" class="w-4 h-4 text-white"></i>
                     <span>Analisis Finansial PELAKU (Aktif)</span>
                   </a>
-                  <a href="#/kabar" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="Uji Coba KABAR (Admin)">
-                    <i data-lucide="flask-conical" class="w-3.5 h-3.5 text-orange-400"></i>
-                    <span>Test KABAR</span>
+                  <a href="#/kabar" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="Pratinjau KABAR">
+                    <i data-lucide="eye" class="w-3.5 h-3.5 text-orange-400"></i>
+                    <span>KABAR (Segera)</span>
                   </a>
-                  <a href="#/buset" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="Uji Coba BUSET (Admin)">
-                    <i data-lucide="flask-conical" class="w-3.5 h-3.5 text-emerald-400"></i>
-                    <span>Test BUSET</span>
+                  <a href="#/buset" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="Pratinjau BUSET">
+                    <i data-lucide="eye" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    <span>BUSET (Segera)</span>
                   </a>
-                  <a href="#/cepat" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="Uji Coba CEPAT (Admin)">
-                    <i data-lucide="flask-conical" class="w-3.5 h-3.5 text-cyan-400"></i>
-                    <span>Test CEPAT</span>
+                  <a href="#/cepat" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="Pratinjau CEPAT">
+                    <i data-lucide="eye" class="w-3.5 h-3.5 text-cyan-400"></i>
+                    <span>CEPAT (Segera)</span>
                   </a>
-                  <a href="#/ttk" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="Uji Coba TTK (Admin)">
-                    <i data-lucide="flask-conical" class="w-3.5 h-3.5 text-blue-400"></i>
-                    <span>Test TTK</span>
+                  <a href="#/ttk" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="Pratinjau TTK">
+                    <i data-lucide="eye" class="w-3.5 h-3.5 text-blue-400"></i>
+                    <span>TTK (Segera)</span>
                   </a>
                 </div>
               ` : `
@@ -236,8 +224,8 @@ window.DashboardModule = {
                     <span>Mulai Analisis Laporan Keuangan (PELAKU)</span>
                   </a>
                   <div class="p-2.5 rounded-xl bg-white/10 text-[11px] text-slate-200 flex items-center gap-2">
-                    <i data-lucide="info" class="w-4 h-4 text-amber-300 shrink-0"></i>
-                    <span>Modul KABAR, TTK, BUSET, CEPAT dalam tahap pengujian Administrator.</span>
+                    <i data-lucide="sparkles" class="w-4 h-4 text-amber-300 shrink-0"></i>
+                    <span>Modul KABAR, TTK, BUSET, CEPAT, dan SURETY segera hadir.</span>
                   </div>
                 </div>
               `}
@@ -278,7 +266,7 @@ window.DashboardModule = {
           <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
             <div class="space-y-1">
               <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Status Aplikasi</p>
-              <h4 class="text-2xl font-bold text-slate-800">1 Aktif <span class="text-xs font-normal text-slate-400">· 5 Dev</span></h4>
+              <h4 class="text-2xl font-bold text-slate-800">1 Aktif <span class="text-xs font-normal text-slate-400">· 5 Segera</span></h4>
               <p class="text-[11px] text-purple-700 font-semibold flex items-center gap-1">
                 <i data-lucide="check-circle" class="w-3 h-3 text-purple-600"></i> PELAKU (Live Operasional)
               </p>
@@ -310,10 +298,10 @@ window.DashboardModule = {
                 <i data-lucide="layout-grid" class="w-5 h-5 text-orange-500"></i>
                 <span>Katalog Aplikasi Askrindo SATU</span>
               </h2>
-              <p class="text-xs text-slate-500 mt-0.5">Pengembangan sistem bertahap: 1 modul aktif operasional & 5 modul tahap pengujian Administrator.</p>
+              <p class="text-xs text-slate-500 mt-0.5">Pengembangan sistem bertahap: 1 modul aktif operasional & 5 modul segera hadir.</p>
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-purple-100 text-purple-800 border border-purple-200">1 Live · 4 Testing Admin</span>
+              <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">1 Aktif · 4 Segera Hadir</span>
             </div>
           </div>
 

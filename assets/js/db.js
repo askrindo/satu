@@ -253,38 +253,38 @@ const INITIAL_AUDIT = [
 // Status Rilis & Deployment Sub-Aplikasi (Pengembangan Bertahap)
 const APP_DEPLOYMENT_STATUS = {
   pelaku: {
-    status: 'active', // 'active' | 'development' | 'coming_soon'
+    status: 'active', // 'active' | 'coming_soon'
     label: 'Rilis Penuh (Aktif)',
     phase: 'Tahap 1 (Live Operasional)',
-    badge: 'Rilis Penuh (Aktif)',
+    badge: 'Aktif',
     isPublic: true
   },
   kabar: {
-    status: 'development',
-    label: 'Tahap Pengembangan (Khusus Testing Admin)',
-    phase: 'Tahap 2 (Uji Coba Tertutup)',
-    badge: 'Khusus Testing Admin',
+    status: 'coming_soon',
+    label: 'Segera Hadir',
+    phase: 'Roadmap Pengembangan',
+    badge: 'Segera Hadir',
     isPublic: false
   },
   ttk: {
-    status: 'development',
-    label: 'Tahap Pengembangan (Khusus Testing Admin)',
-    phase: 'Tahap 3 (Uji Coba Tertutup)',
-    badge: 'Khusus Testing Admin',
+    status: 'coming_soon',
+    label: 'Segera Hadir',
+    phase: 'Roadmap Pengembangan',
+    badge: 'Segera Hadir',
     isPublic: false
   },
   bus: {
-    status: 'development',
-    label: 'Tahap Pengembangan (Khusus Testing Admin)',
-    phase: 'Tahap 4 (Uji Coba Tertutup)',
-    badge: 'Khusus Testing Admin',
+    status: 'coming_soon',
+    label: 'Segera Hadir',
+    phase: 'Roadmap Pengembangan',
+    badge: 'Segera Hadir',
     isPublic: false
   },
   cepat: {
-    status: 'development',
-    label: 'Tahap Pengembangan (Khusus Testing Admin)',
-    phase: 'Tahap 5 (Uji Coba Tertutup)',
-    badge: 'Khusus Testing Admin',
+    status: 'coming_soon',
+    label: 'Segera Hadir',
+    phase: 'Roadmap Pengembangan',
+    badge: 'Segera Hadir',
     isPublic: false
   },
   surety: {
