@@ -504,7 +504,7 @@ class AskrindoApp {
               </div>
             </div>
 
-            <div class="pt-6 border-t border-white/10 text-[11px] text-slate-400 flex items-center justify-between">
+            <div class="pt-6 text-[11px] text-slate-400 flex items-center justify-between">
               <span>PT Asuransi Kredit Indonesia</span>
               <span class="text-[10px] text-slate-400 font-mono">v2.4 Enterprise</span>
             </div>
@@ -571,7 +571,7 @@ class AskrindoApp {
             </div>
 
             <!-- Footer on Right Col (Matches Baseline of Left Col) -->
-            <div class="pt-6 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+            <div class="pt-6 text-[11px] text-slate-400 flex items-center justify-between">
               <div class="flex items-center gap-1.5 text-slate-500">
                 <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-600"></i>
                 <span>Koneksi Aman TLS 1.3</span>
