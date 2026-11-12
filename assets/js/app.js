@@ -457,55 +457,99 @@ class AskrindoApp {
                 </p>
               </div>
 
-              <!-- List of Sub-Apps Pill -->
+              <!-- 2-Column Modular App Ecosystem Grid (Scalable & Elegant) -->
               <div class="space-y-2 pt-1">
-                <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition text-xs">
-                  <div class="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center shrink-0">
-                    <i data-lucide="flame" class="w-4 h-4 text-white"></i>
-                  </div>
-                  <div class="min-w-0">
-                    <span class="font-bold text-amber-300">KABAR</span>
-                    <span class="text-[11px] text-slate-200 block truncate">Kalkulator Asuransi Kebakaran</span>
-                  </div>
+                <div class="flex items-center justify-between text-[11px] font-semibold text-slate-300">
+                  <span class="flex items-center gap-1.5 text-amber-300">
+                    <i data-lucide="layers" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span>Ekosistem Aplikasi Terpadu</span>
+                  </span>
+                  <span class="text-[10px] text-slate-300 font-mono">5 Aktif · 1 Segera</span>
                 </div>
 
-                <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition text-xs">
-                  <div class="w-7 h-7 rounded-lg bg-blue-500 flex items-center justify-center shrink-0">
-                    <i data-lucide="help-circle" class="w-4 h-4 text-white"></i>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                  <!-- KABAR -->
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition border border-white/10" title="KABAR: Kalkulator Asuransi Kebakaran">
+                    <div class="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center shrink-0 shadow-sm">
+                      <i data-lucide="flame" class="w-4 h-4 text-white"></i>
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1">
+                        <span class="font-bold text-amber-300 text-xs">KABAR</span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400" title="Aktif"></span>
+                      </div>
+                      <span class="text-[10px] text-slate-200 block truncate">Kalkulator Kebakaran</span>
+                    </div>
                   </div>
-                  <div class="min-w-0">
-                    <span class="font-bold text-cyan-300">TTK</span>
-                    <span class="text-[11px] text-slate-200 block truncate">Tanya-Tanya KUR</span>
-                  </div>
-                </div>
 
-                <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition text-xs">
-                  <div class="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center shrink-0">
-                    <i data-lucide="file-text" class="w-4 h-4 text-white"></i>
+                  <!-- TTK -->
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition border border-white/10" title="TTK: Tanya-Tanya KUR">
+                    <div class="w-7 h-7 rounded-lg bg-blue-500 flex items-center justify-center shrink-0 shadow-sm">
+                      <i data-lucide="help-circle" class="w-4 h-4 text-white"></i>
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1">
+                        <span class="font-bold text-cyan-300 text-xs">TTK</span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400" title="Aktif"></span>
+                      </div>
+                      <span class="text-[10px] text-slate-200 block truncate">Tanya-Tanya KUR</span>
+                    </div>
                   </div>
-                  <div class="min-w-0">
-                    <span class="font-bold text-emerald-300">BUSET</span>
-                    <span class="text-[11px] text-slate-200 block truncate">Buat SPPA Elektronik Terpadu</span>
-                  </div>
-                </div>
 
-                <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition text-xs">
-                  <div class="w-7 h-7 rounded-lg bg-cyan-500 flex items-center justify-center shrink-0">
-                    <i data-lucide="file-check-2" class="w-4 h-4 text-white"></i>
+                  <!-- BUSET -->
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition border border-white/10" title="BUSET: Buat SPPA Elektronik Terpadu">
+                    <div class="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center shrink-0 shadow-sm">
+                      <i data-lucide="file-text" class="w-4 h-4 text-white"></i>
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1">
+                        <span class="font-bold text-emerald-300 text-xs">BUSET</span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400" title="Aktif"></span>
+                      </div>
+                      <span class="text-[10px] text-slate-200 block truncate">Buat SPPA Terpadu</span>
+                    </div>
                   </div>
-                  <div class="min-w-0">
-                    <span class="font-bold text-cyan-300">CEPAT</span>
-                    <span class="text-[11px] text-slate-200 block truncate">Cover Note Pertanggungan Asuransi Terintegrasi</span>
-                  </div>
-                </div>
 
-                <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition text-xs">
-                  <div class="w-7 h-7 rounded-lg bg-purple-500 flex items-center justify-center shrink-0">
-                    <i data-lucide="calculator" class="w-4 h-4 text-white"></i>
+                  <!-- CEPAT -->
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition border border-white/10" title="CEPAT: Cover Note Pertanggungan Asuransi Terintegrasi">
+                    <div class="w-7 h-7 rounded-lg bg-cyan-500 flex items-center justify-center shrink-0 shadow-sm">
+                      <i data-lucide="file-check-2" class="w-4 h-4 text-white"></i>
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1">
+                        <span class="font-bold text-cyan-300 text-xs">CEPAT</span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400" title="Aktif"></span>
+                      </div>
+                      <span class="text-[10px] text-slate-200 block truncate">Cover Note Asuransi</span>
+                    </div>
                   </div>
-                  <div class="min-w-0">
-                    <span class="font-bold text-purple-300">PELAKU</span>
-                    <span class="text-[11px] text-slate-200 block truncate">Perhitungan Laporan Keuangan</span>
+
+                  <!-- PELAKU -->
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition border border-white/10" title="PELAKU: Perhitungan Laporan Keuangan">
+                    <div class="w-7 h-7 rounded-lg bg-purple-500 flex items-center justify-center shrink-0 shadow-sm">
+                      <i data-lucide="calculator" class="w-4 h-4 text-white"></i>
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1">
+                        <span class="font-bold text-purple-300 text-xs">PELAKU</span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400" title="Aktif"></span>
+                      </div>
+                      <span class="text-[10px] text-slate-200 block truncate">Laporan Keuangan</span>
+                    </div>
+                  </div>
+
+                  <!-- COMING SOON: SURETY -->
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-dashed border-white/25 hover:bg-white/10 transition group" title="SURETY: Suretyship & Penjaminan Proyek (Segera Hadir)">
+                    <div class="w-7 h-7 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+                      <i data-lucide="sparkles" class="w-4 h-4 text-amber-300 group-hover:scale-110 transition-transform"></i>
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1.5">
+                        <span class="font-bold text-slate-300 text-xs">SURETY</span>
+                        <span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">Segera</span>
+                      </div>
+                      <span class="text-[10px] text-slate-400 block truncate">Suretyship & KBG</span>
+                    </div>
                   </div>
                 </div>
               </div>
