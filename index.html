@@ -58,8 +58,13 @@
     </div>
   </div>
 
-  <!-- Supabase Cloud Client SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Supabase Cloud Client SDK (Local & Offline-Ready with Fallback) -->
+  <script src="assets/js/vendor/supabase.js"></script>
+  <script>
+    if (!window.supabase) {
+      document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>');
+    }
+  </script>
 
   <!-- Application Modules & Logic -->
   <script src="assets/js/db.js"></script>
