@@ -14,6 +14,7 @@ const DB_KEYS = {
   USERS: 'askrindo_satu_users_v1',
   SESSION: 'askrindo_satu_session_v1',
   SPPA: 'askrindo_satu_sppa_v1',
+  COVER_NOTES: 'askrindo_satu_cover_notes_v1',
   KABAR: 'askrindo_satu_kabar_v1',
   PELAKU: 'askrindo_satu_pelaku_v1',
   AUDIT: 'askrindo_satu_audit_v1',
@@ -32,7 +33,7 @@ const INITIAL_USERS = [
     division: 'Divisi Teknologi Informasi & Digitalisasi',
     branch: 'Kantor Pusat - Jakarta',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
-    allowedApps: ['kabar', 'ttk', 'bus', 'pelaku', 'admin'],
+    allowedApps: ['kabar', 'ttk', 'bus', 'pelaku', 'cepat', 'admin'],
     status: 'active',
     createdAt: '2026-01-10T08:00:00Z',
     lastLogin: '2026-11-12T09:30:00Z'
@@ -47,7 +48,7 @@ const INITIAL_USERS = [
     division: 'Divisi Underwriting & Penjaminan Non-Bank',
     branch: 'Kantor Cabang Utama Jakarta Gambir',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80',
-    allowedApps: ['kabar', 'bus', 'pelaku'],
+    allowedApps: ['kabar', 'bus', 'pelaku', 'cepat'],
     status: 'active',
     createdAt: '2026-02-15T09:00:00Z',
     lastLogin: '2026-11-12T08:15:00Z'
@@ -77,7 +78,7 @@ const INITIAL_USERS = [
     division: 'Divisi Pemasaran Korporasi & Broker',
     branch: 'Kantor Cabang Medan',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&q=80',
-    allowedApps: ['kabar', 'bus'],
+    allowedApps: ['kabar', 'bus', 'cepat'],
     status: 'active',
     createdAt: '2026-05-12T11:00:00Z',
     lastLogin: '2026-11-10T14:20:00Z'
@@ -157,6 +158,64 @@ const INITIAL_SPPA = [
     status: 'Pending Submission',
     registeredBy: 'Dian Permana, S.Kom.',
     branch: 'Kantor Cabang Utama Jakarta Gambir'
+  }
+];
+
+// Seed Cover Notes (CEPAT - Cover Note Pertanggungan Asuransi Terintegrasi)
+const INITIAL_COVER_NOTES = [
+  {
+    id: 'CN-2026-001',
+    coverNoteNo: 'CN/ASK-JKT/2026/11/0142',
+    issuedDate: '2026-11-10',
+    validUntil: '2026-12-10',
+    validDays: 30,
+    insuredType: 'Badan Usaha (PT)',
+    insuredName: 'PT Nusantara Megah Mandiri',
+    nikNpwp: '01.345.678.9-012.000',
+    phone: '021-52901234',
+    email: 'finance@nusantaramegah.co.id',
+    address: 'Kawasan Industri Pulogadung Blok B No. 12, Jakarta Timur',
+    bankName: 'PT Bank Mandiri (Persero) Tbk',
+    bankBranch: 'Cabang Jakarta Thamrin',
+    creditRefNo: 'PK-MDR/KORP/2026/0889',
+    productType: 'Asuransi Kebakaran & Property All Risks (FLEXAS)',
+    riskObjectDescription: 'Bangunan Gudang & Fasilitas Pabrik Beserta Mesin Produksi',
+    riskLocation: 'Jl. Rawa Terate II No. 8, Kawasan Industri Pulogadung, Jakarta Timur',
+    totalTsi: 25000000000,
+    estimatedPremium: 38750000,
+    deductible: '10% of Claim, Min. Rp 25.000.000',
+    specialClauses: 'Banker\'s Clause QQ PT Bank Mandiri (Persero) Tbk, RSMDCC 4.1A, Earthquake EQVET, Flood TSFWD',
+    status: 'Aktif',
+    notes: 'Diterbitkan untuk pemenuhan klausula pencairan fasilitas KMK Bank Mandiri.',
+    registeredBy: 'Ahmad Faisal, S.E., M.M.',
+    branch: 'Kantor Cabang Khusus Jakarta'
+  },
+  {
+    id: 'CN-2026-002',
+    coverNoteNo: 'CN/ASK-SBY/2026/11/0088',
+    issuedDate: '2026-11-08',
+    validUntil: '2026-12-08',
+    validDays: 30,
+    insuredType: 'Badan Usaha (CV)',
+    insuredName: 'CV Sumber Logistik Abadi',
+    nikNpwp: '02.987.654.3-604.000',
+    phone: '031-8491234',
+    email: 'admin@sumberlogistik.co.id',
+    address: 'Jl. Rungkut Industri III No. 45, Surabaya',
+    bankName: 'PT Bank Rakyat Indonesia (Persero) Tbk',
+    bankBranch: 'Cabang Surabaya Kertajaya',
+    creditRefNo: 'BRI-KMY/SUB/2026/0411',
+    productType: 'Asuransi Kendaraan Bermotor (Comprehensive)',
+    riskObjectDescription: '12 Unit Truk Hino Ranger Wingbox Tahun 2024-2025',
+    riskLocation: 'Jawa - Bali (Lintas Wilayah Operasional)',
+    totalTsi: 7200000000,
+    estimatedPremium: 86400000,
+    deductible: 'Rp 500.000 per kejadian',
+    specialClauses: 'Banker\'s Clause QQ PT Bank Rakyat Indonesia (Persero) Tbk, TJH Pihak Ketiga Rp 50.000.000',
+    status: 'Aktif',
+    notes: 'Jaminan penutupan armada ekspedisi pembiayaan investasi BRI.',
+    registeredBy: 'Budi Santoso, AAIJ',
+    branch: 'Kantor Cabang Surabaya'
   }
 ];
 
@@ -240,6 +299,18 @@ const SUB_APPS_CATALOG = {
     route: '#/pelaku',
     description: 'Analisis rasio keuangan calon nasabah (Likuiditas, Solvabilitas DER/DAR, Profitabilitas ROA/ROE/NPM) serta penilaian scoring otomatis untuk kelayakan penjaminan.',
     features: ['Input Neraca & Laba Rugi', 'Analisis 9+ Rasio Finansial Utama', 'Scoring Kelayakan & Rekomendasi Underwriting', 'Lembar Ringkasan Analisis Cetak']
+  },
+  cepat: {
+    id: 'cepat',
+    name: 'CEPAT',
+    tagline: 'Cover Note Pertanggungan Asuransi Terintegrasi',
+    badge: 'Penerbitan Nota Sementara',
+    category: 'Underwriting & Perbankan',
+    color: 'cyan',
+    icon: 'file-check-2',
+    route: '#/cepat',
+    description: 'Pembuatan Cover Note (Nota Penutupan Asuransi Sementara) asuransi umum secara cepat, otomatis berstempel digital, Banker\'s Clause QQ Bank, dan QR code resmi untuk kebutuhan kredit perbankan atau proyek mendesak.',
+    features: ['Penerbitan Cover Note Kilat', 'Format Standar Perbankan (Banker\'s Clause)', 'Pratinjau & Cetak PDF Berstempel', 'Arsip & Konversi ke SPPA Definitif']
   }
 };
 
@@ -255,9 +326,31 @@ class AskrindoDB {
     // 1. Inisialisasi Cache Lokal jika kosong
     if (!localStorage.getItem(DB_KEYS.USERS)) {
       localStorage.setItem(DB_KEYS.USERS, JSON.stringify(INITIAL_USERS));
+    } else {
+      // Auto-migrate: Pastikan modul 'cepat' tersedia bagi admin/underwriter
+      try {
+        const users = JSON.parse(localStorage.getItem(DB_KEYS.USERS)) || [];
+        users.forEach(u => {
+          if ((u.id === 'USR-001' || u.id === 'USR-002' || u.id === 'USR-004' || u.role === 'Super Administrator') && !u.allowedApps.includes('cepat')) {
+            u.allowedApps.push('cepat');
+          }
+        });
+        localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
+
+        // Update active session if logged in
+        const sess = this.getCurrentSession();
+        if (sess && (sess.id === 'USR-001' || sess.id === 'USR-002' || sess.id === 'USR-004' || sess.role === 'Super Administrator') && !sess.allowedApps.includes('cepat')) {
+          sess.allowedApps.push('cepat');
+          this.setSession(sess);
+        }
+      } catch (e) {}
     }
+
     if (!localStorage.getItem(DB_KEYS.SPPA)) {
       localStorage.setItem(DB_KEYS.SPPA, JSON.stringify(INITIAL_SPPA));
+    }
+    if (!localStorage.getItem(DB_KEYS.COVER_NOTES)) {
+      localStorage.setItem(DB_KEYS.COVER_NOTES, JSON.stringify(INITIAL_COVER_NOTES));
     }
     if (!localStorage.getItem(DB_KEYS.AUDIT)) {
       localStorage.setItem(DB_KEYS.AUDIT, JSON.stringify(INITIAL_AUDIT));
@@ -570,6 +663,47 @@ class AskrindoDB {
     }
 
     return sppaData;
+  }
+
+  // --- Cover Notes (CEPAT) Management ---
+  getCoverNotes() {
+    try {
+      return JSON.parse(localStorage.getItem(DB_KEYS.COVER_NOTES)) || [];
+    } catch (e) {
+      return INITIAL_COVER_NOTES;
+    }
+  }
+
+  getCoverNote(id) {
+    const list = this.getCoverNotes();
+    return list.find(cn => cn.id === id);
+  }
+
+  saveCoverNote(cnData) {
+    const list = this.getCoverNotes();
+    if (!cnData.id) {
+      const year = new Date().getFullYear();
+      const count = list.length + 1;
+      cnData.id = `CN-${year}-${String(count).padStart(3, '0')}`;
+      cnData.issuedDate = cnData.issuedDate || new Date().toISOString().split('T')[0];
+      list.unshift(cnData);
+    } else {
+      const index = list.findIndex(c => c.id === cnData.id);
+      if (index !== -1) {
+        list[index] = { ...list[index], ...cnData };
+      } else {
+        list.unshift(cnData);
+      }
+    }
+    localStorage.setItem(DB_KEYS.COVER_NOTES, JSON.stringify(list));
+    return cnData;
+  }
+
+  deleteCoverNote(id) {
+    let list = this.getCoverNotes();
+    list = list.filter(c => c.id !== id);
+    localStorage.setItem(DB_KEYS.COVER_NOTES, JSON.stringify(list));
+    return true;
   }
 
   // --- Audit Logs ---

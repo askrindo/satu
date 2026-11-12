@@ -173,6 +173,18 @@ class AskrindoApp {
                     ${!window.authService.hasAccess('bus') ? `<i data-lucide="lock" class="w-3 h-3 text-slate-300"></i>` : ''}
                   </a>
 
+                  <!-- CEPAT -->
+                  <a href="#/cepat" id="nav-cepat" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-cyan-600 hover:bg-cyan-50">
+                    <div class="flex items-center gap-3">
+                      <i data-lucide="file-check-2" class="w-4 h-4 text-cyan-500"></i>
+                      <div class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
+                        <span class="font-bold">CEPAT</span>
+                        <span class="text-[10px] block font-normal text-slate-400">Cover Note Asuransi</span>
+                      </div>
+                    </div>
+                    ${!window.authService.hasAccess('cepat') ? `<i data-lucide="lock" class="w-3 h-3 text-slate-300"></i>` : ''}
+                  </a>
+
                   <!-- PELAKU -->
                   <a href="#/pelaku" id="nav-pelaku" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-purple-600 hover:bg-purple-50">
                     <div class="flex items-center gap-3">
@@ -359,6 +371,7 @@ class AskrindoApp {
       { id: 'nav-kabar', hash: '#/kabar', title: 'KABAR (Kalkulator Asuransi Kebakaran)' },
       { id: 'nav-ttk', hash: '#/ttk', title: 'TTK (Tanya-Tanya KUR)' },
       { id: 'nav-bus', hash: '#/buset', title: 'BUSET (Buat SPPA Elektronik Terpadu)' },
+      { id: 'nav-cepat', hash: '#/cepat', title: 'CEPAT (Cover Note Pertanggungan Asuransi Terintegrasi)' },
       { id: 'nav-pelaku', hash: '#/pelaku', title: 'PELAKU (Perhitungan Laporan Keuangan)' },
       { id: 'nav-admin', hash: '#/admin', title: 'Web Admin Portal' }
     ];
@@ -395,6 +408,8 @@ class AskrindoApp {
       if (window.TtkModule.currentTab === 'calc') window.TtkModule.calcInstallment();
     } else if (route.startsWith('#/bus') || route.startsWith('#/buset')) {
       main.innerHTML = window.BusModule.render();
+    } else if (route.startsWith('#/cepat')) {
+      main.innerHTML = window.CepatModule.render();
     } else if (route.startsWith('#/pelaku')) {
       main.innerHTML = window.PelakuModule.render();
       window.PelakuModule.calculateRatios();
@@ -438,7 +453,7 @@ class AskrindoApp {
                   Satu Pintu Untuk Seluruh Kebutuhan Operasional
                 </h2>
                 <p class="text-xs text-slate-300 mt-2 leading-relaxed">
-                  Platform tunggal terintegrasi bagi insan Askrindo dalam memproses kalkulasi tarif kebakaran, penjaminan KUR, penerbitan SPPA, dan analisis laporan keuangan.
+                  Platform tunggal terintegrasi bagi insan Askrindo dalam memproses kalkulasi tarif kebakaran, penjaminan KUR, penerbitan SPPA, cover note penutupan sementara, dan analisis laporan keuangan.
                 </p>
               </div>
 
@@ -471,6 +486,16 @@ class AskrindoApp {
                   <div class="min-w-0">
                     <span class="font-bold text-emerald-300">BUSET</span>
                     <span class="text-[11px] text-slate-200 block truncate">Buat SPPA Elektronik Terpadu</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition text-xs">
+                  <div class="w-7 h-7 rounded-lg bg-cyan-500 flex items-center justify-center shrink-0">
+                    <i data-lucide="file-check-2" class="w-4 h-4 text-white"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <span class="font-bold text-cyan-300">CEPAT</span>
+                    <span class="text-[11px] text-slate-200 block truncate">Cover Note Asuransi Terintegrasi</span>
                   </div>
                 </div>
 
@@ -601,7 +626,7 @@ class AskrindoApp {
               type="text" 
               id="cmd-input" 
               autofocus 
-              placeholder="Ketik nama aplikasi (KABAR, TTK, BUSET, PELAKU) atau aksi..." 
+              placeholder="Ketik nama aplikasi (KABAR, TTK, BUSET, CEPAT, PELAKU) atau aksi..." 
               oninput="window.askrindoApp.filterCommandPalette(this.value)"
               class="w-full text-sm font-medium focus:outline-none bg-transparent"
             />
@@ -634,6 +659,16 @@ class AskrindoApp {
                 <i data-lucide="file-text" class="w-4 h-4 text-emerald-500"></i>
                 <div>
                   <span class="font-bold">BUSET</span> — Buat SPPA Elektronik Terpadu & Cetak Dokumen Polis
+                </div>
+              </div>
+              <span class="text-[10px] text-slate-400">Buka Modul &rarr;</span>
+            </a>
+
+            <a href="#/cepat" onclick="window.askrindoApp.closeAllModals()" class="flex items-center justify-between p-3 rounded-xl hover:bg-cyan-50 text-slate-800 transition">
+              <div class="flex items-center gap-3">
+                <i data-lucide="file-check-2" class="w-4 h-4 text-cyan-500"></i>
+                <div>
+                  <span class="font-bold">CEPAT</span> — Cover Note Pertanggungan Asuransi Terintegrasi
                 </div>
               </div>
               <span class="text-[10px] text-slate-400">Buka Modul &rarr;</span>

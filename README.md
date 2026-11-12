@@ -40,7 +40,14 @@ Aplikasi ini mengadopsi arsitektur modular di mana seluruh sub-aplikasi berada d
    - Halaman *preview* dokumen resmi berstandar Askrindo lengkap dengan Kop Surat, Nomor Registrasi SPPA unik, stempel digital, dan tombol cetak/unduh PDF.
    - Basis data arsip riwayat SPPA yang telah diterbitkan.
 
-6. **📊 PELAKU (Perhitungan Laporan Keuangan) (`#/pelaku`)**:
+6. **⚡ CEPAT (Cover Note Pertanggungan Asuransi Terintegrasi) (`#/cepat`)**:
+   - Generator Cover Note (Nota Penutupan Asuransi Sementara) asuransi umum kilat dan mudah.
+   - Dibuat khusus untuk kebutuhan mendesak penjaminan kredit perbankan (*Banker's Clause QQ Bank Mandiri, BRI, BNI, BTN, BSI, BPD, dll.*) sebelum polis definitif terbit.
+   - *Wizard* penerbitan kilat 4 langkah: Data Tertanggung & Bank Rekanan, Objek Risiko & Kalkulator Masa Berlaku (14, 30, 60, 90 hari), Klausula Banker's Clause & Pejabat Berwenang, serta Pratinjau Dokumen.
+   - Dokumen formal berstandar Askrindo lengkap dengan Kop Surat resmi, Nomor Registrasi Cover Note unik (`CN/ASK-.../2026/11/...`), stempel digital resmi Askrindo, QR code verifikasi keabsahan, dan tombol cetak/unduh PDF.
+   - Fitur Arsip & Riwayat Cover Note terbit, serta tombol 1-klik konversi Cover Note langsung ke formulir SPPA modul BUSET untuk penerbitan Polis Definitif.
+
+7. **📊 PELAKU (Perhitungan Laporan Keuangan) (`#/pelaku`)**:
    - Modul analisis rasio keuangan calon debitur atau rekanan penjaminan.
    - Input komponen Neraca (Aset Lancar, Kas, Piutang, Persediaan, Aset Tetap, Kewajiban Lancar, Hutang Bank, Ekuitas) dan Laba Rugi (Omset, HPP, Laba Bersih).
    - Perhitungan rasio otomatis:
@@ -89,10 +96,10 @@ Untuk memudahkan pengujian fungsionalitas dan matriks hak akses, Anda dapat meng
 
 | Nama Pengguna | NIP / Email | Peran (Role) | Akses Sub-Aplikasi |
 | :--- | :--- | :--- | :--- |
-| **Ahmad Faisal, S.E.** | `19850101` / `admin.satu@askrindo.co.id` | **Super Administrator** | Akses Penuh: KABAR, TTK, BUSET, PELAKU, Web Admin |
-| **Budi Santoso, AAIJ** | `19900315` / `budi.santoso@askrindo.co.id` | **Senior Underwriter** | KABAR, BUSET, PELAKU |
+| **Ahmad Faisal, S.E.** | `19850101` / `admin.satu@askrindo.co.id` | **Super Administrator** | Akses Penuh: KABAR, TTK, BUSET, CEPAT, PELAKU, Web Admin |
+| **Budi Santoso, AAIJ** | `19900315` / `budi.santoso@askrindo.co.id` | **Senior Underwriter** | KABAR, BUSET, CEPAT, PELAKU |
 | **Siti Rahmawati, S.E.** | `19940722` / `siti.rahma@askrindo.co.id` | **Account Officer KUR** | TTK, PELAKU |
-| **Dian Permana, S.Kom.** | `19971105` / `dian.permana@askrindo.co.id` | **Marketing Officer** | KABAR, BUSET |
+| **Dian Permana, S.Kom.** | `19971105` / `dian.permana@askrindo.co.id` | **Marketing Officer** | KABAR, BUSET, CEPAT |
 | **Rizky Pratama** | `20010910` / `rizky.pratama@askrindo.co.id` | **Staff Operasional** | KABAR Saja (Aplikasi lain terkunci) |
 
 > **Uji Coba Hak Akses Terbatas**: Masuklah sebagai akun *Rizky Pratama*, kemudian coba buka modul PELAKU atau Web Admin. Anda akan melihat layar proteksi *Akses Terbatas* yang dinamis dengan opsi mengajukan izin ke Administrator.
@@ -123,7 +130,8 @@ G:\My Drive\Personal\Project\ASKRINDO SATU\
     │       ├── admin.js            # Modul Web Admin (kelola user & matriks hak akses)
     │       ├── kabar.js            # Modul Kalkulator Asuransi Kebakaran OJK
     │       ├── ttk.js              # Modul Tanya-Tanya KUR & cek kelayakan debitur
-    │       ├── bus.js              # Modul Buat SPPA & cetak dokumen penutupan
+    │       ├── bus.js              # Modul BUSET (Buat SPPA Elektronik Terpadu)
+│       ├── cepat.js            # Modul CEPAT (Cover Note Pertanggungan Asuransi Terintegrasi)
     │       └── pelaku.js           # Modul Perhitungan Laporan Keuangan & rasio
     └── images\                     # Aset logo resmi Askrindo SATU
         ├── logo-corporate.png

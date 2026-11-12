@@ -65,12 +65,43 @@ CREATE TABLE IF NOT EXISTS public.system_settings (
     updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW())
 );
 
+-- 5. TABEL COVER NOTE ASURANSI SEMENTARA (cover_notes)
+CREATE TABLE IF NOT EXISTS public.cover_notes (
+    id TEXT PRIMARY KEY,
+    cover_note_no TEXT UNIQUE NOT NULL,
+    issued_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    valid_until DATE NOT NULL,
+    valid_days INT NOT NULL DEFAULT 30,
+    insured_type TEXT NOT NULL,
+    insured_name TEXT NOT NULL,
+    nik_npwp TEXT,
+    phone TEXT,
+    email TEXT,
+    address TEXT,
+    bank_name TEXT NOT NULL,
+    bank_branch TEXT,
+    credit_ref_no TEXT,
+    product_type TEXT NOT NULL,
+    risk_object_description TEXT,
+    risk_location TEXT,
+    total_tsi NUMERIC NOT NULL DEFAULT 0,
+    estimated_premium NUMERIC NOT NULL DEFAULT 0,
+    deductible TEXT,
+    special_clauses TEXT,
+    status TEXT NOT NULL DEFAULT 'Aktif',
+    notes TEXT,
+    registered_by TEXT,
+    branch TEXT,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
 -- ========================================================
 -- KEAMANAN: Row Level Security (RLS) & Akses Anon/Public
 -- Mengizinkan aplikasi web Askrindo SATU membaca dan menulis data
 -- ========================================================
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sppa_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.cover_notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.system_settings ENABLE ROW LEVEL SECURITY;
 
@@ -80,6 +111,9 @@ CREATE POLICY "Allow public all access on users" ON public.users FOR ALL USING (
 
 DROP POLICY IF EXISTS "Allow public all access on sppa_records" ON public.sppa_records;
 CREATE POLICY "Allow public all access on sppa_records" ON public.sppa_records FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public all access on cover_notes" ON public.cover_notes;
+CREATE POLICY "Allow public all access on cover_notes" ON public.cover_notes FOR ALL USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Allow public all access on audit_logs" ON public.audit_logs;
 CREATE POLICY "Allow public all access on audit_logs" ON public.audit_logs FOR ALL USING (true) WITH CHECK (true);
@@ -92,10 +126,10 @@ CREATE POLICY "Allow public all access on system_settings" ON public.system_sett
 -- ========================================================
 INSERT INTO public.users (id, nip, name, email, password, role, division, branch, avatar, allowed_apps, status)
 VALUES
-('USR-001', '19850101', 'Ahmad Faisal, S.E., M.M.', 'admin.satu@askrindo.co.id', 'password123', 'Super Administrator', 'Divisi Teknologi Informasi & Digitalisasi', 'Kantor Pusat - Jakarta', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80', ARRAY['kabar', 'ttk', 'bus', 'pelaku', 'admin'], 'active'),
-('USR-002', '19900315', 'Budi Santoso, AAIJ', 'budi.santoso@askrindo.co.id', 'password123', 'Senior Underwriter', 'Divisi Underwriting & Penjaminan Non-Bank', 'Kantor Cabang Utama Jakarta Gambir', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80', ARRAY['kabar', 'bus', 'pelaku'], 'active'),
+('USR-001', '19850101', 'Ahmad Faisal, S.E., M.M.', 'admin.satu@askrindo.co.id', 'password123', 'Super Administrator', 'Divisi Teknologi Informasi & Digitalisasi', 'Kantor Pusat - Jakarta', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80', ARRAY['kabar', 'ttk', 'bus', 'pelaku', 'cepat', 'admin'], 'active'),
+('USR-002', '19900315', 'Budi Santoso, AAIJ', 'budi.santoso@askrindo.co.id', 'password123', 'Senior Underwriter', 'Divisi Underwriting & Penjaminan Non-Bank', 'Kantor Cabang Utama Jakarta Gambir', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80', ARRAY['kabar', 'bus', 'pelaku', 'cepat'], 'active'),
 ('USR-003', '19940722', 'Siti Rahmawati, S.E.', 'siti.rahma@askrindo.co.id', 'password123', 'Account Officer KUR & UMKM', 'Divisi Penjaminan Perbankan & Program KUR', 'Kantor Cabang Surabaya', 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=256&q=80', ARRAY['ttk', 'pelaku'], 'active'),
-('USR-004', '19971105', 'Dian Permana, S.Kom.', 'dian.permana@askrindo.co.id', 'password123', 'Marketing & Relationship Officer', 'Divisi Pemasaran Korporasi & Broker', 'Kantor Cabang Medan', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&q=80', ARRAY['kabar', 'bus'], 'active'),
+('USR-004', '19971105', 'Dian Permana, S.Kom.', 'dian.permana@askrindo.co.id', 'password123', 'Marketing & Relationship Officer', 'Divisi Pemasaran Korporasi & Broker', 'Kantor Cabang Medan', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&q=80', ARRAY['kabar', 'bus', 'cepat'], 'active'),
 ('USR-005', '20010910', 'Rizky Pratama', 'rizky.pratama@askrindo.co.id', 'password123', 'Staff Operasional (Junior)', 'Divisi Pelayanan & Operasional Cabang', 'Kantor Cabang Bandung', 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=256&q=80', ARRAY['kabar'], 'active')
 ON CONFLICT (id) DO NOTHING;
 

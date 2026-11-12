@@ -48,7 +48,7 @@ window.AdminModule = {
                 </span>
               </div>
               <p class="text-xs text-slate-500 mt-0.5">
-                Kelola master pengguna, konfigurasi hak akses sub-aplikasi (KABAR, TTK, BUSET, PELAKU), dan pantau audit trail operasional.
+                Kelola master pengguna, konfigurasi hak akses sub-aplikasi (KABAR, TTK, BUSET, CEPAT, PELAKU), dan pantau audit trail operasional.
               </p>
             </div>
           </div>
@@ -234,6 +234,7 @@ window.AdminModule = {
                           kabar: 'bg-orange-100 text-orange-800 border-orange-200',
                           ttk: 'bg-blue-100 text-blue-800 border-blue-200',
                           bus: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+                          cepat: 'bg-cyan-100 text-cyan-800 border-cyan-200',
                           pelaku: 'bg-purple-100 text-purple-800 border-purple-200',
                           admin: 'bg-amber-100 text-amber-800 border-amber-200'
                         };
@@ -280,6 +281,7 @@ window.AdminModule = {
       { id: 'kabar', name: 'KABAR', label: 'Asuransi Kebakaran', color: 'text-orange-600' },
       { id: 'ttk', name: 'TTK', label: 'Tanya-Tanya KUR', color: 'text-blue-600' },
       { id: 'bus', name: 'BUSET', label: 'Buat SPPA Elektronik', color: 'text-emerald-600' },
+      { id: 'cepat', name: 'CEPAT', label: 'Cover Note Asuransi', color: 'text-cyan-600' },
       { id: 'pelaku', name: 'PELAKU', label: 'Laporan Keuangan', color: 'text-purple-600' },
       { id: 'admin', name: 'ADMIN', label: 'Web Admin Portal', color: 'text-amber-600' }
     ];
@@ -642,6 +644,11 @@ window.AdminModule = {
                   <span class="text-slate-500 text-[11px]">— Buat SPPA Elektronik Terpadu (Surat Permohonan Penutupan Asuransi)</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="perm-cepat" value="cepat" ${allowedApps.includes('cepat') ? 'checked' : ''} class="w-4 h-4 text-cyan-600 rounded" />
+                  <span class="font-semibold text-slate-800">CEPAT</span>
+                  <span class="text-slate-500 text-[11px]">— Cover Note Pertanggungan Asuransi Terintegrasi</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" id="perm-pelaku" value="pelaku" ${allowedApps.includes('pelaku') ? 'checked' : ''} class="w-4 h-4 text-purple-600 rounded" />
                   <span class="font-semibold text-slate-800">PELAKU</span>
                   <span class="text-slate-500 text-[11px]">— Perhitungan Laporan Keuangan</span>
@@ -683,6 +690,7 @@ window.AdminModule = {
     if (document.getElementById('perm-kabar').checked) allowedApps.push('kabar');
     if (document.getElementById('perm-ttk').checked) allowedApps.push('ttk');
     if (document.getElementById('perm-bus').checked) allowedApps.push('bus');
+    if (document.getElementById('perm-cepat').checked) allowedApps.push('cepat');
     if (document.getElementById('perm-pelaku').checked) allowedApps.push('pelaku');
     if (document.getElementById('perm-admin').checked) allowedApps.push('admin');
 

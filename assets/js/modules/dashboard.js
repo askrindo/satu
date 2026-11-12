@@ -44,6 +44,13 @@ window.DashboardModule = {
           btnBg: 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white',
           borderAccent: 'border-l-4 border-l-emerald-600'
         },
+        cyan: {
+          bg: 'hover:border-cyan-500/80 group-hover:text-cyan-600',
+          badgeBg: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+          iconBg: 'bg-gradient-to-tr from-cyan-600 to-teal-500 text-white',
+          btnBg: 'bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white',
+          borderAccent: 'border-l-4 border-l-cyan-600'
+        },
         purple: {
           bg: 'hover:border-purple-500/80 group-hover:text-purple-600',
           badgeBg: 'bg-purple-50 text-purple-700 border-purple-200',
@@ -169,17 +176,21 @@ window.DashboardModule = {
                   <i data-lucide="flame" class="w-4 h-4 text-orange-400"></i>
                   <span>Hitung KABAR</span>
                 </a>
-                <a href="#/bus" class="flex items-center gap-2 p-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition-colors">
+                <a href="#/buset" class="flex items-center gap-2 p-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition-colors">
                   <i data-lucide="file-plus" class="w-4 h-4 text-emerald-400"></i>
-                  <span>Buat SPPA Baru</span>
+                  <span>Buat BUSET</span>
+                </a>
+                <a href="#/cepat" class="flex items-center gap-2 p-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition-colors">
+                  <i data-lucide="file-check-2" class="w-4 h-4 text-cyan-400"></i>
+                  <span>Cover Note CEPAT</span>
                 </a>
                 <a href="#/ttk" class="flex items-center gap-2 p-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition-colors">
                   <i data-lucide="help-circle" class="w-4 h-4 text-blue-400"></i>
                   <span>Tanya KUR (TTK)</span>
                 </a>
-                <a href="#/pelaku" class="flex items-center gap-2 p-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition-colors">
+                <a href="#/pelaku" class="col-span-2 flex items-center justify-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors">
                   <i data-lucide="trending-up" class="w-4 h-4 text-purple-400"></i>
-                  <span>Analisis PELAKU</span>
+                  <span>Analisis Finansial PELAKU</span>
                 </a>
               </div>
             </div>
@@ -219,9 +230,9 @@ window.DashboardModule = {
           <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
             <div class="space-y-1">
               <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Katalog Aplikasi</p>
-              <h4 class="text-2xl font-bold text-slate-800">4 <span class="text-xs font-normal text-slate-400">Modul Kerja</span></h4>
+              <h4 class="text-2xl font-bold text-slate-800">5 <span class="text-xs font-normal text-slate-400">Modul Kerja</span></h4>
               <p class="text-[11px] text-orange-600 font-medium flex items-center gap-1">
-                <i data-lucide="layers" class="w-3 h-3"></i> KABAR, TTK, BUSET, PELAKU
+                <i data-lucide="layers" class="w-3 h-3"></i> KABAR, TTK, BUSET, CEPAT, PELAKU
               </p>
             </div>
             <div class="w-12 h-12 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
@@ -254,15 +265,16 @@ window.DashboardModule = {
               <p class="text-xs text-slate-500 mt-0.5">Pilih aplikasi kerja terpadu di bawah untuk langsung menuju modul kerja.</p>
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-xs font-medium text-slate-400">Menampilkan 4 Aplikasi Aktif</span>
+              <span class="text-xs font-medium text-slate-400">Menampilkan 5 Aplikasi Aktif</span>
             </div>
           </div>
 
           <!-- Application Cards Grid -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             ${renderAppCard('kabar')}
             ${renderAppCard('ttk')}
             ${renderAppCard('bus')}
+            ${renderAppCard('cepat')}
             ${renderAppCard('pelaku')}
           </div>
         </div>
