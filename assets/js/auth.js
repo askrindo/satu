@@ -66,6 +66,29 @@ class AuthService {
     return { success: false, message: 'Pengguna demo tidak ditemukan.' };
   }
 
+  changePassword(oldPassword, newPassword) {
+    if (!this.currentUser) {
+      return { success: false, message: 'Sesi pengguna tidak valid.' };
+    }
+    const currentPass = this.currentUser.password || 'password123';
+    if (currentPass !== oldPassword) {
+      return { success: false, message: 'Kata sandi saat ini tidak cocok. Silakan periksa kembali.' };
+    }
+    if (!newPassword || newPassword.length < 6) {
+      return { success: false, message: 'Kata sandi baru minimal 6 karakter.' };
+    }
+    if (newPassword === oldPassword) {
+      return { success: false, message: 'Kata sandi baru tidak boleh sama dengan kata sandi lama.' };
+    }
+
+    this.currentUser.password = newPassword;
+    window.askrindoDB.saveUser(this.currentUser);
+    window.askrindoDB.setSession(this.currentUser);
+    window.askrindoDB.logActivity('AUTH', 'Ubah Password', `Pengguna ${this.currentUser.name} (NIP ${this.currentUser.nip}) berhasil memperbarui kata sandi.`, this.currentUser);
+
+    return { success: true, message: 'Kata sandi berhasil diperbarui!' };
+  }
+
   logout() {
     if (this.currentUser) {
       window.askrindoDB.logActivity('AUTH', 'User Logout', `Pengguna ${this.currentUser.name} keluar dari portal Askrindo SATU.`, this.currentUser);

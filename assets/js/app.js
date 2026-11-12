@@ -34,6 +34,18 @@ class AskrindoApp {
       }
       if (e.key === 'Escape') {
         this.closeAllModals();
+        this.closeProfileMenu();
+      }
+    });
+
+    // Close profile dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      const menu = document.getElementById('profile-dropdown-menu');
+      const btn = document.getElementById('profile-dropdown-btn');
+      if (menu && !menu.classList.contains('hidden')) {
+        if (!menu.contains(e.target) && !btn?.contains(e.target)) {
+          this.closeProfileMenu();
+        }
       }
     });
 
@@ -193,17 +205,12 @@ class AskrindoApp {
 
             <!-- Bottom User Profile Card -->
             <div class="p-3 border-t border-slate-200">
-              <div class="p-2.5 rounded-2xl bg-slate-50 flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2.5 min-w-0">
-                  <img src="${user.avatar}" alt="${user.name}" class="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0" />
-                  <div class="min-w-0 sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
-                    <p class="text-xs font-bold text-slate-800 truncate">${user.name}</p>
-                    <p class="text-[10px] text-slate-400 truncate">${user.role}</p>
-                  </div>
+              <div class="p-2.5 rounded-2xl bg-slate-50 flex items-center gap-2.5">
+                <img src="${user.avatar}" alt="${user.name}" class="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0" />
+                <div class="min-w-0 sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
+                  <p class="text-xs font-bold text-slate-800 truncate">${user.name}</p>
+                  <p class="text-[10px] text-slate-400 truncate">${user.role}</p>
                 </div>
-                <button onclick="window.authService.logout()" title="Keluar / Logout" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition shrink-0">
-                  <i data-lucide="log-out" class="w-4 h-4"></i>
-                </button>
               </div>
             </div>
           </aside>
@@ -262,12 +269,73 @@ class AskrindoApp {
                   <span class="w-2 h-2 rounded-full bg-orange-500 absolute top-2 right-2"></span>
                 </button>
 
-                <!-- Profile Dropdown Trigger -->
-                <div class="flex items-center gap-2 pl-2 border-l border-slate-200">
-                  <img src="${user.avatar}" class="w-8 h-8 rounded-full object-cover border border-slate-200" />
-                  <div class="hidden sm:block text-left">
-                    <p class="text-xs font-bold text-slate-800 leading-tight">${user.name.split(',')[0]}</p>
-                    <p class="text-[10px] font-mono text-slate-400">NIP: ${user.nip}</p>
+                <!-- Profile Dropdown Trigger & Menu -->
+                <div class="relative" id="profile-menu-container">
+                  <button 
+                    id="profile-dropdown-btn"
+                    onclick="window.askrindoApp.toggleProfileMenu()" 
+                    class="flex items-center gap-2.5 pl-2 py-1 pr-1 border-l border-slate-200 hover:bg-slate-50 rounded-xl transition focus:outline-none cursor-pointer"
+                    title="Menu Profil Pengguna"
+                  >
+                    <img src="${user.avatar}" class="w-8 h-8 rounded-full object-cover border border-slate-200 shadow-sm" />
+                    <div class="hidden sm:block text-left">
+                      <p class="text-xs font-bold text-slate-800 leading-tight">${user.name.split(',')[0]}</p>
+                      <p class="text-[10px] font-mono text-slate-400">NIP: ${user.nip}</p>
+                    </div>
+                    <i data-lucide="chevron-down" id="profile-chevron" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200"></i>
+                  </button>
+
+                  <!-- Profile Dropdown Menu -->
+                  <div 
+                    id="profile-dropdown-menu" 
+                    class="hidden absolute right-0 mt-2 w-72 rounded-2xl bg-white shadow-2xl border border-slate-200 py-2 z-50 text-slate-700 animate-fadeIn"
+                  >
+                    <!-- Header with user info -->
+                    <div class="px-4 py-3 border-b border-slate-100 bg-gradient-to-br from-slate-50 to-orange-50/30 rounded-t-xl">
+                      <div class="flex items-start gap-3">
+                        <img src="${user.avatar}" class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm shrink-0" />
+                        <div class="min-w-0">
+                          <p class="text-xs font-bold text-slate-900 truncate" title="${user.name}">${user.name}</p>
+                          <p class="text-[11px] text-slate-600 truncate mt-0.5">${user.role}</p>
+                          <div class="flex items-center gap-1.5 mt-1">
+                            <span class="inline-block px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 font-mono text-[9px] font-bold">NIP ${user.nip}</span>
+                            <span class="text-[9px] text-slate-400 truncate">${user.branch ? user.branch.split(' - ')[0] : ''}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Menu List -->
+                    <div class="p-1.5 space-y-1">
+                      <button 
+                        onclick="window.askrindoApp.showChangePasswordModal(); window.askrindoApp.closeProfileMenu();" 
+                        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50 transition text-left group cursor-pointer"
+                      >
+                        <div class="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition">
+                          <i data-lucide="key-round" class="w-4 h-4"></i>
+                        </div>
+                        <div class="min-w-0">
+                          <p class="font-bold text-slate-800 group-hover:text-orange-600">Ubah Kata Sandi</p>
+                          <p class="text-[10px] text-slate-400 font-normal">Ganti kata sandi akun Anda</p>
+                        </div>
+                      </button>
+                    </div>
+
+                    <!-- Divider & Logout Option -->
+                    <div class="p-1.5 border-t border-slate-100">
+                      <button 
+                        onclick="window.askrindoApp.closeProfileMenu(); window.authService.logout();" 
+                        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 transition text-left group cursor-pointer"
+                      >
+                        <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center group-hover:bg-rose-500 group-hover:text-white transition">
+                          <i data-lucide="log-out" class="w-4 h-4"></i>
+                        </div>
+                        <div class="min-w-0">
+                          <p class="font-bold text-rose-600">Keluar / Logout</p>
+                          <p class="text-[10px] text-rose-400 font-normal">Akhiri sesi portal Askrindo SATU</p>
+                        </div>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -828,6 +896,198 @@ class AskrindoApp {
         </div>
       </div>
     `;
+  }
+
+  toggleProfileMenu() {
+    const menu = document.getElementById('profile-dropdown-menu');
+    const chevron = document.getElementById('profile-chevron');
+    if (!menu) return;
+    const isHidden = menu.classList.contains('hidden');
+    if (isHidden) {
+      menu.classList.remove('hidden');
+      if (chevron) chevron.style.transform = 'rotate(180deg)';
+      if (window.lucide) window.lucide.createIcons();
+    } else {
+      menu.classList.add('hidden');
+      if (chevron) chevron.style.transform = 'rotate(0deg)';
+    }
+  }
+
+  closeProfileMenu() {
+    const menu = document.getElementById('profile-dropdown-menu');
+    const chevron = document.getElementById('profile-chevron');
+    if (menu) menu.classList.add('hidden');
+    if (chevron) chevron.style.transform = 'rotate(0deg)';
+  }
+
+  showChangePasswordModal() {
+    const modal = document.getElementById('global-modal-container');
+    if (!modal) return;
+
+    const user = window.authService.getCurrentUser();
+    if (!user) return;
+
+    modal.innerHTML = `
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+          <!-- Header -->
+          <div class="flex items-center justify-between border-b pb-3 border-slate-100">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center">
+                <i data-lucide="key-round" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-slate-800">Ubah Kata Sandi</h3>
+                <p class="text-[11px] text-slate-400">Pengguna: ${user.name.split(',')[0]} (NIP: ${user.nip})</p>
+              </div>
+            </div>
+            <button onclick="window.askrindoApp.closeAllModals()" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <!-- Alert box for errors -->
+          <div id="change-pwd-alert" class="hidden p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
+            <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 text-rose-500"></i>
+            <span id="change-pwd-alert-text"></span>
+          </div>
+
+          <!-- Form -->
+          <form onsubmit="window.askrindoApp.handleChangePassword(event)" class="space-y-3.5 text-xs">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Kata Sandi Saat Ini</label>
+              <div class="relative">
+                <input 
+                  type="password" 
+                  id="pwd-current" 
+                  required 
+                  placeholder="Masukkan kata sandi saat ini" 
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-xs pr-10"
+                />
+                <button 
+                  type="button" 
+                  onclick="window.askrindoApp.togglePasswordVisibility('pwd-current', this)" 
+                  class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  tabindex="-1"
+                >
+                  <i data-lucide="eye" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Kata Sandi Baru</label>
+              <div class="relative">
+                <input 
+                  type="password" 
+                  id="pwd-new" 
+                  required 
+                  minlength="6" 
+                  placeholder="Minimal 6 karakter" 
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-xs pr-10"
+                />
+                <button 
+                  type="button" 
+                  onclick="window.askrindoApp.togglePasswordVisibility('pwd-new', this)" 
+                  class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  tabindex="-1"
+                >
+                  <i data-lucide="eye" class="w-4 h-4"></i>
+                </button>
+              </div>
+              <p class="text-[10px] text-slate-400 mt-1">Gunakan minimal 6 karakter kombinasi huruf dan angka.</p>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Konfirmasi Kata Sandi Baru</label>
+              <div class="relative">
+                <input 
+                  type="password" 
+                  id="pwd-confirm" 
+                  required 
+                  minlength="6" 
+                  placeholder="Ketik ulang kata sandi baru" 
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-xs pr-10"
+                />
+                <button 
+                  type="button" 
+                  onclick="window.askrindoApp.togglePasswordVisibility('pwd-confirm', this)" 
+                  class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  tabindex="-1"
+                >
+                  <i data-lucide="eye" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button 
+                type="button" 
+                onclick="window.askrindoApp.closeAllModals()" 
+                class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+              >
+                Batal
+              </button>
+              <button 
+                type="submit" 
+                class="px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-[#F37021] to-[#FF8C38] hover:from-[#D95D12] hover:to-[#F37021] shadow-md shadow-orange-500/20 transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <i data-lucide="check" class="w-4 h-4"></i>
+                <span>Simpan Kata Sandi</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    if (window.lucide) window.lucide.createIcons();
+    setTimeout(() => document.getElementById('pwd-current')?.focus(), 50);
+  }
+
+  togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const isPass = input.type === 'password';
+    input.type = isPass ? 'text' : 'password';
+    btn.innerHTML = `<i data-lucide="${isPass ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>`;
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  handleChangePassword(e) {
+    e.preventDefault();
+    const currentPass = document.getElementById('pwd-current').value;
+    const newPass = document.getElementById('pwd-new').value;
+    const confirmPass = document.getElementById('pwd-confirm').value;
+    const alertBox = document.getElementById('change-pwd-alert');
+    const alertText = document.getElementById('change-pwd-alert-text');
+
+    const showAlert = (msg) => {
+      if (alertBox && alertText) {
+        alertText.textContent = msg;
+        alertBox.classList.remove('hidden');
+        if (window.lucide) window.lucide.createIcons();
+      }
+    };
+
+    if (newPass !== confirmPass) {
+      showAlert('Konfirmasi kata sandi baru tidak cocok.');
+      return;
+    }
+
+    if (newPass.length < 6) {
+      showAlert('Kata sandi baru minimal 6 karakter.');
+      return;
+    }
+
+    const res = window.authService.changePassword(currentPass, newPass);
+    if (!res.success) {
+      showAlert(res.message);
+      return;
+    }
+
+    this.closeAllModals();
+    this.showToast('Kata sandi berhasil diperbarui! Gunakan kata sandi baru untuk login berikutnya.', 'success');
   }
 
   showToast(message, type = 'info') {
