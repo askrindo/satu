@@ -366,6 +366,7 @@ class AskrindoDB {
     this.supabase = null;
     this.cloudStatus = 'connecting'; // 'connected' | 'pending_schema' | 'offline'
     this.cloudError = null;
+    this.pelakuCloudStatus = 'unknown'; // 'available' | 'missing_table' | 'offline'
     this.init();
   }
 
@@ -398,6 +399,9 @@ class AskrindoDB {
     }
     if (!localStorage.getItem(DB_KEYS.COVER_NOTES)) {
       localStorage.setItem(DB_KEYS.COVER_NOTES, JSON.stringify(INITIAL_COVER_NOTES));
+    }
+    if (!localStorage.getItem(DB_KEYS.PELAKU)) {
+      localStorage.setItem(DB_KEYS.PELAKU, JSON.stringify([]));
     }
     if (!localStorage.getItem(DB_KEYS.AUDIT)) {
       localStorage.setItem(DB_KEYS.AUDIT, JSON.stringify(INITIAL_AUDIT));
@@ -526,6 +530,9 @@ class AskrindoDB {
         }));
         localStorage.setItem(DB_KEYS.AUDIT, JSON.stringify(mappedLogs));
       }
+
+      // Sync PELAKU company financial analyses if cloud table exists
+      await this.syncPelakuWithSupabase();
 
       // Trigger event update UI
       window.dispatchEvent(new CustomEvent('askrindo:db-synced'));
@@ -751,6 +758,320 @@ class AskrindoDB {
     list = list.filter(c => c.id !== id);
     localStorage.setItem(DB_KEYS.COVER_NOTES, JSON.stringify(list));
     return true;
+  }
+
+  // --- PELAKU (Analisa Laporan Keuangan Per Perusahaan) ---
+  normalizeCompanyId(companyName) {
+    if (!companyName) return '';
+    const clean = String(companyName)
+      .toUpperCase()
+      .replace(/[^A-Z0-9\s]/g, ' ')
+      .replace(/\bP\s+T\b/g, 'PT')
+      .replace(/\bC\s+V\b/g, 'CV')
+      .replace(/\bU\s+D\b/g, 'UD')
+      .replace(/\bF\s+A\b/g, 'FA')
+      .replace(/\bP\s+D\b/g, 'PD')
+      .replace(/\bT\s+B\s+K\b/g, 'TBK')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return clean ? clean.replace(/\s+/g, '-') : '';
+  }
+
+  getPelakuAnalyses() {
+    try {
+      const list = JSON.parse(localStorage.getItem(DB_KEYS.PELAKU)) || [];
+      return Array.isArray(list)
+        ? list.sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0))
+        : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  getPelakuAnalysis(companyNameOrId) {
+    if (!companyNameOrId) return null;
+    const rawId = String(companyNameOrId).trim();
+    const normId = this.normalizeCompanyId(rawId);
+    const list = this.getPelakuAnalyses();
+    return list.find(item => item.id === rawId || (normId && item.id === normId)) || null;
+  }
+
+  searchPelakuAnalyses(query) {
+    const list = this.getPelakuAnalyses();
+    if (!query || !query.trim()) return list;
+    const q = query.trim().toLowerCase();
+    const qNorm = this.normalizeCompanyId(query).toLowerCase();
+    return list.filter(item =>
+      (item.companyName || '').toLowerCase().includes(q) ||
+      (item.id || '').toLowerCase().includes(q) ||
+      (qNorm && (item.id || '').toLowerCase().includes(qNorm)) ||
+      (item.kapName || '').toLowerCase().includes(q) ||
+      (item.sector || '').toLowerCase().includes(q) ||
+      String(item.year1 || '').includes(q) ||
+      String(item.year2 || '').includes(q)
+    );
+  }
+
+  _mergeSnapshots(listA = [], listB = []) {
+    const byId = new Map();
+    [...listA, ...listB].forEach(s => {
+      if (!s || !s.snapshotId) return;
+      if (!byId.has(s.snapshotId)) byId.set(s.snapshotId, s);
+    });
+    return Array.from(byId.values())
+      .sort((a, b) => new Date(b.savedAt || 0) - new Date(a.savedAt || 0))
+      .slice(0, 20);
+  }
+
+  savePelakuAnalysis(analysisData) {
+    const companyName = (analysisData.companyName || '').trim();
+    const companyId = this.normalizeCompanyId(companyName);
+    if (!companyId) return null;
+
+    const session = this.getCurrentSession();
+    const nowIso = new Date().toISOString();
+    const list = this.getPelakuAnalyses();
+    const existingIdx = list.findIndex(item => item.id === companyId);
+    const existing = existingIdx !== -1 ? list[existingIdx] : null;
+
+    const snapshot = {
+      snapshotId: 'SNAP-' + nowIso.replace(/[-:T.Z]/g, '').slice(0, 14),
+      savedAt: nowIso,
+      savedBy: session ? session.name : (analysisData.updatedBy || 'Analis'),
+      branch: session ? session.branch : (analysisData.branch || '-'),
+      year1: String(analysisData.year1 || ''),
+      year2: String(analysisData.year2 || ''),
+      projectVal: Number(analysisData.projectVal) || 0,
+      sector: analysisData.sector || 'konstruksi',
+      auditStatus: analysisData.auditStatus || 'audited',
+      kapName: analysisData.kapName || '-',
+      opinion: analysisData.opinion || '-',
+      score: Number(analysisData.score) || 0,
+      grade: analysisData.grade || '-',
+      racPassCount: Number(analysisData.racPassCount) || 0,
+      racFailCount: Number(analysisData.racFailCount) || 0,
+      data1: { ...(analysisData.data1 || {}) },
+      data2: { ...(analysisData.data2 || {}) },
+      summaryMetrics: { ...(analysisData.summaryMetrics || {}) }
+    };
+
+    let snapshots = existing && Array.isArray(existing.snapshots) ? [...existing.snapshots] : [];
+    const latestSnap = snapshots[0];
+    const isSameContentAsLatest = latestSnap &&
+      latestSnap.year1 === snapshot.year1 &&
+      latestSnap.year2 === snapshot.year2 &&
+      Number(latestSnap.projectVal) === snapshot.projectVal &&
+      JSON.stringify(latestSnap.data1) === JSON.stringify(snapshot.data1) &&
+      JSON.stringify(latestSnap.data2) === JSON.stringify(snapshot.data2);
+
+    if (isSameContentAsLatest) {
+      snapshots[0] = snapshot;
+    } else {
+      snapshots.unshift(snapshot);
+      if (snapshots.length > 20) snapshots = snapshots.slice(0, 20);
+    }
+
+    const savedRecord = {
+      id: companyId,
+      companyName,
+      sector: snapshot.sector,
+      auditStatus: snapshot.auditStatus,
+      kapName: snapshot.kapName,
+      opinion: snapshot.opinion,
+      year1: snapshot.year1,
+      year2: snapshot.year2,
+      projectVal: snapshot.projectVal,
+      score: snapshot.score,
+      grade: snapshot.grade,
+      racPassCount: snapshot.racPassCount,
+      racFailCount: snapshot.racFailCount,
+      data1: snapshot.data1,
+      data2: snapshot.data2,
+      summaryMetrics: snapshot.summaryMetrics,
+      snapshots,
+      createdAt: existing?.createdAt || nowIso,
+      updatedAt: nowIso,
+      createdBy: existing?.createdBy || snapshot.savedBy,
+      updatedBy: snapshot.savedBy,
+      branch: snapshot.branch
+    };
+
+    if (existingIdx !== -1) {
+      list.splice(existingIdx, 1);
+    }
+    list.unshift(savedRecord);
+    localStorage.setItem(DB_KEYS.PELAKU, JSON.stringify(list));
+
+    this.syncPelakuRecordToCloud(savedRecord);
+    return { savedRecord, isNewCompany: !existing, snapshotCount: snapshots.length };
+  }
+
+  deletePelakuAnalysis(companyNameOrId) {
+    const normId = this.normalizeCompanyId(companyNameOrId) || companyNameOrId;
+    let list = this.getPelakuAnalyses();
+    list = list.filter(item => item.id !== companyNameOrId && item.id !== normId);
+    localStorage.setItem(DB_KEYS.PELAKU, JSON.stringify(list));
+
+    if (this.supabase && this.cloudStatus === 'connected' && this.pelakuCloudStatus !== 'missing_table') {
+      this.supabase.from('pelaku_analyses').delete().eq('id', normId).then(({ error }) => {
+        if (error) console.warn('[Supabase Delete PELAKU Error]:', error.message);
+      });
+    }
+    return true;
+  }
+
+  importPelakuAnalyses(recordsArray) {
+    if (!Array.isArray(recordsArray)) return 0;
+    const current = this.getPelakuAnalyses();
+    const map = new Map(current.map(r => [r.id, r]));
+    let importedCount = 0;
+
+    recordsArray.forEach(raw => {
+      if (!raw || !raw.companyName) return;
+      const cid = this.normalizeCompanyId(raw.companyName);
+      if (!cid) return;
+      const normalized = {
+        ...raw,
+        id: cid,
+        snapshots: Array.isArray(raw.snapshots) ? raw.snapshots : []
+      };
+      const existing = map.get(cid);
+      if (!existing) {
+        map.set(cid, normalized);
+        importedCount++;
+      } else {
+        const mergedSnaps = this._mergeSnapshots(existing.snapshots, normalized.snapshots);
+        const keepNew = new Date(normalized.updatedAt || 0) > new Date(existing.updatedAt || 0);
+        const merged = { ...(keepNew ? normalized : existing), snapshots: mergedSnaps };
+        map.set(cid, merged);
+        importedCount++;
+      }
+      this.syncPelakuRecordToCloud(map.get(cid));
+    });
+
+    const result = Array.from(map.values()).sort(
+      (a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0)
+    );
+    localStorage.setItem(DB_KEYS.PELAKU, JSON.stringify(result));
+    return importedCount;
+  }
+
+  syncPelakuRecordToCloud(rec) {
+    if (!this.supabase || this.cloudStatus !== 'connected' || this.pelakuCloudStatus === 'missing_table' || !rec) {
+      return;
+    }
+    this.supabase.from('pelaku_analyses').upsert({
+      id: rec.id,
+      company_name: rec.companyName,
+      sector: rec.sector,
+      audit_status: rec.auditStatus,
+      kap_name: rec.kapName,
+      opinion: rec.opinion,
+      year1: String(rec.year1 || ''),
+      year2: String(rec.year2 || ''),
+      project_val: Number(rec.projectVal) || 0,
+      score: Number(rec.score) || 0,
+      grade: rec.grade,
+      rac_pass_count: Number(rec.racPassCount) || 0,
+      rac_fail_count: Number(rec.racFailCount) || 0,
+      payload: {
+        data1: rec.data1,
+        data2: rec.data2,
+        summaryMetrics: rec.summaryMetrics,
+        snapshots: rec.snapshots
+      },
+      created_by: rec.createdBy,
+      updated_by: rec.updatedBy,
+      branch: rec.branch,
+      created_at: rec.createdAt,
+      updated_at: rec.updatedAt
+    }).then(({ error }) => {
+      if (error) {
+        if (error.code === 'PGRST205' || error.code === '42P01' || (error.message || '').includes('does not exist')) {
+          this.pelakuCloudStatus = 'missing_table';
+        } else {
+          console.warn('[Supabase Sync PELAKU Error]:', error.message);
+        }
+      } else {
+        this.pelakuCloudStatus = 'available';
+      }
+    });
+  }
+
+  async syncPelakuWithSupabase() {
+    if (!this.supabase || this.cloudStatus !== 'connected') return;
+    try {
+      const { data, error } = await this.supabase
+        .from('pelaku_analyses')
+        .select('*')
+        .order('updated_at', { ascending: false });
+
+      if (error) {
+        if (error.code === 'PGRST205' || error.code === '42P01' || (error.message || '').includes('does not exist')) {
+          this.pelakuCloudStatus = 'missing_table';
+          console.info('[Supabase] Tabel pelaku_analyses belum dibuat; menggunakan Local Storage Hybrid.');
+        }
+        return;
+      }
+
+      this.pelakuCloudStatus = 'available';
+      const localList = this.getPelakuAnalyses();
+      const mergedMap = new Map(localList.map(r => [r.id, r]));
+
+      if (Array.isArray(data)) {
+        data.forEach(row => {
+          const payload = row.payload || {};
+          const cloudRec = {
+            id: row.id,
+            companyName: row.company_name,
+            sector: row.sector,
+            auditStatus: row.audit_status,
+            kapName: row.kap_name,
+            opinion: row.opinion,
+            year1: row.year1,
+            year2: row.year2,
+            projectVal: Number(row.project_val) || 0,
+            score: Number(row.score) || 0,
+            grade: row.grade,
+            racPassCount: Number(row.rac_pass_count) || 0,
+            racFailCount: Number(row.rac_fail_count) || 0,
+            data1: payload.data1 || {},
+            data2: payload.data2 || {},
+            summaryMetrics: payload.summaryMetrics || {},
+            snapshots: Array.isArray(payload.snapshots) ? payload.snapshots : [],
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+            createdBy: row.created_by,
+            updatedBy: row.updated_by,
+            branch: row.branch
+          };
+
+          const existing = mergedMap.get(cloudRec.id);
+          if (!existing) {
+            mergedMap.set(cloudRec.id, cloudRec);
+          } else {
+            const mergedSnaps = this._mergeSnapshots(existing.snapshots, cloudRec.snapshots);
+            const cloudIsNewer = new Date(cloudRec.updatedAt || 0) >= new Date(existing.updatedAt || 0);
+            mergedMap.set(cloudRec.id, { ...(cloudIsNewer ? cloudRec : existing), snapshots: mergedSnaps });
+          }
+        });
+      }
+
+      // Push local-only or newer local records to Supabase
+      const cloudIds = new Set((data || []).map(r => r.id));
+      localList.forEach(localRec => {
+        if (!cloudIds.has(localRec.id)) {
+          this.syncPelakuRecordToCloud(localRec);
+        }
+      });
+
+      const mergedList = Array.from(mergedMap.values()).sort(
+        (a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0)
+      );
+      localStorage.setItem(DB_KEYS.PELAKU, JSON.stringify(mergedList));
+    } catch (e) {
+      console.warn('[Supabase PELAKU Sync Error]:', e);
+    }
   }
 
   // --- Audit Logs ---

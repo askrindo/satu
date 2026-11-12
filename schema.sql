@@ -95,6 +95,29 @@ CREATE TABLE IF NOT EXISTS public.cover_notes (
     created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW())
 );
 
+-- 6. TABEL ANALISA LAPORAN KEUANGAN PERUSAHAAN (pelaku_analyses)
+CREATE TABLE IF NOT EXISTS public.pelaku_analyses (
+    id TEXT PRIMARY KEY,
+    company_name TEXT NOT NULL,
+    sector TEXT,
+    audit_status TEXT,
+    kap_name TEXT,
+    opinion TEXT,
+    year1 TEXT NOT NULL,
+    year2 TEXT NOT NULL,
+    project_val NUMERIC NOT NULL DEFAULT 0,
+    score NUMERIC DEFAULT 0,
+    grade TEXT,
+    rac_pass_count INT DEFAULT 0,
+    rac_fail_count INT DEFAULT 0,
+    payload JSONB NOT NULL,
+    created_by TEXT,
+    updated_by TEXT,
+    branch TEXT,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()),
+    updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
 -- ========================================================
 -- KEAMANAN: Row Level Security (RLS) & Akses Anon/Public
 -- Mengizinkan aplikasi web Askrindo SATU membaca dan menulis data
@@ -104,6 +127,7 @@ ALTER TABLE public.sppa_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cover_notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.system_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.pelaku_analyses ENABLE ROW LEVEL SECURITY;
 
 -- Policy untuk public/anon access
 DROP POLICY IF EXISTS "Allow public all access on users" ON public.users;
@@ -120,6 +144,9 @@ CREATE POLICY "Allow public all access on audit_logs" ON public.audit_logs FOR A
 
 DROP POLICY IF EXISTS "Allow public all access on system_settings" ON public.system_settings;
 CREATE POLICY "Allow public all access on system_settings" ON public.system_settings FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public all access on pelaku_analyses" ON public.pelaku_analyses;
+CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_analyses FOR ALL USING (true) WITH CHECK (true);
 
 -- ========================================================
 -- SEED DATA AWAL (Pengguna & Data SPPA Bawaan Askrindo SATU)

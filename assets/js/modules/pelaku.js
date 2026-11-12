@@ -90,7 +90,23 @@ const FIN_STATEMENT_STRUCTURE = [
   { type: 'calc_monthly', code: 'z/bln', label: 'Laba Bersih Rata-rata Perbulan', id: 'calc_eatMo', source: 'eat' }
 ];
 
+const PELAKU_DRAFT_KEY = 'askrindo_satu_pelaku_draft_v1';
+
 window.PelakuModule = {
+  currentTab: 'workspace', // 'workspace' | 'archive'
+  archiveSearch: '',
+  archiveFilter: 'all', // 'all' | 'rac_pass' | 'rac_fail'
+  workspaceState: null,
+  formSourceMode: 'sample', // 'sample' | 'blank' | 'saved' | 'dirty' | 'ocr'
+  loadedCompanyId: null,
+  preAutoMatchState: null,
+  autoLoadedCompanyId: null,
+  historyBannerMatch: null,
+  historyBannerAutoLoaded: false,
+  dismissedBannerForId: null,
+  lastToastMatchId: null,
+  companyLookupTimer: null,
+  outsideClickBound: false,
   currentAnalysis: null,
   selectedAiFinFiles: [],
   currentExtractedFinData: null,
@@ -110,6 +126,159 @@ window.PelakuModule = {
     ap: 17800000000, stDebt: 21000000000, otherAp: 2100000000, accrued: 2800000000, ltDebt: 22500000000,
     capital: 35000000000, otherCap: 0, retEarn: 6950000000, re: 9050000000,
     rev: 224000000000, cogs: 189500000000, opex: 17200000000, otherInc: 1600000000, otherExp: 550000000, intExp: 4200000000, tax: 3550000000, div: 1550000000
+  },
+
+  escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  },
+
+  formatDateTimeId(iso) {
+    if (!iso) return '-';
+    try {
+      return new Date(iso).toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      return String(iso);
+    }
+  },
+
+  sectorLabel(sec) {
+    const map = {
+      konstruksi: 'Konstruksi & Infrastruktur',
+      perdagangan: 'Perdagangan Besar & Distributor',
+      manufaktur: 'Manufaktur & Pabrikasi',
+      jasa: 'Jasa & Pengadaan Barang/Jasa (Vendor)'
+    };
+    return map[sec] || sec || '-';
+  },
+
+  buildSampleState() {
+    return {
+      companyName: 'PT Adhi Bangun Persada',
+      sector: 'konstruksi',
+      year1: '2024',
+      year2: '2025',
+      auditStatus: 'audited',
+      opinion: 'Wajar Tanpa Pengecualian (WTP)',
+      projectVal: 15000000000,
+      kapName: 'KAP Tanubrata Sutanto Fahmi Bambang & Rekan (BDO Indonesia)',
+      d1: { ...this.defaultData1 },
+      d2: { ...this.defaultData2 }
+    };
+  },
+
+  buildBlankState() {
+    const curYr = new Date().getFullYear();
+    const blankAcc = {};
+    FIN_ACCOUNT_KEYS.forEach(k => { blankAcc[k] = ''; });
+    return {
+      companyName: '',
+      sector: 'konstruksi',
+      year1: String(curYr - 1),
+      year2: String(curYr),
+      auditStatus: 'audited',
+      opinion: 'Wajar Tanpa Pengecualian (WTP)',
+      projectVal: '',
+      kapName: '',
+      d1: { ...blankAcc },
+      d2: { ...blankAcc }
+    };
+  },
+
+  initWorkspaceState() {
+    if (this.workspaceState) return;
+    try {
+      const rawDraft = localStorage.getItem(PELAKU_DRAFT_KEY);
+      if (rawDraft) {
+        const parsed = JSON.parse(rawDraft);
+        if (parsed && parsed.workspaceState) {
+          this.workspaceState = parsed.workspaceState;
+          this.formSourceMode = parsed.formSourceMode || 'sample';
+          this.loadedCompanyId = parsed.loadedCompanyId || null;
+          if (this.loadedCompanyId) {
+            const match = window.askrindoDB?.getPelakuAnalysis(this.loadedCompanyId);
+            if (match) {
+              this.historyBannerMatch = match;
+              this.historyBannerAutoLoaded = true;
+            }
+          }
+          return;
+        }
+      }
+    } catch (e) {}
+    this.workspaceState = this.buildSampleState();
+    this.formSourceMode = 'sample';
+    this.loadedCompanyId = null;
+  },
+
+  saveWorkspaceDraft() {
+    if (!this.workspaceState) return;
+    try {
+      localStorage.setItem(PELAKU_DRAFT_KEY, JSON.stringify({
+        workspaceState: this.workspaceState,
+        formSourceMode: this.formSourceMode,
+        loadedCompanyId: this.loadedCompanyId
+      }));
+    } catch (e) {}
+  },
+
+  captureWorkspaceFromDom() {
+    const compEl = document.getElementById('pelaku-company');
+    if (!compEl) return this.workspaceState;
+
+    const readAcc = (yr) => {
+      const obj = {};
+      FIN_ACCOUNT_KEYS.forEach(k => {
+        const el = document.getElementById(`inp_${k}_${yr}`);
+        const raw = el ? el.value.trim() : '';
+        obj[k] = raw === '' ? '' : this.parseFormattedNumber(raw);
+      });
+      return obj;
+    };
+
+    const projRaw = document.getElementById('inp_projectValue')?.value.trim() || '';
+
+    return {
+      companyName: compEl.value || '',
+      sector: document.getElementById('pelaku-sector')?.value || 'konstruksi',
+      year1: document.getElementById('inp_year1')?.value || '2024',
+      year2: document.getElementById('inp_year2')?.value || '2025',
+      auditStatus: document.getElementById('pelaku-audit-status')?.value || 'audited',
+      opinion: document.getElementById('pelaku-opinion')?.value || '',
+      projectVal: projRaw === '' ? '' : this.parseFormattedNumber(projRaw),
+      kapName: document.getElementById('pelaku-kap-name')?.value || '',
+      d1: readAcc(1),
+      d2: readAcc(2)
+    };
+  },
+
+  syncWorkspaceFromDom() {
+    if (!document.getElementById('pelaku-company')) return;
+    this.workspaceState = this.captureWorkspaceFromDom();
+    this.saveWorkspaceDraft();
+  },
+
+  bindGlobalDropdownClose() {
+    if (this.outsideClickBound) return;
+    this.outsideClickBound = true;
+    document.addEventListener('click', (e) => {
+      const wrap = document.getElementById('pelaku-company-autocomplete-wrap');
+      const dd = document.getElementById('pelaku-company-dropdown');
+      if (dd && wrap && !wrap.contains(e.target)) {
+        dd.classList.add('hidden');
+      }
+    });
   },
 
   getActiveGeminiApiKey() {
@@ -254,364 +423,438 @@ window.PelakuModule = {
       return window.askrindoApp.renderUnauthorized('PELAKU');
     }
 
-    const hasOcrData = !!this.extractedYearsData;
+    this.initWorkspaceState();
+    this.bindGlobalDropdownClose();
+
+    const savedList = window.askrindoDB ? window.askrindoDB.getPelakuAnalyses() : [];
+    const savedCount = savedList.length;
+    const ws = this.workspaceState;
+    const projFormatted = (ws.projectVal === '' || ws.projectVal === null || ws.projectVal === undefined)
+      ? ''
+      : this.formatNumberWithDots(ws.projectVal, false);
 
     return `
       <div class="space-y-6 animate-fadeIn">
-        <!-- Module Header with AI OCR Trigger -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 border-l-4 border-l-purple-600">
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-purple-700 to-indigo-500 text-white flex items-center justify-center shadow-md shadow-purple-500/20">
-              <i data-lucide="calculator" class="w-6 h-6"></i>
+        <!-- Module Header with Tabs & Actions -->
+        <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 border-l-4 border-l-purple-600">
+          <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-purple-700 to-indigo-500 text-white flex items-center justify-center shadow-md shadow-purple-500/20 shrink-0">
+                <i data-lucide="calculator" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h1 class="text-2xl font-black text-slate-800 tracking-tight">PELAKU</h1>
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200">
+                    Perhitungan Laporan Keuangan
+                  </span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm flex items-center gap-1">
+                    <i data-lucide="sparkles" class="w-3 h-3"></i> AI OCR Vision
+                  </span>
+                </div>
+                <p class="text-xs text-slate-500 mt-0.5">
+                  Model Finansial 27 Pos Komparatif (ASCA) &amp; Matriks RAC Askrindo &bull; Arsip otomatis terindeks per Nama Perusahaan.
+                </p>
+              </div>
             </div>
-            <div>
+
+            <!-- Navigation Tabs & Workspace Quick Actions -->
+            <div class="flex items-center gap-2 flex-wrap">
+              <!-- Mode Tabs -->
+              <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
+                <button onclick="window.PelakuModule.setTab('workspace')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${this.currentTab === 'workspace' ? 'bg-purple-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}">
+                  <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
+                  <span>Lembar Analisa</span>
+                </button>
+                <button onclick="window.PelakuModule.setTab('archive')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${this.currentTab === 'archive' ? 'bg-purple-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}">
+                  <i data-lucide="folder-archive" class="w-3.5 h-3.5"></i>
+                  <span>Arsip Perusahaan</span>
+                  <span id="pelaku-archive-count-badge" class="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${this.currentTab === 'archive' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-800'}">${savedCount}</span>
+                </button>
+              </div>
+
+              ${this.currentTab === 'workspace' ? `
+                <button onclick="window.PelakuModule.startNewAnalysis()" class="px-3.5 py-2 rounded-xl text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 transition flex items-center gap-1.5" title="Mulai analisa perusahaan baru (form bersih)">
+                  <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                  <span>Analisa Baru</span>
+                </button>
+                <button id="btn-pelaku-save-top" onclick="window.PelakuModule.saveCurrentAnalysis()" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-600/20 transition flex items-center gap-1.5" title="Simpan analisa ke arsip perusahaan (Ctrl+S)">
+                  <i data-lucide="save" class="w-4 h-4"></i>
+                  <span>Simpan Analisa</span>
+                </button>
+                <button onclick="window.PelakuModule.openAiFinUploadModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-800 hover:from-purple-800 hover:to-indigo-700 shadow-md shadow-purple-500/25 transition flex items-center gap-1.5 group">
+                  <i data-lucide="scan-line" class="w-4 h-4 text-amber-300 group-hover:scale-110 transition-transform"></i>
+                  <span>Pindai AI OCR Vision</span>
+                </button>
+                <button onclick="window.PelakuModule.loadSampleData()" class="px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition" title="Muat Data Contoh Konstruksi 27 Pos">
+                  Contoh
+                </button>
+                <button onclick="window.PelakuModule.resetForm()" class="px-3 py-2 rounded-xl text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 transition" title="Kosongkan angka pada form">
+                  Kosongkan
+                </button>
+              ` : `
+                <button onclick="window.PelakuModule.startNewAnalysis()" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 shadow-md shadow-purple-500/20 transition flex items-center gap-1.5">
+                  <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                  <span>+ Buat Analisa Baru</span>
+                </button>
+              `}
+            </div>
+          </div>
+        </div>
+
+        ${this.currentTab === 'archive' ? this.renderArchiveView(savedList) : `
+          <!-- Banner Keseimbangan Neraca (Real-Time Balance Bar) -->
+          <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-[#002B49] text-white p-4 rounded-2xl shadow-md border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center gap-4 flex-wrap">
               <div class="flex items-center gap-2">
-                <h1 class="text-2xl font-black text-slate-800 tracking-tight">PELAKU</h1>
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200">
-                  Perhitungan Laporan Keuangan
-                </span>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm flex items-center gap-1">
-                  <i data-lucide="sparkles" class="w-3 h-3"></i> AI OCR Vision
+                <span class="text-xs text-slate-300 font-semibold">Status Neraca Th <span id="lbl_balance_yr1" class="font-bold text-amber-300">${this.escapeHtml(ws.year1)}</span>:</span>
+                <span id="badge_balance_yr1" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                  &check; BALANCE
                 </span>
               </div>
-              <p class="text-xs text-slate-500 mt-0.5">
-                Model Finansial 27 Pos Neraca & Laba Rugi Komparatif 2 Tahun Buku (Standar ASCA / Askrindo Underwriting).
-              </p>
+              <div class="h-4 w-px bg-slate-700 hidden sm:block"></div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-300 font-semibold">Status Neraca Th <span id="lbl_balance_yr2" class="font-bold text-amber-300">${this.escapeHtml(ws.year2)}</span>:</span>
+                <span id="badge_balance_yr2" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                  &check; BALANCE
+                </span>
+              </div>
             </div>
-          </div>
-
-          <div class="flex items-center gap-2 flex-wrap">
-            <!-- Tombol Utama AI OCR Vision -->
-            <button onclick="window.PelakuModule.openAiFinUploadModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-800 hover:from-purple-800 hover:to-indigo-700 shadow-md shadow-purple-500/25 transition flex items-center gap-2 group">
-              <i data-lucide="scan-line" class="w-4 h-4 text-amber-300 group-hover:scale-110 transition-transform"></i>
-              <span>Pindai AI OCR Vision</span>
-            </button>
-            <button onclick="window.PelakuModule.loadSampleData()" class="px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition" title="Muat Data Contoh Konstruksi 27 Pos">
-              Muat Contoh Rekanan
-            </button>
-            <button onclick="window.PelakuModule.resetForm()" class="px-3.5 py-2.5 rounded-xl text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 transition">
-              Reset Form
-            </button>
-          </div>
-        </div>
-
-        <!-- Banner Keseimbangan Neraca (Real-Time Balance Bar) -->
-        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-[#002B49] text-white p-4 rounded-2xl shadow-md border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div class="flex items-center gap-4 flex-wrap">
             <div class="flex items-center gap-2">
-              <span class="text-xs text-slate-300 font-semibold">Status Neraca Th <span id="lbl_balance_yr1" class="font-bold text-amber-300">2024</span>:</span>
-              <span id="badge_balance_yr1" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                &check; BALANCE
-              </span>
-            </div>
-            <div class="h-4 w-px bg-slate-700 hidden sm:block"></div>
-            <div class="flex items-center gap-2">
-              <span class="text-xs text-slate-300 font-semibold">Status Neraca Th <span id="lbl_balance_yr2" class="font-bold text-amber-300">2025</span>:</span>
-              <span id="badge_balance_yr2" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                &check; BALANCE
-              </span>
+              <button onclick="window.PelakuModule.autoBalanceAllYears()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-amber-300 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 transition flex items-center gap-1.5">
+                <i data-lucide="scale" class="w-3.5 h-3.5"></i>
+                <span>Seimbangkan Neraca Otomatis</span>
+              </button>
             </div>
           </div>
-          <div class="flex items-center gap-2">
-            <button onclick="window.PelakuModule.autoBalanceAllYears()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-amber-300 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 transition flex items-center gap-1.5">
-              <i data-lucide="scale" class="w-3.5 h-3.5"></i>
-              <span>Seimbangkan Neraca Otomatis</span>
-            </button>
-          </div>
-        </div>
 
-        <!-- Layout Utama: 8 Kolom Tabel Finansial & 4 Kolom Panel Scoring Underwriting -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          
-          <!-- Kolom Kiri: Tabel 27 Pos Laporan Keuangan Lengkap ASCA (8 cols) -->
-          <div class="lg:col-span-8 space-y-6">
+          <!-- Layout Utama: 8 Kolom Tabel Finansial & 4 Kolom Panel Scoring Underwriting -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
-            <!-- Card 1: Identitas Calon Debitur / Rekanan Penjaminan -->
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-              <div class="flex items-center justify-between">
-                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                  <i data-lucide="building" class="w-4 h-4 text-purple-600"></i>
-                  <span>1. Profil Calon Debitur / Rekanan & Legalitas Audit</span>
-                </h3>
-                <span class="text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-100">
-                  Standar Akuntansi Askrindo
-                </span>
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Nama Perusahaan / Rekanan</label>
-                  <input type="text" id="pelaku-company" value="PT Adhi Bangun Persada" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 font-medium" />
-                </div>
-                <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Sektor Industri / Bidang Usaha</label>
-                  <select id="pelaku-sector" onchange="window.PelakuModule.calculateRatios()" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 bg-white">
-                    <option value="konstruksi">Konstruksi & Infrastruktur</option>
-                    <option value="perdagangan">Perdagangan Besar & Distributor</option>
-                    <option value="manufaktur">Manufaktur & Pabrikasi</option>
-                    <option value="jasa">Jasa & Pengadaan Barang/Jasa (Vendor)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
-                <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Tahun 1 (Sebelumnya)</label>
-                  <input type="number" id="inp_year1" value="2024" oninput="window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios();" class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-center font-bold font-mono" />
-                </div>
-                <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Tahun 2 (Terakhir)</label>
-                  <input type="number" id="inp_year2" value="2025" oninput="window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios();" class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-center font-bold font-mono" />
-                </div>
-                <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Status Audit</label>
-                  <select id="pelaku-audit-status" onchange="window.PelakuModule.calculateRatios()" class="w-full px-3 py-1.5 rounded-lg border border-slate-200 bg-white font-medium">
-                    <option value="audited">Audited KAP</option>
-                    <option value="unaudited">In-House / Unaudited</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Opini Auditor</label>
-                  <input type="text" id="pelaku-opinion" value="Wajar Tanpa Pengecualian (WTP)" class="w-full px-3 py-1.5 rounded-lg border border-slate-200 font-medium" />
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Nilai Proyek yang Dijamin (Rp)</label>
-                  <input type="text" id="inp_projectValue" value="15.000.000.000" oninput="window.PelakuModule.handleDotInput(this); window.PelakuModule.calculateRatios();" onblur="window.PelakuModule.handleDotBlur(this); window.PelakuModule.calculateRatios();" class="w-full px-3 py-1.5 rounded-lg border border-purple-200 font-bold font-mono focus:border-purple-500 bg-white" placeholder="Contoh: 15.000.000.000" />
-                  <span class="text-[10px] text-slate-400">Dasar perhitungan rasio kecukupan modal kerja NWC / Nilai Proyek</span>
-                </div>
-                <div>
-                  <label class="block font-semibold text-slate-700 mb-1">Nama Kantor Akuntan Publik (KAP)</label>
-                  <input type="text" id="pelaku-kap-name" value="KAP Tanubrata Sutanto Fahmi Bambang & Rekan (BDO Indonesia)" class="w-full px-3 py-1.5 rounded-lg border border-slate-200 font-medium" />
-                  <span class="text-[10px] text-slate-400">KAP terdaftar OJK / Kemenkeu</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Card 2: Tabel Pos-Pos Laporan Keuangan Lengkap 27 Akun (Persis ASCA) -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                    <i data-lucide="table-2" class="w-4 h-4 text-purple-600"></i>
-                    <span>2. Tabel Neraca & Laba Rugi Komparatif 2 Tahun (Standar ASCA)</span>
-                  </h3>
-                  <p class="text-[11px] text-slate-500">
-                    Masukkan nilai dalam Rupiah penuh (contoh: <code>14.200.000.000</code>). Subtotal, rasio common-size %, dan pertumbuhan otomatis dihitung.
-                  </p>
-                </div>
-                <span class="text-[10px] font-mono text-slate-400 bg-white px-2 py-1 rounded border border-slate-200 self-start sm:self-auto">
-                  Format: IDR
-                </span>
-              </div>
-
-              <!-- Kontainer Tabel Komparatif -->
-              <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs border-collapse" id="finStatementInputTable">
-                  <thead>
-                    <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
-                      <th class="p-2.5 w-[35%]">Uraian Neraca &amp; Laba Rugi</th>
-                      <th class="p-2.5 w-[7%] text-center">Kode</th>
-                      <th class="p-2.5 w-[20%] text-right">Tahun <span id="thLabelYear1" class="font-bold">2024</span> (Rp)</th>
-                      <th class="p-2.5 w-[7%] text-right">%</th>
-                      <th class="p-2.5 w-[20%] text-right">Tahun <span id="thLabelYear2" class="font-bold">2025</span> (Rp)</th>
-                      <th class="p-2.5 w-[7%] text-right">%</th>
-                      <th class="p-2.5 w-[9%] text-right">Growth (%)</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-slate-100">
-                    ${this.renderFinStatementTableRows()}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- Card 3: Matriks Kepatuhan Standar Risk Acceptance Criteria (RAC) Askrindo -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                    <i data-lucide="shield-check" class="w-4 h-4 text-purple-600"></i>
-                    <span>3. Matriks Kepatuhan Standar Risk Acceptance Criteria (RAC) Askrindo</span>
-                  </h3>
-                  <p class="text-[11px] text-slate-500">
-                    Evaluasi 6 Rasio Standar Akseptasi Penjaminan Proyek &amp; Kredit: Current Ratio, DER, ROA, ROE, NWC, dan NWC / Nilai Proyek.
-                  </p>
-                </div>
-                <div class="flex items-center gap-2">
-                  <span id="badge_rac_pass_count" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                    6 RAC LULUS
-                  </span>
-                  <span id="badge_rac_fail_count" class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                    0 TIDAK LULUS
-                  </span>
-                </div>
-              </div>
-
-              <!-- Tabel Matriks RAC (Persis seperti yang diminta di gambar) -->
-              <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr class="bg-slate-100/90 text-slate-700 font-bold border-b border-slate-200">
-                      <th class="py-2.5 px-3 w-[4%] text-center">No</th>
-                      <th class="py-2.5 px-3 w-[16%]">Indikator Rasio</th>
-                      <th class="py-2.5 px-3 w-[17%]">Rumus Perhitungan</th>
-                      <th class="py-2.5 px-2 w-[11%] text-center">Standar <span class="underline decoration-dotted">RAC</span></th>
-                      <th class="py-2.5 px-2 w-[11%] text-center">Tahun <span id="thRacYear1">2024</span></th>
-                      <th class="py-2.5 px-2 w-[13%] text-center text-emerald-900 bg-emerald-50/70">Tahun <span id="thRacYear2">2025</span> (Eval)</th>
-                      <th class="py-2.5 px-2 w-[10%] text-center">Status <span class="underline decoration-dotted">RAC</span></th>
-                      <th class="py-2.5 px-3 w-[18%]">Analisis &amp; Keterangan Komparasi</th>
-                    </tr>
-                  </thead>
-                  <tbody id="racTableBody" class="divide-y divide-slate-100 font-sans">
-                    <!-- Dynamic Rows rendered by calculateRatios() -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <!-- Kolom Kanan: Scoring & Evaluasi Underwriting Askrindo (4 cols, Sticky) -->
-          <div class="lg:col-span-4 space-y-6">
-            <div class="sticky top-20 bg-white rounded-3xl p-6 border-2 border-purple-500/20 shadow-xl space-y-6">
+            <!-- Kolom Kiri: Tabel 27 Pos Laporan Keuangan Lengkap ASCA (8 cols) -->
+            <div class="lg:col-span-8 space-y-6">
               
-              <!-- Header Score -->
-              <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div>
-                  <span class="text-[10px] font-bold uppercase tracking-wider text-purple-600">Evaluasi Finansial Askrindo</span>
-                  <h3 class="text-base font-black text-slate-800">Scoring &amp; Kelayakan Rekanan</h3>
+              <!-- Card 1: Identitas Calon Debitur / Rekanan Penjaminan -->
+              <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                  <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                    <i data-lucide="building" class="w-4 h-4 text-purple-600"></i>
+                    <span>1. Profil Calon Debitur / Rekanan &amp; Legalitas Audit</span>
+                  </h3>
+                  <span class="text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-100">
+                    Nama Perusahaan = ID Otomatis
+                  </span>
                 </div>
-                <div id="pelaku-grade-badge" class="px-3.5 py-1.5 rounded-xl font-black text-xs bg-emerald-100 text-emerald-800 border border-emerald-300">
-                  GRADE A (SEHAT)
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  <div id="pelaku-company-autocomplete-wrap" class="relative">
+                    <div class="flex items-center justify-between gap-2 mb-1">
+                      <label for="pelaku-company" class="font-semibold text-slate-700">Nama Perusahaan / Rekanan <span class="text-purple-600 font-bold">(ID)</span></label>
+                      <span id="pelaku-company-id-badge" class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200 truncate max-w-[180px]">
+                        ID: -
+                      </span>
+                    </div>
+                    <div class="relative">
+                      <input
+                        type="text"
+                        id="pelaku-company"
+                        value="${this.escapeHtml(ws.companyName)}"
+                        placeholder="Ketik Nama Perusahaan (jika pernah dibuat, data otomatis muncul)..."
+                        autocomplete="off"
+                        onfocus="window.PelakuModule.openCompanyAutocomplete()"
+                        oninput="window.PelakuModule.handleCompanyInput(this.value)"
+                        onblur="window.PelakuModule.handleCompanyBlur()"
+                        onkeydown="window.PelakuModule.handleCompanyKeydown(event)"
+                        class="w-full pl-3 pr-9 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 font-semibold text-slate-800 bg-white"
+                      />
+                      <button
+                        type="button"
+                        onmousedown="event.preventDefault(); window.PelakuModule.toggleCompanyAutocomplete();"
+                        title="Lihat daftar perusahaan tersimpan"
+                        class="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg text-slate-400 hover:text-purple-700 hover:bg-purple-50 flex items-center justify-center transition"
+                      >
+                        <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                      </button>
+                    </div>
+                    <!-- Smart Company Autocomplete Dropdown -->
+                    <div id="pelaku-company-dropdown" class="hidden absolute left-0 right-0 mt-1.5 bg-white rounded-2xl border border-slate-200 shadow-2xl z-40 max-h-64 overflow-y-auto divide-y divide-slate-100"></div>
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Sektor Industri / Bidang Usaha</label>
+                    <select id="pelaku-sector" onchange="window.PelakuModule.onMetaFieldChanged()" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 bg-white">
+                      <option value="konstruksi" ${ws.sector === 'konstruksi' ? 'selected' : ''}>Konstruksi &amp; Infrastruktur</option>
+                      <option value="perdagangan" ${ws.sector === 'perdagangan' ? 'selected' : ''}>Perdagangan Besar &amp; Distributor</option>
+                      <option value="manufaktur" ${ws.sector === 'manufaktur' ? 'selected' : ''}>Manufaktur &amp; Pabrikasi</option>
+                      <option value="jasa" ${ws.sector === 'jasa' ? 'selected' : ''}>Jasa &amp; Pengadaan Barang/Jasa (Vendor)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Dynamic Inline Banner when Existing Company ID is Detected -->
+                <div id="pelaku-company-history-banner" class="hidden"></div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+                  <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Tahun 1 (Sebelumnya)</label>
+                    <input type="number" id="inp_year1" value="${this.escapeHtml(ws.year1)}" oninput="window.PelakuModule.updateYearLabels(); window.PelakuModule.onMetaFieldChanged();" class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-center font-bold font-mono" />
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Tahun 2 (Terakhir)</label>
+                    <input type="number" id="inp_year2" value="${this.escapeHtml(ws.year2)}" oninput="window.PelakuModule.updateYearLabels(); window.PelakuModule.onMetaFieldChanged();" class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-center font-bold font-mono" />
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Status Audit</label>
+                    <select id="pelaku-audit-status" onchange="window.PelakuModule.onMetaFieldChanged()" class="w-full px-3 py-1.5 rounded-lg border border-slate-200 bg-white font-medium">
+                      <option value="audited" ${ws.auditStatus === 'audited' ? 'selected' : ''}>Audited KAP</option>
+                      <option value="unaudited" ${ws.auditStatus === 'unaudited' ? 'selected' : ''}>In-House / Unaudited</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Opini Auditor</label>
+                    <input type="text" id="pelaku-opinion" value="${this.escapeHtml(ws.opinion)}" oninput="window.PelakuModule.onMetaFieldChanged()" class="w-full px-3 py-1.5 rounded-lg border border-slate-200 font-medium" />
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Nilai Proyek yang Dijamin (Rp)</label>
+                    <input type="text" id="inp_projectValue" value="${projFormatted}" oninput="window.PelakuModule.handleDotInput(this); window.PelakuModule.onMetaFieldChanged();" onblur="window.PelakuModule.handleDotBlur(this); window.PelakuModule.calculateRatios();" class="w-full px-3 py-1.5 rounded-lg border border-purple-200 font-bold font-mono focus:border-purple-500 bg-white" placeholder="Contoh: 15.000.000.000" />
+                    <span class="text-[10px] text-slate-400">Dasar perhitungan rasio kecukupan modal kerja NWC / Nilai Proyek</span>
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Nama Kantor Akuntan Publik (KAP)</label>
+                    <input type="text" id="pelaku-kap-name" value="${this.escapeHtml(ws.kapName)}" oninput="window.PelakuModule.onMetaFieldChanged()" class="w-full px-3 py-1.5 rounded-lg border border-slate-200 font-medium" />
+                    <span class="text-[10px] text-slate-400">KAP terdaftar OJK / Kemenkeu</span>
+                  </div>
                 </div>
               </div>
 
-              <!-- Composite Score Banner -->
-              <div class="p-5 rounded-2xl bg-gradient-to-br from-[#002B49] via-indigo-900 to-[#0A3D62] text-white shadow-lg space-y-2">
-                <div class="flex items-center justify-between text-xs text-indigo-200">
-                  <span>Skor Finansial Komposit:</span>
-                  <span id="pelaku-score-num" class="font-mono font-bold text-amber-300 text-sm">88.5 / 100</span>
-                </div>
-                <!-- Progress bar -->
-                <div class="w-full h-2.5 bg-white/20 rounded-full overflow-hidden">
-                  <div id="pelaku-score-bar" class="h-full bg-gradient-to-r from-amber-400 to-emerald-400 rounded-full" style="width: 88.5%;"></div>
-                </div>
-                <p id="pelaku-short-summary" class="text-[11px] text-slate-200 pt-1 leading-relaxed">
-                  Perusahaan memiliki struktur permodalan yang sehat dan likuiditas lancar untuk mendukung proyek penjaminan.
-                </p>
-              </div>
-
-              <!-- Ratio Breakdown (Likuiditas, Solvabilitas, Profitabilitas, Pertumbuhan) -->
-              <div class="space-y-3 text-xs">
-                <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px] flex items-center justify-between">
-                  <span>Indikator Rasio Utama (Th <span id="lbl_ratio_eval_yr">2025</span>)</span>
-                  <span class="text-[10px] font-normal text-slate-400">Standar Askrindo</span>
-                </h4>
-
-                <!-- Likuiditas -->
-                <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
+              <!-- Card 2: Tabel Pos-Pos Laporan Keuangan Lengkap 27 Akun (Persis ASCA) -->
+              <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
-                    <span class="font-semibold text-slate-700">Current Ratio (Likuiditas)</span>
-                    <span class="block text-[10px] text-slate-400">Standar: &ge; 120%</span>
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                      <i data-lucide="table-2" class="w-4 h-4 text-purple-600"></i>
+                      <span>2. Tabel Neraca &amp; Laba Rugi Komparatif 2 Tahun (Standar ASCA)</span>
+                    </h3>
+                    <p class="text-[11px] text-slate-500">
+                      Masukkan nilai dalam Rupiah penuh (contoh: <code>14.200.000.000</code>). Subtotal, rasio common-size %, dan pertumbuhan otomatis dihitung.
+                    </p>
                   </div>
-                  <span id="ratio-cr" class="font-mono font-bold text-emerald-600 text-sm">166.13%</span>
+                  <span class="text-[10px] font-mono text-slate-400 bg-white px-2 py-1 rounded border border-slate-200 self-start sm:self-auto">
+                    Format: IDR
+                  </span>
                 </div>
 
-                <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
-                  <div>
-                    <span class="font-semibold text-slate-700">Quick Ratio (Acid Test)</span>
-                    <span class="block text-[10px] text-slate-400">Standar: &ge; 100%</span>
-                  </div>
-                  <span id="ratio-qr" class="font-mono font-bold text-emerald-600 text-sm">111.90%</span>
-                </div>
-
-                <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
-                  <div>
-                    <span class="font-semibold text-slate-700">Cash Ratio (Kas/Hutang Lancar)</span>
-                    <span class="block text-[10px] text-slate-400">Ketersediaan kas cepat</span>
-                  </div>
-                  <span id="ratio-cash" class="font-mono font-bold text-slate-800 text-sm">42.33%</span>
-                </div>
-
-                <!-- Solvabilitas -->
-                <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
-                  <div>
-                    <span class="font-semibold text-slate-700">Debt to Equity (DER)</span>
-                    <span class="block text-[10px] text-slate-400">Batas maks: &lt; 2.50x</span>
-                  </div>
-                  <span id="ratio-der" class="font-mono font-bold text-slate-800 text-sm">1.30x</span>
-                </div>
-
-                <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
-                  <div>
-                    <span class="font-semibold text-slate-700">Debt to Asset Ratio (DAR)</span>
-                    <span class="block text-[10px] text-slate-400">Porsi hutang atas aset</span>
-                  </div>
-                  <span id="ratio-dar" class="font-mono font-bold text-slate-800 text-sm">56.48%</span>
-                </div>
-
-                <!-- Profitabilitas -->
-                <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
-                  <div>
-                    <span class="font-semibold text-slate-700">Net Profit Margin (NPM)</span>
-                    <span class="block text-[10px] text-slate-400">Margin laba bersih</span>
-                  </div>
-                  <span id="ratio-npm" class="font-mono font-bold text-blue-600 text-sm">4.04%</span>
-                </div>
-
-                <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
-                  <div>
-                    <span class="font-semibold text-slate-700">Return on Equity (ROE)</span>
-                    <span class="block text-[10px] text-slate-400">Imbal hasil modal</span>
-                  </div>
-                  <span id="ratio-roe" class="font-mono font-bold text-purple-600 text-sm">17.75%</span>
-                </div>
-
-                <!-- Pertumbuhan Usaha -->
-                <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
-                  <div>
-                    <span class="font-semibold text-slate-700">Pertumbuhan Penjualan</span>
-                    <span class="block text-[10px] text-slate-400">Growth Omset (YoY)</span>
-                  </div>
-                  <span id="ratio-sales-growth" class="font-mono font-bold text-emerald-600 text-sm">+21.08%</span>
-                </div>
-
-                <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
-                  <div>
-                    <span class="font-semibold text-slate-700">Pertumbuhan Laba Bersih</span>
-                    <span class="block text-[10px] text-slate-400">Growth EAT (YoY)</span>
-                  </div>
-                  <span id="ratio-net-growth" class="font-mono font-bold text-emerald-600 text-sm">+29.29%</span>
+                <!-- Kontainer Tabel Komparatif -->
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left text-xs border-collapse" id="finStatementInputTable">
+                    <thead>
+                      <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                        <th class="p-2.5 w-[35%]">Uraian Neraca &amp; Laba Rugi</th>
+                        <th class="p-2.5 w-[7%] text-center">Kode</th>
+                        <th class="p-2.5 w-[20%] text-right">Tahun <span id="thLabelYear1" class="font-bold">${this.escapeHtml(ws.year1)}</span> (Rp)</th>
+                        <th class="p-2.5 w-[7%] text-right">%</th>
+                        <th class="p-2.5 w-[20%] text-right">Tahun <span id="thLabelYear2" class="font-bold">${this.escapeHtml(ws.year2)}</span> (Rp)</th>
+                        <th class="p-2.5 w-[7%] text-right">%</th>
+                        <th class="p-2.5 w-[9%] text-right">Growth (%)</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                      ${this.renderFinStatementTableRows()}
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
-              <!-- Rekomendasi Narasi Underwriting Askrindo -->
-              <div class="p-4 rounded-2xl bg-purple-50 border border-purple-200/70 space-y-2">
-                <span class="text-xs font-bold text-purple-900 flex items-center gap-1.5">
-                  <i data-lucide="shield-check" class="w-4 h-4 text-purple-600"></i>
-                  Rekomendasi Komite Underwriting
-                </span>
-                <p id="pelaku-narrative" class="text-xs text-slate-700 leading-relaxed font-medium">
-                  Rekanan memenuhi seluruh parameter underwriting penjaminan kredit &amp; surety bond Askrindo. Layak diberikan persetujuan.
-                </p>
-              </div>
+              <!-- Card 3: Matriks Kepatuhan Standar Risk Acceptance Criteria (RAC) Askrindo -->
+              <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                      <i data-lucide="shield-check" class="w-4 h-4 text-purple-600"></i>
+                      <span>3. Matriks Kepatuhan Standar Risk Acceptance Criteria (RAC) Askrindo</span>
+                    </h3>
+                    <p class="text-[11px] text-slate-500">
+                      Evaluasi 6 Rasio Standar Akseptasi Penjaminan Proyek &amp; Kredit: Current Ratio, DER, ROA, ROE, NWC, dan NWC / Nilai Proyek.
+                    </p>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span id="badge_rac_pass_count" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      6 RAC LULUS
+                    </span>
+                    <span id="badge_rac_fail_count" class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                      0 TIDAK LULUS
+                    </span>
+                  </div>
+                </div>
 
-              <!-- Tombol Aksi -->
-              <div class="space-y-2 pt-2">
-                <button onclick="window.PelakuModule.printAnalysis()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-purple-600 hover:bg-purple-700 shadow-md shadow-purple-600/30 transition">
-                  <i data-lucide="printer" class="w-4 h-4"></i>
-                  <span>Cetak Hasil Evaluasi PDF</span>
-                </button>
-                <button onclick="window.location.hash='#/buset'" class="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-semibold text-xs text-slate-600 hover:bg-slate-100 transition border border-slate-200">
-                  <i data-lucide="file-text" class="w-4 h-4"></i>
-                  <span>Teruskan ke SPPA BUSET</span>
-                </button>
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr class="bg-slate-100/90 text-slate-700 font-bold border-b border-slate-200">
+                        <th class="py-2.5 px-3 w-[4%] text-center">No</th>
+                        <th class="py-2.5 px-3 w-[16%]">Indikator Rasio</th>
+                        <th class="py-2.5 px-3 w-[17%]">Rumus Perhitungan</th>
+                        <th class="py-2.5 px-2 w-[11%] text-center">Standar <span class="underline decoration-dotted">RAC</span></th>
+                        <th class="py-2.5 px-2 w-[11%] text-center">Tahun <span id="thRacYear1">${this.escapeHtml(ws.year1)}</span></th>
+                        <th class="py-2.5 px-2 w-[13%] text-center text-emerald-900 bg-emerald-50/70">Tahun <span id="thRacYear2">${this.escapeHtml(ws.year2)}</span> (Eval)</th>
+                        <th class="py-2.5 px-2 w-[10%] text-center">Status <span class="underline decoration-dotted">RAC</span></th>
+                        <th class="py-2.5 px-3 w-[18%]">Analisis &amp; Keterangan Komparasi</th>
+                      </tr>
+                    </thead>
+                    <tbody id="racTableBody" class="divide-y divide-slate-100 font-sans">
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Kolom Kanan: Scoring & Evaluasi Underwriting Askrindo (4 cols, Sticky) -->
+            <div class="lg:col-span-4 space-y-6">
+              <div class="sticky top-20 bg-white rounded-3xl p-6 border-2 border-purple-500/20 shadow-xl space-y-5">
+                
+                <!-- Header Score -->
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-purple-600">Evaluasi Finansial Askrindo</span>
+                    <h3 class="text-base font-black text-slate-800">Scoring &amp; Kelayakan Rekanan</h3>
+                  </div>
+                  <div id="pelaku-grade-badge" class="px-3.5 py-1.5 rounded-xl font-black text-xs bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    GRADE A (SEHAT)
+                  </div>
+                </div>
+
+                <!-- Composite Score Banner -->
+                <div class="p-5 rounded-2xl bg-gradient-to-br from-[#002B49] via-indigo-900 to-[#0A3D62] text-white shadow-lg space-y-2">
+                  <div class="flex items-center justify-between text-xs text-indigo-200">
+                    <span>Skor Finansial Komposit:</span>
+                    <span id="pelaku-score-num" class="font-mono font-bold text-amber-300 text-sm">88.5 / 100</span>
+                  </div>
+                  <div class="w-full h-2.5 bg-white/20 rounded-full overflow-hidden">
+                    <div id="pelaku-score-bar" class="h-full bg-gradient-to-r from-amber-400 to-emerald-400 rounded-full" style="width: 88.5%;"></div>
+                  </div>
+                  <p id="pelaku-short-summary" class="text-[11px] text-slate-200 pt-1 leading-relaxed">
+                    Perusahaan memiliki struktur permodalan yang sehat dan likuiditas lancar untuk mendukung proyek penjaminan.
+                  </p>
+                </div>
+
+                <!-- Ratio Breakdown -->
+                <div class="space-y-3 text-xs">
+                  <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px] flex items-center justify-between">
+                    <span>Indikator Rasio Utama (Th <span id="lbl_ratio_eval_yr">${this.escapeHtml(ws.year2)}</span>)</span>
+                    <span class="text-[10px] font-normal text-slate-400">Standar Askrindo</span>
+                  </h4>
+
+                  <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
+                    <div>
+                      <span class="font-semibold text-slate-700">Current Ratio (Likuiditas)</span>
+                      <span class="block text-[10px] text-slate-400">Standar: &ge; 120%</span>
+                    </div>
+                    <span id="ratio-cr" class="font-mono font-bold text-emerald-600 text-sm">166.13%</span>
+                  </div>
+
+                  <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
+                    <div>
+                      <span class="font-semibold text-slate-700">Quick Ratio (Acid Test)</span>
+                      <span class="block text-[10px] text-slate-400">Standar: &ge; 100%</span>
+                    </div>
+                    <span id="ratio-qr" class="font-mono font-bold text-emerald-600 text-sm">111.90%</span>
+                  </div>
+
+                  <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
+                    <div>
+                      <span class="font-semibold text-slate-700">Cash Ratio (Kas/Hutang Lancar)</span>
+                      <span class="block text-[10px] text-slate-400">Ketersediaan kas cepat</span>
+                    </div>
+                    <span id="ratio-cash" class="font-mono font-bold text-slate-800 text-sm">42.33%</span>
+                  </div>
+
+                  <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
+                    <div>
+                      <span class="font-semibold text-slate-700">Debt to Equity (DER)</span>
+                      <span class="block text-[10px] text-slate-400">Batas maks: &lt; 2.50x</span>
+                    </div>
+                    <span id="ratio-der" class="font-mono font-bold text-slate-800 text-sm">1.30x</span>
+                  </div>
+
+                  <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
+                    <div>
+                      <span class="font-semibold text-slate-700">Debt to Asset Ratio (DAR)</span>
+                      <span class="block text-[10px] text-slate-400">Porsi hutang atas aset</span>
+                    </div>
+                    <span id="ratio-dar" class="font-mono font-bold text-slate-800 text-sm">56.48%</span>
+                  </div>
+
+                  <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
+                    <div>
+                      <span class="font-semibold text-slate-700">Net Profit Margin (NPM)</span>
+                      <span class="block text-[10px] text-slate-400">Margin laba bersih</span>
+                    </div>
+                    <span id="ratio-npm" class="font-mono font-bold text-blue-600 text-sm">4.04%</span>
+                  </div>
+
+                  <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
+                    <div>
+                      <span class="font-semibold text-slate-700">Return on Equity (ROE)</span>
+                      <span class="block text-[10px] text-slate-400">Imbal hasil modal</span>
+                    </div>
+                    <span id="ratio-roe" class="font-mono font-bold text-purple-600 text-sm">17.75%</span>
+                  </div>
+
+                  <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
+                    <div>
+                      <span class="font-semibold text-slate-700">Pertumbuhan Penjualan</span>
+                      <span class="block text-[10px] text-slate-400">Growth Omset (YoY)</span>
+                    </div>
+                    <span id="ratio-sales-growth" class="font-mono font-bold text-emerald-600 text-sm">+21.08%</span>
+                  </div>
+
+                  <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
+                    <div>
+                      <span class="font-semibold text-slate-700">Pertumbuhan Laba Bersih</span>
+                      <span class="block text-[10px] text-slate-400">Growth EAT (YoY)</span>
+                    </div>
+                    <span id="ratio-net-growth" class="font-mono font-bold text-emerald-600 text-sm">+29.29%</span>
+                  </div>
+                </div>
+
+                <!-- Rekomendasi Narasi Underwriting Askrindo -->
+                <div class="p-4 rounded-2xl bg-purple-50 border border-purple-200/70 space-y-2">
+                  <span class="text-xs font-bold text-purple-900 flex items-center gap-1.5">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-purple-600"></i>
+                    Rekomendasi Komite Underwriting
+                  </span>
+                  <p id="pelaku-narrative" class="text-xs text-slate-700 leading-relaxed font-medium">
+                    Rekanan memenuhi seluruh parameter underwriting penjaminan kredit &amp; surety bond Askrindo. Layak diberikan persetujuan.
+                  </p>
+                </div>
+
+                <!-- Save Status Strip -->
+                <div id="pelaku-save-status-strip" class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-[11px]">
+                  <span class="text-slate-500 font-medium">Status Arsip:</span>
+                  <span id="pelaku-save-status-text" class="font-bold text-slate-700">Belum disimpan</span>
+                </div>
+
+                <!-- Tombol Aksi -->
+                <div class="space-y-2">
+                  <button id="btn-pelaku-save-side" onclick="window.PelakuModule.saveCurrentAnalysis()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-600/25 transition">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    <span>Simpan Analisa Perusahaan</span>
+                  </button>
+                  <button onclick="window.PelakuModule.printAnalysis()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-purple-600 hover:bg-purple-700 shadow-md shadow-purple-600/30 transition">
+                    <i data-lucide="printer" class="w-4 h-4"></i>
+                    <span>Cetak Hasil Evaluasi PDF</span>
+                  </button>
+                  <button onclick="window.location.hash='#/buset'" class="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-semibold text-xs text-slate-600 hover:bg-slate-100 transition border border-slate-200">
+                    <i data-lucide="file-text" class="w-4 h-4"></i>
+                    <span>Teruskan ke SPPA BUSET</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        `}
 
         <!-- Print & Modal Containers -->
         <div id="pelaku-modal-container"></div>
@@ -697,8 +940,11 @@ window.PelakuModule = {
       }
 
       // Baris Input Akun Finansial (a, b, c, ... z1, z2)
-      const defVal1 = this.defaultData1[row.k] !== undefined ? this.defaultData1[row.k] : 0;
-      const defVal2 = this.defaultData2[row.k] !== undefined ? this.defaultData2[row.k] : 0;
+      const ws = this.workspaceState || this.buildSampleState();
+      const val1 = ws.d1?.[row.k];
+      const val2 = ws.d2?.[row.k];
+      const strVal1 = (val1 === '' || val1 === null || val1 === undefined) ? '' : this.formatNumberWithDots(val1, true);
+      const strVal2 = (val2 === '' || val2 === null || val2 === undefined) ? '' : this.formatNumberWithDots(val2, true);
       return `
         <tr class="hover:bg-slate-50/80 transition-colors border-b border-slate-100">
           <td class="py-1 px-3 text-slate-700 text-xs font-medium">
@@ -708,13 +954,13 @@ window.PelakuModule = {
             ${row.code}
           </td>
           <td class="py-1 px-2">
-            <input type="text" id="inp_${row.k}_1" value="${this.formatNumberWithDots(defVal1, true)}" oninput="window.PelakuModule.handleDotInput(this); window.PelakuModule.calculateRatios();" onblur="window.PelakuModule.handleDotBlur(this); window.PelakuModule.calculateRatios();" class="w-full px-2 py-1 rounded-lg border border-slate-200 text-right font-mono text-xs font-semibold focus:border-purple-500 focus:outline-none bg-white" placeholder="0,00" />
+            <input type="text" id="inp_${row.k}_1" value="${strVal1}" oninput="window.PelakuModule.handleDotInput(this); window.PelakuModule.onFinancialInputChanged();" onblur="window.PelakuModule.handleDotBlur(this); window.PelakuModule.calculateRatios();" class="w-full px-2 py-1 rounded-lg border border-slate-200 text-right font-mono text-xs font-semibold focus:border-purple-500 focus:outline-none bg-white" placeholder="0,00" />
           </td>
           <td class="py-1 px-1 text-right font-mono text-[11px] text-slate-500" id="pct_${row.k}_1">
             -
           </td>
           <td class="py-1 px-2">
-            <input type="text" id="inp_${row.k}_2" value="${this.formatNumberWithDots(defVal2, true)}" oninput="window.PelakuModule.handleDotInput(this); window.PelakuModule.calculateRatios();" onblur="window.PelakuModule.handleDotBlur(this); window.PelakuModule.calculateRatios();" class="w-full px-2 py-1 rounded-lg border border-slate-200 text-right font-mono text-xs font-semibold focus:border-purple-500 focus:outline-none bg-white" placeholder="0,00" />
+            <input type="text" id="inp_${row.k}_2" value="${strVal2}" oninput="window.PelakuModule.handleDotInput(this); window.PelakuModule.onFinancialInputChanged();" onblur="window.PelakuModule.handleDotBlur(this); window.PelakuModule.calculateRatios();" class="w-full px-2 py-1 rounded-lg border border-slate-200 text-right font-mono text-xs font-semibold focus:border-purple-500 focus:outline-none bg-white" placeholder="0,00" />
           </td>
           <td class="py-1 px-1 text-right font-mono text-[11px] text-slate-500" id="pct_${row.k}_2">
             -
@@ -745,6 +991,11 @@ window.PelakuModule = {
   },
 
   calculateRatios() {
+    // Jangan timpa state saat tab arsip aktif (elemen input tidak dirender)
+    if (!document.getElementById('pelaku-company') || !document.getElementById('finStatementInputTable')) {
+      return;
+    }
+
     const getVal = (k, yr) => this.parseFormattedNumber(document.getElementById(`inp_${k}_${yr}`)?.value) || 0;
 
     const y1 = document.getElementById('inp_year1')?.value || '2024';
@@ -1055,8 +1306,11 @@ window.PelakuModule = {
     }
 
     // Simpan objek analisis untuk lembar cetak
+    const companyRaw = document.getElementById('pelaku-company')?.value.trim() || '';
+    const companyId = window.askrindoDB ? window.askrindoDB.normalizeCompanyId(companyRaw) : '';
     this.currentAnalysis = {
-      company: document.getElementById('pelaku-company')?.value || 'PT Rekanan',
+      companyId: companyId || '-',
+      company: companyRaw || 'PT Rekanan',
       sector: document.getElementById('pelaku-sector')?.value || 'konstruksi',
       year1: y1,
       year2: y2,
@@ -1086,6 +1340,10 @@ window.PelakuModule = {
       passRacCount,
       failRacCount
     };
+
+    this.syncWorkspaceFromDom();
+    this.updateCompanyIdBadgeAndBanner();
+    this.updateSaveIndicators();
   },
 
   computeRacMatrix(totals1, totals2, yr1, yr2, projectVal) {
@@ -1227,62 +1485,1166 @@ window.PelakuModule = {
   },
 
   loadSampleData() {
-    const comp = document.getElementById('pelaku-company');
-    if (comp) comp.value = 'PT Adhi Bangun Persada (Kontraktor BUMN / Swasta)';
-    const sec = document.getElementById('pelaku-sector');
-    if (sec) sec.value = 'konstruksi';
-    const y1Inp = document.getElementById('inp_year1');
-    const y2Inp = document.getElementById('inp_year2');
-    if (y1Inp) y1Inp.value = 2024;
-    if (y2Inp) y2Inp.value = 2025;
+    this.formSourceMode = 'sample';
+    this.loadedCompanyId = null;
+    this.preAutoMatchState = null;
+    this.autoLoadedCompanyId = null;
+    this.historyBannerMatch = null;
+    this.historyBannerAutoLoaded = false;
+    this.dismissedBannerForId = null;
+    this.lastToastMatchId = null;
 
-    const auditSel = document.getElementById('pelaku-audit-status');
-    if (auditSel) auditSel.value = 'audited';
-    const kapInp = document.getElementById('pelaku-kap-name');
-    if (kapInp) kapInp.value = 'KAP Tanubrata Sutanto Fahmi Bambang & Rekan (BDO Indonesia)';
-    const opInp = document.getElementById('pelaku-opinion');
-    if (opInp) opInp.value = 'Wajar Tanpa Pengecualian (WTP)';
-    const projInp = document.getElementById('inp_projectValue');
-    if (projInp) projInp.value = '15.000.000.000';
-
-    // Data 27 Pos Neraca & Laba Rugi Komparatif Standar ASCA
-    const sample1 = {
-      cash: 14200000000, otherCa: 900000000, ar: 23500000000, inv: 18100000000, otherAr: 1200000000, prepaid: 850000000,
-      fa: 42000000000, depr: 6500000000, invest: 2500000000, taxAsset: 1500000000,
-      ap: 15100000000, stDebt: 19500000000, otherAp: 1800000000, accrued: 2400000000, ltDebt: 18000000000,
-      capital: 30000000000, otherCap: 0, retEarn: 4450000000, re: 7000000000,
-      rev: 185000000000, cogs: 157250000000, opex: 14800000000, otherInc: 1200000000, otherExp: 450000000, intExp: 3800000000, tax: 2850000000, div: 500000000
-    };
-
-    const sample2 = {
-      cash: 18500000000, otherCa: 1200000000, ar: 28900000000, inv: 21400000000, otherAr: 1500000000, prepaid: 1100000000,
-      fa: 48000000000, depr: 8200000000, invest: 3000000000, taxAsset: 1800000000,
-      ap: 17800000000, stDebt: 21000000000, otherAp: 2100000000, accrued: 2800000000, ltDebt: 22500000000,
-      capital: 35000000000, otherCap: 0, retEarn: 6950000000, re: 9050000000,
-      rev: 224000000000, cogs: 189500000000, opex: 17200000000, otherInc: 1600000000, otherExp: 550000000, intExp: 4200000000, tax: 3550000000, div: 1550000000
-    };
-
-    FIN_ACCOUNT_KEYS.forEach(k => {
-      const el1 = document.getElementById(`inp_${k}_1`);
-      const el2 = document.getElementById(`inp_${k}_2`);
-      if (el1) el1.value = this.formatNumberWithDots(sample1[k] || 0, true);
-      if (el2) el2.value = this.formatNumberWithDots(sample2[k] || 0, true);
-    });
-
-    this.updateYearLabels();
-    this.calculateRatios();
+    const sampleState = this.buildSampleState();
+    this.applyStateToDom(sampleState, false);
     window.askrindoApp.showToast('Contoh data Laporan Keuangan 27 pos ASCA berhasil dimuat!', 'info');
   },
 
   resetForm() {
+    const curYr = new Date().getFullYear();
+    this.formSourceMode = 'blank';
+    this.loadedCompanyId = null;
+    this.preAutoMatchState = null;
+    this.autoLoadedCompanyId = null;
+    this.historyBannerMatch = null;
+    this.historyBannerAutoLoaded = false;
+    this.dismissedBannerForId = null;
+    this.lastToastMatchId = null;
+
     FIN_ACCOUNT_KEYS.forEach(k => {
       const el1 = document.getElementById(`inp_${k}_1`);
       const el2 = document.getElementById(`inp_${k}_2`);
       if (el1) el1.value = '';
       if (el2) el2.value = '';
     });
+    const y1Inp = document.getElementById('inp_year1');
+    const y2Inp = document.getElementById('inp_year2');
+    if (y1Inp && !y1Inp.value) y1Inp.value = curYr - 1;
+    if (y2Inp && !y2Inp.value) y2Inp.value = curYr;
+
+    this.updateYearLabels();
     this.calculateRatios();
-    window.askrindoApp.showToast('Formulir Laporan Keuangan berhasil dikosongkan.', 'info');
+    window.askrindoApp.showToast('Angka Laporan Keuangan berhasil dikosongkan.', 'info');
+  },
+
+  startNewAnalysis() {
+    this.workspaceState = this.buildBlankState();
+    this.formSourceMode = 'blank';
+    this.loadedCompanyId = null;
+    this.preAutoMatchState = null;
+    this.autoLoadedCompanyId = null;
+    this.historyBannerMatch = null;
+    this.historyBannerAutoLoaded = false;
+    this.dismissedBannerForId = null;
+    this.lastToastMatchId = null;
+    this.saveWorkspaceDraft();
+
+    if (this.currentTab !== 'workspace') {
+      this.currentTab = 'workspace';
+    }
+    window.askrindoApp.renderCurrentRoute();
+
+    setTimeout(() => {
+      const compEl = document.getElementById('pelaku-company');
+      if (compEl) {
+        compEl.focus();
+        this.openCompanyAutocomplete();
+      }
+    }, 60);
+
+    window.askrindoApp.showToast('Siap membuat analisa baru. Masukkan Nama Perusahaan (otomatis menjadi ID).', 'info');
+  },
+
+  setTab(tab) {
+    if (this.currentTab === 'workspace') {
+      this.syncWorkspaceFromDom();
+    }
+    this.currentTab = tab;
+    window.askrindoApp.renderCurrentRoute();
+  },
+
+  handleDbSynced() {
+    const savedList = window.askrindoDB ? window.askrindoDB.getPelakuAnalyses() : [];
+    const badge = document.getElementById('pelaku-archive-count-badge');
+    if (badge) badge.textContent = savedList.length;
+
+    if (this.currentTab === 'archive') {
+      const container = document.getElementById('pelaku-archive-root');
+      if (container) {
+        window.askrindoApp.renderCurrentRoute();
+      }
+    } else {
+      const compEl = document.getElementById('pelaku-company');
+      if (compEl) {
+        if (this.formSourceMode === 'blank' && compEl.value.trim()) {
+          this.resolveCompanyMatch(compEl.value, 'sync');
+        } else {
+          this.updateCompanyIdBadgeAndBanner();
+          this.updateSaveIndicators();
+        }
+      }
+    }
+  },
+
+  onFinancialInputChanged() {
+    this.preAutoMatchState = null;
+    this.autoLoadedCompanyId = null;
+    if (this.formSourceMode !== 'ocr') {
+      this.formSourceMode = 'dirty';
+    }
+    this.calculateRatios();
+  },
+
+  onMetaFieldChanged() {
+    if (this.formSourceMode === 'saved') {
+      this.formSourceMode = 'dirty';
+    }
+    this.calculateRatios();
+  },
+
+  applyStateToDom(state, preserveCompanyText = false) {
+    const comp = document.getElementById('pelaku-company');
+    if (comp && !preserveCompanyText) comp.value = state.companyName || '';
+    const sec = document.getElementById('pelaku-sector');
+    if (sec) sec.value = state.sector || 'konstruksi';
+    const y1Inp = document.getElementById('inp_year1');
+    const y2Inp = document.getElementById('inp_year2');
+    if (y1Inp) y1Inp.value = state.year1 || '2024';
+    if (y2Inp) y2Inp.value = state.year2 || '2025';
+    const auditSel = document.getElementById('pelaku-audit-status');
+    if (auditSel) auditSel.value = state.auditStatus || 'audited';
+    const kapInp = document.getElementById('pelaku-kap-name');
+    if (kapInp) kapInp.value = state.kapName || '';
+    const opInp = document.getElementById('pelaku-opinion');
+    if (opInp) opInp.value = state.opinion || '';
+    const projInp = document.getElementById('inp_projectValue');
+    if (projInp) {
+      projInp.value = (state.projectVal === '' || state.projectVal === null || state.projectVal === undefined)
+        ? ''
+        : this.formatNumberWithDots(state.projectVal, false);
+    }
+
+    FIN_ACCOUNT_KEYS.forEach(k => {
+      const el1 = document.getElementById(`inp_${k}_1`);
+      const el2 = document.getElementById(`inp_${k}_2`);
+      const v1 = state.d1?.[k];
+      const v2 = state.d2?.[k];
+      if (el1) el1.value = (v1 === '' || v1 === null || v1 === undefined) ? '' : this.formatNumberWithDots(v1, true);
+      if (el2) el2.value = (v2 === '' || v2 === null || v2 === undefined) ? '' : this.formatNumberWithDots(v2, true);
+    });
+
+    this.updateYearLabels();
+    this.calculateRatios();
+  },
+
+  // =========================================================================
+  // COMPANY ID AUTO-LOOKUP, AUTOCOMPLETE & PERSISTENT ARCHIVE
+  // =========================================================================
+  openCompanyAutocomplete() {
+    const val = document.getElementById('pelaku-company')?.value || '';
+    this.renderCompanyAutocomplete(val);
+  },
+
+  toggleCompanyAutocomplete() {
+    const dd = document.getElementById('pelaku-company-dropdown');
+    if (!dd) return;
+    if (dd.classList.contains('hidden')) {
+      this.openCompanyAutocomplete();
+    } else {
+      dd.classList.add('hidden');
+    }
+  },
+
+  renderCompanyAutocomplete(query) {
+    const dd = document.getElementById('pelaku-company-dropdown');
+    if (!dd || !window.askrindoDB) return;
+
+    const allSaved = window.askrindoDB.getPelakuAnalyses();
+    if (allSaved.length === 0) {
+      dd.classList.add('hidden');
+      return;
+    }
+
+    const q = (query || '').trim();
+    const matches = q ? window.askrindoDB.searchPelakuAnalyses(q) : allSaved.slice(0, 8);
+
+    if (matches.length === 0) {
+      const normNew = window.askrindoDB.normalizeCompanyId(q);
+      dd.innerHTML = `
+        <div class="p-3 text-xs text-slate-500 flex items-center justify-between gap-2">
+          <div>
+            <span class="font-semibold text-slate-700">Perusahaan baru:</span> belum ada di arsip.
+            <span class="block text-[10px] font-mono text-purple-700 mt-0.5">ID Otomatis: ${this.escapeHtml(normNew || '-')}</span>
+          </div>
+          <span class="px-2 py-0.5 rounded bg-purple-50 text-purple-700 text-[10px] font-bold">Entri Baru</span>
+        </div>
+      `;
+      dd.classList.remove('hidden');
+      return;
+    }
+
+    dd.innerHTML = `
+      <div class="px-3 py-1.5 bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+        <span>Perusahaan Pernah Dianalisa (${matches.length})</span>
+        <span class="text-purple-600">Klik untuk muat data</span>
+      </div>
+      ${matches.slice(0, 10).map(rec => `
+        <button
+          type="button"
+          onmousedown="event.preventDefault(); window.PelakuModule.selectCompanyFromAutocomplete('${this.escapeHtml(rec.id)}');"
+          class="w-full text-left px-3.5 py-2.5 hover:bg-purple-50/80 transition flex items-start justify-between gap-3 group"
+        >
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="font-bold text-slate-800 group-hover:text-purple-800 truncate">${this.escapeHtml(rec.companyName)}</span>
+              <span class="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200">ID: ${this.escapeHtml(rec.id)}</span>
+            </div>
+            <div class="text-[10px] text-slate-500 mt-0.5 flex items-center gap-2 flex-wrap">
+              <span>Th ${this.escapeHtml(rec.year1)}&ndash;${this.escapeHtml(rec.year2)}</span>
+              <span>&bull;</span>
+              <span>Proyek ${this.fmtRp(rec.projectVal || 0, true)}</span>
+              <span>&bull;</span>
+              <span>Disimpan ${this.formatDateTimeId(rec.updatedAt)}</span>
+            </div>
+          </div>
+          <div class="text-right shrink-0">
+            <span class="inline-block px-2 py-0.5 rounded text-[10px] font-extrabold ${rec.racFailCount === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+              ${rec.racPassCount}/6 RAC
+            </span>
+            <span class="block text-[10px] font-mono text-slate-400 mt-0.5">Skor ${Number(rec.score || 0).toFixed(1)}</span>
+          </div>
+        </button>
+      `).join('')}
+    `;
+    dd.classList.remove('hidden');
+  },
+
+  selectCompanyFromAutocomplete(companyId) {
+    const dd = document.getElementById('pelaku-company-dropdown');
+    if (dd) dd.classList.add('hidden');
+
+    const rec = window.askrindoDB?.getPelakuAnalysis(companyId);
+    if (!rec) return;
+
+    if ((this.formSourceMode === 'dirty' || this.formSourceMode === 'ocr') && this.loadedCompanyId !== rec.id) {
+      if (!confirm(`Form saat ini memiliki perubahan yang belum disimpan. Muat data laporan keuangan sebelumnya untuk "${rec.companyName}"?`)) {
+        return;
+      }
+    }
+
+    this.preAutoMatchState = null;
+    this.autoLoadedCompanyId = null;
+    this.populateFormFromAnalysisRecord(rec, { toast: true });
+  },
+
+  handleCompanyInput(val) {
+    if (this.workspaceState) {
+      this.workspaceState.companyName = val;
+      this.saveWorkspaceDraft();
+    }
+
+    this.renderCompanyAutocomplete(val);
+    this.updateCompanyIdBadgeAndBanner();
+    this.updateSaveIndicators();
+
+    if (this.companyLookupTimer) clearTimeout(this.companyLookupTimer);
+    this.companyLookupTimer = setTimeout(() => {
+      this.resolveCompanyMatch(val, 'typing');
+    }, 260);
+  },
+
+  handleCompanyKeydown(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (this.companyLookupTimer) clearTimeout(this.companyLookupTimer);
+      const dd = document.getElementById('pelaku-company-dropdown');
+      if (dd) dd.classList.add('hidden');
+      this.resolveCompanyMatch(e.target.value, 'enter');
+    } else if (e.key === 'Escape') {
+      const dd = document.getElementById('pelaku-company-dropdown');
+      if (dd) dd.classList.add('hidden');
+    }
+  },
+
+  handleCompanyBlur() {
+    setTimeout(() => {
+      const dd = document.getElementById('pelaku-company-dropdown');
+      if (dd) dd.classList.add('hidden');
+      const val = document.getElementById('pelaku-company')?.value || '';
+      this.resolveCompanyMatch(val, 'blur');
+    }, 180);
+  },
+
+  resolveCompanyMatch(rawName, source = 'typing') {
+    if (!window.askrindoDB || !document.getElementById('pelaku-company')) return;
+
+    const normId = window.askrindoDB.normalizeCompanyId(rawName);
+    const existing = normId ? window.askrindoDB.getPelakuAnalysis(normId) : null;
+
+    if (!existing) {
+      if (source === 'typing' && this.preAutoMatchState && this.autoLoadedCompanyId) {
+        const snap = this.preAutoMatchState;
+        this.preAutoMatchState = null;
+        this.autoLoadedCompanyId = null;
+        this.loadedCompanyId = null;
+        this.formSourceMode = snap._mode || 'blank';
+        this.historyBannerMatch = null;
+        this.historyBannerAutoLoaded = false;
+        this.applyStateToDom(snap, true);
+        return;
+      }
+
+      if (this.loadedCompanyId && this.loadedCompanyId !== normId) {
+        this.loadedCompanyId = null;
+        if (this.formSourceMode === 'saved') {
+          this.formSourceMode = 'dirty';
+        }
+      }
+      this.historyBannerMatch = null;
+      this.historyBannerAutoLoaded = false;
+      this.updateCompanyIdBadgeAndBanner();
+      this.updateSaveIndicators();
+      return;
+    }
+
+    // Jika perusahaan yang sama sudah ter-load dan masih sinkron
+    if (this.loadedCompanyId === existing.id && this.formSourceMode === 'saved') {
+      this.historyBannerMatch = existing;
+      this.historyBannerAutoLoaded = true;
+      if (source !== 'typing') {
+        this.preAutoMatchState = null;
+        this.autoLoadedCompanyId = null;
+      }
+      this.updateCompanyIdBadgeAndBanner();
+      return;
+    }
+
+    const canAutoLoad = (
+      this.formSourceMode === 'blank' ||
+      this.formSourceMode === 'sample' ||
+      this.formSourceMode === 'saved' ||
+      !!this.autoLoadedCompanyId
+    );
+
+    if (canAutoLoad) {
+      if (!this.preAutoMatchState && source === 'typing') {
+        this.preAutoMatchState = {
+          ...this.captureWorkspaceFromDom(),
+          _mode: this.formSourceMode
+        };
+      }
+      this.populateFormFromAnalysisRecord(existing, {
+        preserveCompanyText: source === 'typing',
+        toast: this.lastToastMatchId !== existing.id
+      });
+      this.autoLoadedCompanyId = source === 'typing' ? existing.id : null;
+      if (source !== 'typing') {
+        this.preAutoMatchState = null;
+      }
+      this.lastToastMatchId = existing.id;
+    } else {
+      // User sudah mengetik angka manual / hasil OCR baru -> jangan timpa paksa, tampilkan banner pilihan!
+      this.historyBannerMatch = existing;
+      this.historyBannerAutoLoaded = false;
+      this.updateCompanyIdBadgeAndBanner();
+      this.updateSaveIndicators();
+    }
+  },
+
+  populateFormFromAnalysisRecord(rec, opts = {}) {
+    if (!rec) return;
+    const src = opts.snapshot || rec;
+
+    const state = {
+      companyName: rec.companyName || '',
+      sector: src.sector || rec.sector || 'konstruksi',
+      year1: String(src.year1 || rec.year1 || '2024'),
+      year2: String(src.year2 || rec.year2 || '2025'),
+      auditStatus: src.auditStatus || rec.auditStatus || 'audited',
+      opinion: src.opinion || rec.opinion || '-',
+      projectVal: src.projectVal !== undefined ? src.projectVal : (rec.projectVal || 0),
+      kapName: src.kapName || rec.kapName || '-',
+      d1: { ...(src.data1 || {}) },
+      d2: { ...(src.data2 || {}) }
+    };
+
+    this.formSourceMode = opts.snapshot ? 'dirty' : 'saved';
+    this.loadedCompanyId = rec.id;
+    this.historyBannerMatch = rec;
+    this.historyBannerAutoLoaded = true;
+    this.dismissedBannerForId = null;
+
+    this.applyStateToDom(state, !!opts.preserveCompanyText);
+
+    if (opts.toast) {
+      window.askrindoApp.showToast(
+        opts.toastMessage || `Data laporan keuangan "${rec.companyName}" (ID: ${rec.id}) dimuat otomatis!`,
+        'success'
+      );
+    }
+  },
+
+  updateCompanyIdBadgeAndBanner() {
+    const compRaw = document.getElementById('pelaku-company')?.value.trim() || '';
+    const normId = window.askrindoDB ? window.askrindoDB.normalizeCompanyId(compRaw) : '';
+    const existing = normId && window.askrindoDB ? window.askrindoDB.getPelakuAnalysis(normId) : null;
+
+    const badgeEl = document.getElementById('pelaku-company-id-badge');
+    if (badgeEl) {
+      if (!normId) {
+        badgeEl.className = 'px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 text-slate-500 border border-slate-200 truncate max-w-[200px]';
+        badgeEl.textContent = 'ID: (Belum diisi)';
+        badgeEl.title = 'Masukkan nama perusahaan untuk membuat ID otomatis';
+      } else if (existing) {
+        badgeEl.className = 'px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 truncate max-w-[200px]';
+        badgeEl.textContent = `✓ ID: ${existing.id}`;
+        badgeEl.title = `Terdaftar di Arsip • ${existing.snapshots?.length || 1} versi tersimpan`;
+      } else {
+        badgeEl.className = 'px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-purple-100 text-purple-800 border border-purple-200 truncate max-w-[200px]';
+        badgeEl.textContent = `ID Baru: ${normId}`;
+        badgeEl.title = `Akan disimpan dengan ID: ${normId}`;
+      }
+    }
+
+    const bannerEl = document.getElementById('pelaku-company-history-banner');
+    if (!bannerEl) return;
+
+    const match = this.historyBannerMatch || existing;
+    if (!match || !normId || normId !== match.id || this.dismissedBannerForId === match.id) {
+      bannerEl.classList.add('hidden');
+      bannerEl.innerHTML = '';
+      return;
+    }
+
+    const snapCount = Array.isArray(match.snapshots) ? match.snapshots.length : 1;
+    const savedAtTxt = this.formatDateTimeId(match.updatedAt);
+    const nextYr = (parseInt(match.year2, 10) || new Date().getFullYear()) + 1;
+
+    if (this.historyBannerAutoLoaded) {
+      bannerEl.className = 'p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs flex flex-col md:flex-row md:items-center justify-between gap-3 animate-fadeIn';
+      bannerEl.innerHTML = `
+        <div class="flex items-start gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5">
+            <i data-lucide="history" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <p class="font-bold text-emerald-950">
+              Riwayat Perusahaan Ditemukan &bull; <span class="font-mono text-emerald-800">ID: ${this.escapeHtml(match.id)}</span>
+            </p>
+            <p class="text-[11px] text-emerald-800 mt-0.5">
+              Data laporan keuangan sebelumnya (<strong>Th ${this.escapeHtml(match.year1)} &amp; ${this.escapeHtml(match.year2)}</strong>, ${this.escapeHtml(match.grade)}, diperbarui ${savedAtTxt}) telah dimuat ke tabel.
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 flex-wrap shrink-0">
+          <button type="button" onclick="window.PelakuModule.rollForwardYear2ToYear1('${this.escapeHtml(match.id)}')" class="px-2.5 py-1.5 rounded-xl bg-white hover:bg-emerald-100 text-emerald-800 font-bold border border-emerald-300 text-[11px] transition flex items-center gap-1" title="Pindahkan data Th ${this.escapeHtml(match.year2)} ke Kolom Tahun 1 untuk perbandingan tahun ${nextYr}">
+            <i data-lucide="arrow-right-left" class="w-3.5 h-3.5"></i>
+            <span>Lanjut Periode ${this.escapeHtml(match.year2)}&ndash;${nextYr}</span>
+          </button>
+          ${snapCount > 1 ? `
+            <button type="button" onclick="window.PelakuModule.openCompanySnapshotsModal('${this.escapeHtml(match.id)}')" class="px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-semibold border border-slate-300 text-[11px] transition flex items-center gap-1">
+              <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+              <span>Riwayat (${snapCount})</span>
+            </button>
+          ` : ''}
+          <button type="button" onclick="window.PelakuModule.dismissHistoryBanner('${this.escapeHtml(match.id)}')" class="p-1.5 rounded-lg text-emerald-700 hover:bg-emerald-100 transition" title="Tutup info">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      `;
+    } else {
+      const m = match.summaryMetrics || {};
+      bannerEl.className = 'p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-xs flex flex-col md:flex-row md:items-center justify-between gap-3 animate-fadeIn';
+      bannerEl.innerHTML = `
+        <div class="flex items-start gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 mt-0.5">
+            <i data-lucide="folder-search" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <p class="font-bold text-amber-950">
+              Nama Perusahaan Sama Ditemukan di Arsip (<span class="font-mono">${this.escapeHtml(match.id)}</span>)
+            </p>
+            <p class="text-[11px] text-amber-900 mt-0.5">
+              Analisa sebelumnya: <strong>Th ${this.escapeHtml(match.year1)}&ndash;${this.escapeHtml(match.year2)}</strong> &bull; Aset ${this.fmtRp(m.ta2 || 0, true)} &bull; EAT ${this.fmtRp(m.eat2 || 0, true)} &bull; Disimpan ${savedAtTxt}.
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 flex-wrap shrink-0">
+          <button type="button" onclick="window.PelakuModule.populateFormFromAnalysisRecord(window.askrindoDB.getPelakuAnalysis('${this.escapeHtml(match.id)}'), { toast: true })" class="px-2.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] transition">
+            Muat Data Sebelumnya
+          </button>
+          <button type="button" onclick="window.PelakuModule.rollForwardIntoYear1KeepingYear2('${this.escapeHtml(match.id)}')" class="px-2.5 py-1.5 rounded-xl bg-white hover:bg-amber-100 text-amber-900 font-bold border border-amber-300 text-[11px] transition" title="Ambil data Th ${this.escapeHtml(match.year2)} sebelumnya ke Kolom Tahun 1 tanpa menghapus angka Tahun 2 saat ini">
+            Isi Th ${this.escapeHtml(match.year2)} ke Kolom Th 1
+          </button>
+          <button type="button" onclick="window.PelakuModule.dismissHistoryBanner('${this.escapeHtml(match.id)}')" class="px-2 py-1.5 rounded-xl text-amber-800 hover:bg-amber-100 font-semibold text-[11px] transition">
+            Abaikan
+          </button>
+        </div>
+      `;
+    }
+    if (window.lucide) window.lucide.createIcons();
+  },
+
+  dismissHistoryBanner(companyId) {
+    this.dismissedBannerForId = companyId;
+    const bannerEl = document.getElementById('pelaku-company-history-banner');
+    if (bannerEl) {
+      bannerEl.classList.add('hidden');
+      bannerEl.innerHTML = '';
+    }
+  },
+
+  rollForwardYear2ToYear1(companyId) {
+    const rec = window.askrindoDB?.getPelakuAnalysis(companyId);
+    if (!rec) return;
+
+    const prevYr2 = String(rec.year2 || '2025');
+    const nextYr2 = String((parseInt(prevYr2, 10) || new Date().getFullYear()) + 1);
+    const blankYr2 = {};
+    FIN_ACCOUNT_KEYS.forEach(k => { blankYr2[k] = ''; });
+
+    this.preAutoMatchState = null;
+    this.autoLoadedCompanyId = null;
+    this.formSourceMode = 'dirty';
+    this.loadedCompanyId = rec.id;
+    this.historyBannerMatch = rec;
+    this.historyBannerAutoLoaded = true;
+
+    this.applyStateToDom({
+      companyName: rec.companyName,
+      sector: rec.sector,
+      year1: prevYr2,
+      year2: nextYr2,
+      auditStatus: rec.auditStatus,
+      opinion: rec.opinion,
+      projectVal: rec.projectVal,
+      kapName: rec.kapName,
+      d1: { ...(rec.data2 || {}) },
+      d2: blankYr2
+    }, false);
+
+    setTimeout(() => document.getElementById('inp_cash_2')?.focus(), 50);
+    window.askrindoApp.showToast(`Data Th ${prevYr2} disalin ke Kolom Tahun 1. Silakan isi atau pindai OCR data Th ${nextYr2}.`, 'info');
+  },
+
+  rollForwardIntoYear1KeepingYear2(companyId) {
+    const rec = window.askrindoDB?.getPelakuAnalysis(companyId);
+    if (!rec) return;
+
+    const prevYr2 = String(rec.year2 || '2025');
+    const y1Inp = document.getElementById('inp_year1');
+    if (y1Inp) y1Inp.value = prevYr2;
+
+    FIN_ACCOUNT_KEYS.forEach(k => {
+      const el1 = document.getElementById(`inp_${k}_1`);
+      if (el1) el1.value = this.formatNumberWithDots(rec.data2?.[k] || 0, true);
+    });
+
+    this.formSourceMode = 'dirty';
+    this.loadedCompanyId = rec.id;
+    this.dismissedBannerForId = rec.id;
+    this.updateYearLabels();
+    this.calculateRatios();
+    window.askrindoApp.showToast(`Kolom Tahun 1 diisi dari data akhir "${rec.companyName}" (Th ${prevYr2}), Tahun 2 tetap dipertahankan!`, 'success');
+  },
+
+  updateSaveIndicators() {
+    const compRaw = document.getElementById('pelaku-company')?.value.trim() || '';
+    const normId = window.askrindoDB ? window.askrindoDB.normalizeCompanyId(compRaw) : '';
+    const existing = normId && window.askrindoDB ? window.askrindoDB.getPelakuAnalysis(normId) : null;
+
+    const topBtn = document.getElementById('btn-pelaku-save-top');
+    const sideBtn = document.getElementById('btn-pelaku-save-side');
+    const stripTxt = document.getElementById('pelaku-save-status-text');
+    const archiveBadge = document.getElementById('pelaku-archive-count-badge');
+
+    if (archiveBadge && window.askrindoDB) {
+      archiveBadge.textContent = window.askrindoDB.getPelakuAnalyses().length;
+    }
+
+    if (existing && this.formSourceMode === 'saved' && this.loadedCompanyId === existing.id) {
+      if (stripTxt) {
+        stripTxt.className = 'font-bold text-emerald-700';
+        stripTxt.textContent = `✓ Tersimpan (${this.formatDateTimeId(existing.updatedAt)})`;
+      }
+      if (topBtn) {
+        topBtn.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4"></i><span>Tersimpan</span>`;
+        topBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 transition flex items-center gap-1.5';
+      }
+      if (sideBtn) {
+        sideBtn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i><span>Perbarui Analisa Tersimpan</span>`;
+      }
+    } else if (existing) {
+      if (stripTxt) {
+        stripTxt.className = 'font-bold text-amber-700';
+        stripTxt.textContent = 'Perubahan baru (belum disimpan ke ID)';
+      }
+      if (topBtn) {
+        topBtn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i><span>Perbarui Analisa*</span>`;
+        topBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 shadow-md shadow-amber-600/20 transition flex items-center gap-1.5';
+      }
+      if (sideBtn) {
+        sideBtn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i><span>Simpan Pembaruan (${existing.id})</span>`;
+      }
+    } else {
+      if (stripTxt) {
+        stripTxt.className = 'font-semibold text-slate-600';
+        stripTxt.textContent = 'Draft lokal (belum disimpan)';
+      }
+      if (topBtn) {
+        topBtn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i><span>Simpan Analisa</span>`;
+        topBtn.className = 'px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-600/20 transition flex items-center gap-1.5';
+      }
+      if (sideBtn) {
+        sideBtn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i><span>Simpan Analisa Perusahaan</span>`;
+      }
+    }
+    if (window.lucide) window.lucide.createIcons();
+  },
+
+  saveCurrentAnalysis(silent = false) {
+    const compEl = document.getElementById('pelaku-company');
+    const companyName = compEl ? compEl.value.trim() : '';
+    const companyId = window.askrindoDB ? window.askrindoDB.normalizeCompanyId(companyName) : '';
+
+    if (!companyName || !companyId) {
+      if (compEl) {
+        compEl.focus();
+        compEl.classList.add('border-rose-500', 'ring-2', 'ring-rose-200');
+        setTimeout(() => compEl.classList.remove('border-rose-500', 'ring-2', 'ring-rose-200'), 2500);
+      }
+      window.askrindoApp.showToast('Harap isi Nama Perusahaan / Rekanan terlebih dahulu sebelum menyimpan (menjadi ID Analisa).', 'error');
+      return null;
+    }
+
+    this.calculateRatios();
+    const c = this.currentAnalysis;
+    if (!c || !window.askrindoDB) return null;
+
+    const payload = {
+      companyName,
+      sector: c.sector,
+      auditStatus: document.getElementById('pelaku-audit-status')?.value || 'audited',
+      kapName: c.kapName,
+      opinion: c.opinion,
+      year1: c.year1,
+      year2: c.year2,
+      projectVal: c.projectVal,
+      score: c.score,
+      grade: c.grade,
+      racPassCount: c.passRacCount,
+      racFailCount: c.failRacCount,
+      data1: c.d1,
+      data2: c.d2,
+      summaryMetrics: {
+        ca2: c.totals2?.ca || 0,
+        ta2: c.totals2?.ta || 0,
+        tl2: c.totals2?.tl || 0,
+        eq2: c.totals2?.eq || 0,
+        rev2: c.totals2?.rev || 0,
+        eat2: c.totals2?.eat || 0,
+        nwc2: (c.totals2?.ca || 0) - (c.totals2?.cl || 0),
+        currentRatio: c.currentRatio,
+        der: c.der,
+        roa: c.roa,
+        roe: c.roe
+      }
+    };
+
+    const res = window.askrindoDB.savePelakuAnalysis(payload);
+    if (!res) return null;
+
+    this.formSourceMode = 'saved';
+    this.loadedCompanyId = res.savedRecord.id;
+    this.preAutoMatchState = null;
+    this.autoLoadedCompanyId = null;
+    this.historyBannerMatch = res.savedRecord;
+    this.historyBannerAutoLoaded = true;
+    this.dismissedBannerForId = null;
+    this.saveWorkspaceDraft();
+
+    window.askrindoDB.logActivity(
+      'PELAKU',
+      res.isNewCompany ? 'Simpan Analisa Baru' : 'Perbarui Analisa Perusahaan',
+      `Menyimpan analisa keuangan ${companyName} (ID: ${res.savedRecord.id}) Tahun Buku ${c.year1}-${c.year2} Skor ${c.score.toFixed(1)}`
+    );
+
+    this.updateCompanyIdBadgeAndBanner();
+    this.updateSaveIndicators();
+
+    if (!silent) {
+      window.askrindoApp.showToast(
+        `Analisa "${companyName}" (ID: ${res.savedRecord.id}) berhasil disimpan! Total ${res.snapshotCount} riwayat versi.`,
+        'success'
+      );
+    }
+    return res;
+  },
+
+  loadCompanyAnalysisById(companyId, snapshotId = null) {
+    const rec = window.askrindoDB?.getPelakuAnalysis(companyId);
+    if (!rec) {
+      window.askrindoApp.showToast('Data analisa perusahaan tidak ditemukan.', 'error');
+      return;
+    }
+
+    let chosenSnap = null;
+    if (snapshotId && Array.isArray(rec.snapshots)) {
+      chosenSnap = rec.snapshots.find(s => s.snapshotId === snapshotId) || null;
+    }
+
+    this.preAutoMatchState = null;
+    this.autoLoadedCompanyId = null;
+
+    if (this.currentTab !== 'workspace') {
+      this.currentTab = 'workspace';
+      const src = chosenSnap || rec;
+      this.workspaceState = {
+        companyName: rec.companyName,
+        sector: src.sector || rec.sector || 'konstruksi',
+        year1: String(src.year1 || rec.year1 || '2024'),
+        year2: String(src.year2 || rec.year2 || '2025'),
+        auditStatus: src.auditStatus || rec.auditStatus || 'audited',
+        opinion: src.opinion || rec.opinion || '-',
+        projectVal: src.projectVal !== undefined ? src.projectVal : (rec.projectVal || 0),
+        kapName: src.kapName || rec.kapName || '-',
+        d1: { ...(src.data1 || {}) },
+        d2: { ...(src.data2 || {}) }
+      };
+      this.formSourceMode = chosenSnap ? 'dirty' : 'saved';
+      this.loadedCompanyId = rec.id;
+      this.historyBannerMatch = rec;
+      this.historyBannerAutoLoaded = true;
+      this.dismissedBannerForId = null;
+      this.saveWorkspaceDraft();
+      window.askrindoApp.renderCurrentRoute();
+    } else {
+      this.populateFormFromAnalysisRecord(rec, { snapshot: chosenSnap, toast: false });
+    }
+
+    const msg = chosenSnap
+      ? `Membuka riwayat "${rec.companyName}" periode Th ${chosenSnap.year1}–${chosenSnap.year2}!`
+      : `Analisa "${rec.companyName}" (ID: ${rec.id}) berhasil dibuka!`;
+    window.askrindoApp.showToast(msg, 'success');
+  },
+
+  deleteSavedCompany(companyId) {
+    const rec = window.askrindoDB?.getPelakuAnalysis(companyId);
+    if (!rec) return;
+    if (!confirm(`Hapus permanen seluruh arsip analisa perusahaan "${rec.companyName}" (ID: ${rec.id}) beserta ${rec.snapshots?.length || 1} riwayat periodenya?`)) {
+      return;
+    }
+    window.askrindoDB.deletePelakuAnalysis(rec.id);
+    window.askrindoDB.logActivity('PELAKU', 'Hapus Arsip Perusahaan', `Menghapus arsip analisa ${rec.companyName} (ID: ${rec.id})`);
+
+    if (this.loadedCompanyId === rec.id) {
+      this.loadedCompanyId = null;
+      this.formSourceMode = 'dirty';
+      this.historyBannerMatch = null;
+      this.historyBannerAutoLoaded = false;
+      this.saveWorkspaceDraft();
+    }
+
+    window.askrindoApp.showToast(`Arsip "${rec.companyName}" berhasil dihapus.`, 'info');
+    window.askrindoApp.renderCurrentRoute();
+  },
+
+  openCompanySnapshotsModal(companyId) {
+    const rec = window.askrindoDB?.getPelakuAnalysis(companyId);
+    const modal = document.getElementById('pelaku-modal-container');
+    if (!rec || !modal) return;
+
+    const snaps = Array.isArray(rec.snapshots) && rec.snapshots.length > 0
+      ? rec.snapshots
+      : [{
+          snapshotId: 'LATEST',
+          savedAt: rec.updatedAt,
+          savedBy: rec.updatedBy,
+          year1: rec.year1,
+          year2: rec.year2,
+          projectVal: rec.projectVal,
+          score: rec.score,
+          grade: rec.grade,
+          racPassCount: rec.racPassCount,
+          summaryMetrics: rec.summaryMetrics
+        }];
+
+    modal.innerHTML = `
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+        <div class="bg-white rounded-3xl max-w-3xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center">
+                <i data-lucide="history" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="text-base font-extrabold text-slate-800">${this.escapeHtml(rec.companyName)}</h3>
+                <p class="text-xs text-slate-500 font-mono">ID Perusahaan: <strong>${this.escapeHtml(rec.id)}</strong> &bull; ${snaps.length} Riwayat Analisa Tersimpan</p>
+              </div>
+            </div>
+            <button onclick="document.getElementById('pelaku-modal-container').innerHTML=''" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <div class="space-y-2.5 max-h-[55vh] overflow-y-auto">
+            ${snaps.map((s, idx) => {
+              const m = s.summaryMetrics || {};
+              return `
+                <div class="p-4 rounded-2xl border ${idx === 0 ? 'border-purple-300 bg-purple-50/40' : 'border-slate-200 bg-white'} flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div class="space-y-1 text-xs">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="font-bold text-slate-800">Periode Buku: Th ${this.escapeHtml(s.year1)} &ndash; ${this.escapeHtml(s.year2)}</span>
+                      ${idx === 0 ? '<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-purple-600 text-white uppercase">Terbaru</span>' : ''}
+                      <span class="px-2 py-0.5 rounded text-[10px] font-bold ${Number(s.racPassCount) === 6 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                        ${s.racPassCount ?? 0}/6 RAC LULUS
+                      </span>
+                    </div>
+                    <p class="text-[11px] text-slate-600">
+                      Nilai Proyek: <strong>${this.fmtRp(s.projectVal || 0, false)}</strong> &bull;
+                      Total Aset Th ${this.escapeHtml(s.year2)}: <strong>${this.fmtRp(m.ta2 || 0, true)}</strong> &bull;
+                      EAT: <strong>${this.fmtRp(m.eat2 || 0, true)}</strong>
+                    </p>
+                    <p class="text-[10px] text-slate-400">
+                      Disimpan pada ${this.formatDateTimeId(s.savedAt)} oleh <strong>${this.escapeHtml(s.savedBy || '-')}</strong> &bull; ${this.escapeHtml(s.grade || '-')} (Skor ${Number(s.score || 0).toFixed(1)})
+                    </p>
+                  </div>
+                  <button onclick="document.getElementById('pelaku-modal-container').innerHTML=''; window.PelakuModule.loadCompanyAnalysisById('${this.escapeHtml(rec.id)}', '${idx === 0 ? '' : this.escapeHtml(s.snapshotId)}');" class="px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs transition shrink-0 flex items-center gap-1.5">
+                    <i data-lucide="folder-open" class="w-3.5 h-3.5"></i>
+                    <span>Buka Versi Ini</span>
+                  </button>
+                </div>
+              `;
+            }).join('')}
+          </div>
+
+          <div class="flex items-center justify-end pt-2 border-t border-slate-100">
+            <button onclick="document.getElementById('pelaku-modal-container').innerHTML=''" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+              Tutup
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    if (window.lucide) window.lucide.createIcons();
+  },
+
+  exportArchiveJson() {
+    const list = window.askrindoDB ? window.askrindoDB.getPelakuAnalyses() : [];
+    if (list.length === 0) {
+      window.askrindoApp.showToast('Belum ada data perusahaan tersimpan untuk diekspor.', 'warning');
+      return;
+    }
+    const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), app: 'Askrindo SATU PELAKU', records: list }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `PELAKU_Arsip_Perusahaan_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    window.askrindoApp.showToast(`${list.length} arsip perusahaan berhasil diekspor ke JSON!`, 'success');
+  },
+
+  handleImportArchiveFile(input) {
+    const file = input?.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        const arr = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.records) ? parsed.records : []);
+        const count = window.askrindoDB.importPelakuAnalyses(arr);
+        window.askrindoApp.showToast(`${count} data analisa perusahaan berhasil diimpor & digabungkan!`, 'success');
+        window.askrindoApp.renderCurrentRoute();
+      } catch (e) {
+        window.askrindoApp.showToast('Format file JSON tidak valid.', 'error');
+      }
+    };
+    reader.readAsText(file);
+    input.value = '';
+  },
+
+  openCloudSqlModal() {
+    const modal = document.getElementById('pelaku-modal-container');
+    if (!modal) return;
+    const sqlSnippet = `CREATE TABLE IF NOT EXISTS public.pelaku_analyses (
+  id TEXT PRIMARY KEY,
+  company_name TEXT NOT NULL,
+  sector TEXT,
+  audit_status TEXT,
+  kap_name TEXT,
+  opinion TEXT,
+  year1 TEXT NOT NULL,
+  year2 TEXT NOT NULL,
+  project_val NUMERIC NOT NULL DEFAULT 0,
+  score NUMERIC DEFAULT 0,
+  grade TEXT,
+  rac_pass_count INT DEFAULT 0,
+  rac_fail_count INT DEFAULT 0,
+  payload JSONB NOT NULL,
+  created_by TEXT,
+  updated_by TEXT,
+  branch TEXT,
+  created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()),
+  updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW())
+);
+ALTER TABLE public.pelaku_analyses ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_analyses FOR ALL USING (true) WITH CHECK (true);`;
+
+    modal.innerHTML = `
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="text-base font-extrabold text-slate-800">Aktifkan Sinkronisasi Cloud Supabase (Opsional)</h3>
+            <button onclick="document.getElementById('pelaku-modal-container').innerHTML=''" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Saat ini arsip sudah tersimpan otomatis di <strong>Penyimpanan Browser Lokal</strong>. Agar data perusahaan juga tersinkronisasi lintas komputer &amp; cabang secara real-time, jalankan query berikut di <strong>SQL Editor Supabase</strong>:
+          </p>
+          <pre class="p-3 rounded-xl bg-slate-900 text-emerald-300 text-[11px] font-mono overflow-x-auto max-h-56">${this.escapeHtml(sqlSnippet)}</pre>
+          <div class="flex items-center justify-end gap-2">
+            <button onclick="navigator.clipboard?.writeText(this.dataset.sql); window.askrindoApp.showToast('SQL berhasil disalin ke clipboard!', 'success');" data-sql="${this.escapeHtml(sqlSnippet)}" class="px-4 py-2 rounded-xl text-xs font-bold bg-purple-700 text-white hover:bg-purple-800 transition">
+              Salin Script SQL
+            </button>
+            <button onclick="document.getElementById('pelaku-modal-container').innerHTML=''" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
+              Tutup
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    if (window.lucide) window.lucide.createIcons();
+  },
+
+  // =========================================================================
+  // TAB 2: ARSIP ANALISA PERUSAHAAN TERSIMPAN
+  // =========================================================================
+  getFilteredArchiveList(list) {
+    const q = (this.archiveSearch || '').trim().toLowerCase();
+    const qNorm = window.askrindoDB ? window.askrindoDB.normalizeCompanyId(this.archiveSearch).toLowerCase() : '';
+    return list.filter(item => {
+      const matchSearch = !q ||
+        (item.companyName || '').toLowerCase().includes(q) ||
+        (item.id || '').toLowerCase().includes(q) ||
+        (qNorm && (item.id || '').toLowerCase().includes(qNorm)) ||
+        (item.kapName || '').toLowerCase().includes(q) ||
+        (item.sector || '').toLowerCase().includes(q) ||
+        String(item.year1 || '').includes(q) ||
+        String(item.year2 || '').includes(q);
+      const matchFilter = this.archiveFilter === 'all' ||
+        (this.archiveFilter === 'rac_pass' && Number(item.racFailCount) === 0) ||
+        (this.archiveFilter === 'rac_fail' && Number(item.racFailCount) > 0);
+      return matchSearch && matchFilter;
+    });
+  },
+
+  setArchiveSearch(val) {
+    this.archiveSearch = val;
+    const tbody = document.getElementById('pelaku-archive-tbody');
+    if (tbody && window.askrindoDB) {
+      const list = window.askrindoDB.getPelakuAnalyses();
+      tbody.innerHTML = this.renderArchiveRowsHtml(this.getFilteredArchiveList(list));
+      if (window.lucide) window.lucide.createIcons();
+    }
+  },
+
+  setArchiveFilter(filterVal) {
+    this.archiveFilter = filterVal;
+    window.askrindoApp.renderCurrentRoute();
+  },
+
+  renderArchiveRowsHtml(filtered) {
+    if (!filtered || filtered.length === 0) {
+      return `
+        <tr>
+          <td colspan="6" class="py-12 text-center text-slate-400">
+            <i data-lucide="folder-open" class="w-10 h-10 mx-auto text-slate-300 mb-2"></i>
+            <p class="font-semibold text-slate-600">Belum ada arsip analisa perusahaan yang cocok.</p>
+            <p class="text-[11px] text-slate-400 mt-1">Gunakan tombol <strong>+ Buat Analisa Baru</strong> lalu klik <strong>Simpan Analisa</strong> agar tersimpan permanen per Nama Perusahaan (ID).</p>
+          </td>
+        </tr>
+      `;
+    }
+
+    return filtered.map(item => {
+      const m = item.summaryMetrics || {};
+      const snapCount = Array.isArray(item.snapshots) ? item.snapshots.length : 1;
+      const allPass = Number(item.racFailCount) === 0;
+      return `
+        <tr class="hover:bg-slate-50/80 transition">
+          <td class="py-3.5 px-4">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="font-bold text-slate-800 text-xs">${this.escapeHtml(item.companyName)}</span>
+            </div>
+            <span class="inline-block mt-1 px-2 py-0.5 rounded bg-purple-50 text-purple-800 border border-purple-200 font-mono text-[10px] font-bold">
+              ID: ${this.escapeHtml(item.id)}
+            </span>
+            <span class="block text-[10px] text-slate-400 mt-0.5 capitalize">
+              ${this.escapeHtml(this.sectorLabel(item.sector))} &bull; ${item.auditStatus === 'audited' ? 'Audited KAP' : 'Unaudited'}
+            </span>
+          </td>
+          <td class="py-3.5 px-4">
+            <span class="font-bold text-slate-800 font-mono">Th ${this.escapeHtml(item.year1)} &ndash; ${this.escapeHtml(item.year2)}</span>
+            <button onclick="window.PelakuModule.openCompanySnapshotsModal('${this.escapeHtml(item.id)}')" class="mt-1 flex items-center gap-1 text-[10px] font-bold text-indigo-700 hover:underline">
+              <i data-lucide="history" class="w-3 h-3"></i>
+              <span>${snapCount} Riwayat Periode</span>
+            </button>
+          </td>
+          <td class="py-3.5 px-4">
+            <span class="font-mono font-bold text-slate-800">${this.fmtRp(item.projectVal || 0, true)}</span>
+            <span class="block text-[10px] text-slate-500 mt-0.5">Aset: ${this.fmtRp(m.ta2 || 0, true)}</span>
+            <span class="block text-[10px] text-slate-500">EAT: ${this.fmtRp(m.eat2 || 0, true)}</span>
+          </td>
+          <td class="py-3.5 px-4">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-black ${Number(item.score) >= 80 ? 'bg-emerald-100 text-emerald-800' : (Number(item.score) >= 65 ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800')}">
+                Skor ${Number(item.score || 0).toFixed(1)}
+              </span>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${allPass ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}">
+                ${item.racPassCount ?? 0}/6 RAC
+              </span>
+            </div>
+            <span class="block text-[10px] text-slate-400 mt-1">${this.escapeHtml(item.grade || '-')}</span>
+          </td>
+          <td class="py-3.5 px-4 text-[11px] text-slate-600">
+            <span class="font-medium block">${this.formatDateTimeId(item.updatedAt)}</span>
+            <span class="text-[10px] text-slate-400">Oleh: ${this.escapeHtml(item.updatedBy || '-')}</span>
+          </td>
+          <td class="py-3.5 px-4 text-right">
+            <div class="flex items-center justify-end gap-1.5">
+              <button onclick="window.PelakuModule.loadCompanyAnalysisById('${this.escapeHtml(item.id)}')" class="px-3 py-1.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-[11px] transition flex items-center gap-1 shadow-sm" title="Buka kembali analisa ini">
+                <i data-lucide="folder-open" class="w-3.5 h-3.5"></i>
+                <span>Buka</span>
+              </button>
+              <button onclick="window.PelakuModule.openCompanySnapshotsModal('${this.escapeHtml(item.id)}')" class="p-1.5 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition" title="Lihat Semua Riwayat Versi">
+                <i data-lucide="layers" class="w-4 h-4"></i>
+              </button>
+              <button onclick="window.PelakuModule.deleteSavedCompany('${this.escapeHtml(item.id)}')" class="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition" title="Hapus Arsip Perusahaan">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  },
+
+  renderArchiveView(list) {
+    const filtered = this.getFilteredArchiveList(list);
+    const totalPassAll = list.filter(i => Number(i.racFailCount) === 0).length;
+    const totalProjVal = list.reduce((acc, c) => acc + (Number(c.projectVal) || 0), 0);
+    const cloudStatus = window.askrindoDB?.pelakuCloudStatus || 'unknown';
+
+    return `
+      <div id="pelaku-archive-root" class="space-y-6">
+        <!-- Summary KPI Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Perusahaan Tersimpan</p>
+              <h4 class="text-2xl font-black text-slate-800">${list.length} <span class="text-xs font-normal text-slate-400">entitas</span></h4>
+              <p class="text-[11px] text-purple-600 font-medium">Terindeks otomatis by ID Perusahaan</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+              <i data-lucide="building-2" class="w-6 h-6"></i>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Lolos Semua Standar RAC</p>
+              <h4 class="text-2xl font-black text-emerald-600">${totalPassAll} <span class="text-xs font-normal text-slate-400">dari ${list.length}</span></h4>
+              <p class="text-[11px] text-slate-500">Memenuhi 6 Indikator RAC Askrindo</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <i data-lucide="shield-check" class="w-6 h-6"></i>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Akumulasi Nilai Proyek</p>
+              <h4 class="text-xl font-black text-slate-800 truncate max-w-[180px]" title="${this.fmtRp(totalProjVal, false)}">${this.fmtRp(totalProjVal, true)}</h4>
+              <p class="text-[11px] text-indigo-600 font-medium">Dasar Evaluasi NWC / Nilai Proyek</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <i data-lucide="briefcase" class="w-6 h-6"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search, Filter & Backup Toolbar -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs">
+          <div class="relative w-full lg:w-80">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5"></i>
+            <input
+              type="text"
+              id="pelaku-archive-search"
+              placeholder="Cari Nama Perusahaan, ID, KAP, atau Tahun..."
+              value="${this.escapeHtml(this.archiveSearch)}"
+              oninput="window.PelakuModule.setArchiveSearch(this.value)"
+              class="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 text-xs"
+            />
+          </div>
+
+          <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="window.PelakuModule.setArchiveFilter('all')" class="px-3 py-1.5 rounded-xl font-semibold transition ${this.archiveFilter === 'all' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+              Semua (${list.length})
+            </button>
+            <button onclick="window.PelakuModule.setArchiveFilter('rac_pass')" class="px-3 py-1.5 rounded-xl font-semibold transition ${this.archiveFilter === 'rac_pass' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+              Lulus RAC (${totalPassAll})
+            </button>
+            <button onclick="window.PelakuModule.setArchiveFilter('rac_fail')" class="px-3 py-1.5 rounded-xl font-semibold transition ${this.archiveFilter === 'rac_fail' ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+              Tidak Lulus (${list.length - totalPassAll})
+            </button>
+
+            <div class="h-4 w-px bg-slate-200 hidden sm:block mx-1"></div>
+
+            <button onclick="window.PelakuModule.exportArchiveJson()" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1" title="Unduh backup JSON semua perusahaan">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>Ekspor JSON</span>
+            </button>
+            <label class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1 cursor-pointer" title="Muat backup JSON dari perangkat lain">
+              <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+              <span>Impor JSON</span>
+              <input type="file" accept=".json,application/json" class="hidden" onchange="window.PelakuModule.handleImportArchiveFile(this)" />
+            </label>
+            ${cloudStatus === 'missing_table' ? `
+              <button onclick="window.PelakuModule.openCloudSqlModal()" class="px-3 py-1.5 rounded-xl font-semibold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition flex items-center gap-1" title="Aktifkan sinkronisasi Cloud Supabase">
+                <i data-lucide="database" class="w-3.5 h-3.5"></i>
+                <span>Setup Cloud SQL</span>
+              </button>
+            ` : (cloudStatus === 'available' ? `
+              <span class="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Cloud Sync Aktif
+              </span>
+            ` : '')}
+          </div>
+        </div>
+
+        <!-- Archive Table -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase tracking-wider font-semibold text-[10px]">
+                <tr>
+                  <th class="py-3.5 px-4">Perusahaan &amp; ID Analisa</th>
+                  <th class="py-3.5 px-4">Periode &amp; Riwayat</th>
+                  <th class="py-3.5 px-4">Proyek &amp; Neraca Eval</th>
+                  <th class="py-3.5 px-4">Skor &amp; Kepatuhan RAC</th>
+                  <th class="py-3.5 px-4">Terakhir Disimpan</th>
+                  <th class="py-3.5 px-4 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="pelaku-archive-tbody" class="divide-y divide-slate-100">
+                ${this.renderArchiveRowsHtml(filtered)}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    `;
   },
 
   // =========================================================================
@@ -1836,24 +3198,30 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
           </div>
 
           <!-- Tombol Aksi Bawah Modal Review -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100">
-            <div class="flex items-center gap-2">
-              <button type="button" onclick="window.PelakuModule.openAiFinUploadModal()" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
-                &larr; Pindai Berkas Lain
-              </button>
-              <button type="button" onclick="window.PelakuModule.autoBalanceAiReviewRetainedEarnings()" class="px-3.5 py-2 rounded-xl text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 transition flex items-center gap-1.5" title="Seimbangkan Saldo Laba Otomatis">
-                <i data-lucide="scale" class="w-3.5 h-3.5"></i>
-                <span>Seimbangkan Neraca Otomatis</span>
-              </button>
-            </div>
-            <div class="flex items-center gap-2">
-              <button type="button" onclick="window.PelakuModule.closeAiFinUploadModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
-                Batal
-              </button>
-              <button type="button" onclick="window.PelakuModule.applyExtractedFinDataToForm()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-600/30 transition flex items-center gap-2">
-                <i data-lucide="check" class="w-4 h-4"></i>
-                <span>Terapkan ke Form Laporan Keuangan</span>
-              </button>
+          <div class="flex flex-col gap-3 pt-3 border-t border-slate-100">
+            <label class="inline-flex items-center gap-2 text-xs text-slate-600 cursor-pointer select-none sm:self-end">
+              <input type="checkbox" id="chkAiAutoSaveArchive" checked class="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+              <span>Simpan langsung ke <strong>Arsip Perusahaan</strong> setelah diterapkan</span>
+            </label>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="window.PelakuModule.openAiFinUploadModal()" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
+                  &larr; Pindai Berkas Lain
+                </button>
+                <button type="button" onclick="window.PelakuModule.autoBalanceAiReviewRetainedEarnings()" class="px-3.5 py-2 rounded-xl text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 transition flex items-center gap-1.5" title="Seimbangkan Saldo Laba Otomatis">
+                  <i data-lucide="scale" class="w-3.5 h-3.5"></i>
+                  <span>Seimbangkan Neraca Otomatis</span>
+                </button>
+              </div>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="window.PelakuModule.closeAiFinUploadModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+                  Batal
+                </button>
+                <button type="button" onclick="window.PelakuModule.applyExtractedFinDataToForm()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-600/30 transition flex items-center gap-2">
+                  <i data-lucide="check" class="w-4 h-4"></i>
+                  <span>Terapkan ke Form Laporan Keuangan</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1972,6 +3340,13 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
 
     const y1 = this.currentExtractedFinData.year1 || 2024;
     const y2 = this.currentExtractedFinData.year2 || 2025;
+    const autoSaveArchive = document.getElementById('chkAiAutoSaveArchive')?.checked ?? true;
+
+    this.formSourceMode = 'ocr';
+    this.loadedCompanyId = null;
+    this.preAutoMatchState = null;
+    this.autoLoadedCompanyId = null;
+    this.dismissedBannerForId = null;
 
     // Terapkan ke Form Utama
     const compInp = document.getElementById('pelaku-company');
@@ -2007,12 +3382,27 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
     this.updateYearLabels();
     this.calculateRatios();
 
+    const companyName = document.getElementById('pelaku-company')?.value.trim() || '';
+    const normId = companyName && window.askrindoDB ? window.askrindoDB.normalizeCompanyId(companyName) : '';
+    const existingBeforeSave = normId && window.askrindoDB ? window.askrindoDB.getPelakuAnalysis(normId) : null;
+
+    let savedRes = null;
+    if (autoSaveArchive && companyName && normId) {
+      savedRes = this.saveCurrentAnalysis(true);
+    } else {
+      this.historyBannerMatch = existingBeforeSave || null;
+      this.historyBannerAutoLoaded = false;
+      this.updateCompanyIdBadgeAndBanner();
+      this.updateSaveIndicators();
+    }
+
     const bd1 = (this.currentExtractedFinData?.data_year1?.cash_breakdown || '').trim();
     const bd2 = (this.currentExtractedFinData?.data_year2?.cash_breakdown || '').trim();
     const isMerged = (bd1 && !bd1.toLowerCase().includes('gabungan')) || (bd2 && !bd2.toLowerCase().includes('gabungan'));
     const extraMsg = isMerged ? ' (Termasuk penggabungan otomatis Kas + Bank)' : '';
+    const saveMsg = savedRes ? ` & tersimpan otomatis ke Arsip (ID: ${savedRes.savedRecord.id})` : '';
 
-    window.askrindoApp.showToast(`Laporan Keuangan Th ${y1} & ${y2} berhasil diterapkan ke 27 pos!${extraMsg}`, 'success');
+    window.askrindoApp.showToast(`Laporan Keuangan Th ${y1} & ${y2} berhasil diterapkan ke 27 pos${extraMsg}${saveMsg}!`, 'success');
   },
 
   // =========================================================================
@@ -2047,17 +3437,20 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
 
           <!-- Informasi Calon Debitur / Rekanan -->
           <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1.5">
-            <div class="flex items-center justify-between">
-              <h3 class="font-bold text-slate-900 text-sm">${c.company}</h3>
-              <span class="px-2.5 py-0.5 rounded font-black text-xs ${c.score >= 80 ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}">
-                ${c.grade} (Skor: ${c.score.toFixed(1)}/100)
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex flex-wrap items-center gap-2">
+                <h3 class="font-bold text-slate-900 text-sm">${this.escapeHtml(c.company || '-')}</h3>
+                <span class="px-2 py-0.5 rounded bg-slate-200/80 text-slate-700 font-mono text-[10px] font-bold">ID: ${this.escapeHtml(c.companyId || '-')}</span>
+              </div>
+              <span class="px-2.5 py-0.5 rounded font-black text-xs shrink-0 ${c.score >= 80 ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}">
+                ${this.escapeHtml(c.grade)} (Skor: ${c.score.toFixed(1)}/100)
               </span>
             </div>
             <p class="text-slate-600">
-              Sektor Usaha: <strong class="capitalize">${c.sector}</strong> &bull; Nilai Proyek: <strong>${this.fmtRp(c.projectVal, false)}</strong> &bull; Periode Buku: <strong>Th ${c.year1} &amp; ${c.year2}</strong> &bull; Legalitas: <strong>${c.auditStatus}</strong>
+              Sektor Usaha: <strong class="capitalize">${this.escapeHtml(c.sector)}</strong> &bull; Nilai Proyek: <strong>${this.fmtRp(c.projectVal, false)}</strong> &bull; Periode Buku: <strong>Th ${this.escapeHtml(c.year1)} &amp; ${this.escapeHtml(c.year2)}</strong> &bull; Legalitas: <strong>${this.escapeHtml(c.auditStatus)}</strong>
             </p>
             <p class="text-slate-500 text-[11px]">
-              KAP: <strong>${c.kapName}</strong> &bull; Opini Auditor: <strong>${c.opinion}</strong>
+              KAP: <strong>${this.escapeHtml(c.kapName)}</strong> &bull; Opini Auditor: <strong>${this.escapeHtml(c.opinion)}</strong>
             </p>
           </div>
 

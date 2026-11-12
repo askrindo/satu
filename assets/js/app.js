@@ -19,14 +19,24 @@ class AskrindoApp {
 
     // Listen to Supabase cloud sync events
     window.addEventListener('askrindo:db-synced', () => {
-      this.renderCurrentRoute();
+      if (this.currentRoute.startsWith('#/pelaku') && window.PelakuModule?.handleDbSynced) {
+        window.PelakuModule.handleDbSynced();
+      } else {
+        this.renderCurrentRoute();
+      }
     });
 
-    // Keyboard shortcut for command palette (Ctrl+K or Cmd+K)
+    // Keyboard shortcut for command palette (Ctrl+K) and PELAKU quick save (Ctrl+S)
     window.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         this.openCommandPalette();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        if (this.currentRoute.startsWith('#/pelaku') && window.PelakuModule?.currentTab === 'workspace') {
+          e.preventDefault();
+          window.PelakuModule.saveCurrentAnalysis();
+        }
       }
       if (e.key === 'Escape') {
         this.closeAllModals();
