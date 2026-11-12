@@ -161,13 +161,13 @@ class AskrindoApp {
                     ${!window.authService.hasAccess('ttk') ? `<i data-lucide="lock" class="w-3 h-3 text-slate-300"></i>` : ''}
                   </a>
 
-                  <!-- BUS -->
-                  <a href="#/bus" id="nav-bus" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-emerald-600 hover:bg-emerald-50">
+                  <!-- BUSET -->
+                  <a href="#/buset" id="nav-bus" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-emerald-600 hover:bg-emerald-50">
                     <div class="flex items-center gap-3">
                       <i data-lucide="file-text" class="w-4 h-4 text-emerald-500"></i>
                       <div class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
-                        <span class="font-bold">BUS</span>
-                        <span class="text-[10px] block font-normal text-slate-400">Buat SPPA</span>
+                        <span class="font-bold">BUSET</span>
+                        <span class="text-[10px] block font-normal text-slate-400">Buat SPPA Elektronik</span>
                       </div>
                     </div>
                     ${!window.authService.hasAccess('bus') ? `<i data-lucide="lock" class="w-3 h-3 text-slate-300"></i>` : ''}
@@ -358,7 +358,7 @@ class AskrindoApp {
       { id: 'nav-dashboard', hash: '#/dashboard', title: 'Beranda Terpadu' },
       { id: 'nav-kabar', hash: '#/kabar', title: 'KABAR (Kalkulator Asuransi Kebakaran)' },
       { id: 'nav-ttk', hash: '#/ttk', title: 'TTK (Tanya-Tanya KUR)' },
-      { id: 'nav-bus', hash: '#/bus', title: 'BUS (Buat SPPA)' },
+      { id: 'nav-bus', hash: '#/buset', title: 'BUSET (Buat SPPA Elektronik Terpadu)' },
       { id: 'nav-pelaku', hash: '#/pelaku', title: 'PELAKU (Perhitungan Laporan Keuangan)' },
       { id: 'nav-admin', hash: '#/admin', title: 'Web Admin Portal' }
     ];
@@ -366,7 +366,7 @@ class AskrindoApp {
     navItems.forEach(item => {
       const el = document.getElementById(item.id);
       if (!el) return;
-      if (route.startsWith(item.hash)) {
+      if (route.startsWith(item.hash) || (item.id === 'nav-bus' && route.startsWith('#/bus'))) {
         el.className = el.className.replace('text-slate-600', 'text-orange-600 font-bold bg-orange-50/80 shadow-sm');
         const bc = document.getElementById('breadcrumb-current');
         if (bc) bc.innerText = item.title;
@@ -393,7 +393,7 @@ class AskrindoApp {
     } else if (route.startsWith('#/ttk')) {
       main.innerHTML = window.TtkModule.render();
       if (window.TtkModule.currentTab === 'calc') window.TtkModule.calcInstallment();
-    } else if (route.startsWith('#/bus')) {
+    } else if (route.startsWith('#/bus') || route.startsWith('#/buset')) {
       main.innerHTML = window.BusModule.render();
     } else if (route.startsWith('#/pelaku')) {
       main.innerHTML = window.PelakuModule.render();
@@ -469,8 +469,8 @@ class AskrindoApp {
                     <i data-lucide="file-text" class="w-4 h-4 text-white"></i>
                   </div>
                   <div class="min-w-0">
-                    <span class="font-bold text-emerald-300">BUS</span>
-                    <span class="text-[11px] text-slate-200 block truncate">Buat SPPA Digital Terintegrasi</span>
+                    <span class="font-bold text-emerald-300">BUSET</span>
+                    <span class="text-[11px] text-slate-200 block truncate">Buat SPPA Elektronik Terpadu</span>
                   </div>
                 </div>
 
@@ -601,7 +601,7 @@ class AskrindoApp {
               type="text" 
               id="cmd-input" 
               autofocus 
-              placeholder="Ketik nama aplikasi (KABAR, TTK, BUS, PELAKU) atau aksi..." 
+              placeholder="Ketik nama aplikasi (KABAR, TTK, BUSET, PELAKU) atau aksi..." 
               oninput="window.askrindoApp.filterCommandPalette(this.value)"
               class="w-full text-sm font-medium focus:outline-none bg-transparent"
             />
@@ -629,11 +629,11 @@ class AskrindoApp {
               <span class="text-[10px] text-slate-400">Buka Modul &rarr;</span>
             </a>
 
-            <a href="#/bus" onclick="window.askrindoApp.closeAllModals()" class="flex items-center justify-between p-3 rounded-xl hover:bg-emerald-50 text-slate-800 transition">
+            <a href="#/buset" onclick="window.askrindoApp.closeAllModals()" class="flex items-center justify-between p-3 rounded-xl hover:bg-emerald-50 text-slate-800 transition">
               <div class="flex items-center gap-3">
                 <i data-lucide="file-text" class="w-4 h-4 text-emerald-500"></i>
                 <div>
-                  <span class="font-bold">BUS</span> — Buat SPPA & Cetak Dokumen Polis
+                  <span class="font-bold">BUSET</span> — Buat SPPA Elektronik Terpadu & Cetak Dokumen Polis
                 </div>
               </div>
               <span class="text-[10px] text-slate-400">Buka Modul &rarr;</span>

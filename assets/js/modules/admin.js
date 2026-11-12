@@ -48,7 +48,7 @@ window.AdminModule = {
                 </span>
               </div>
               <p class="text-xs text-slate-500 mt-0.5">
-                Kelola master pengguna, konfigurasi hak akses sub-aplikasi (KABAR, TTK, BUS, PELAKU), dan pantau audit trail operasional.
+                Kelola master pengguna, konfigurasi hak akses sub-aplikasi (KABAR, TTK, BUSET, PELAKU), dan pantau audit trail operasional.
               </p>
             </div>
           </div>
@@ -279,7 +279,7 @@ window.AdminModule = {
     const appsList = [
       { id: 'kabar', name: 'KABAR', label: 'Asuransi Kebakaran', color: 'text-orange-600' },
       { id: 'ttk', name: 'TTK', label: 'Tanya-Tanya KUR', color: 'text-blue-600' },
-      { id: 'bus', name: 'BUS', label: 'Buat SPPA', color: 'text-emerald-600' },
+      { id: 'bus', name: 'BUSET', label: 'Buat SPPA Elektronik', color: 'text-emerald-600' },
       { id: 'pelaku', name: 'PELAKU', label: 'Laporan Keuangan', color: 'text-purple-600' },
       { id: 'admin', name: 'ADMIN', label: 'Web Admin Portal', color: 'text-amber-600' }
     ];
@@ -638,8 +638,8 @@ window.AdminModule = {
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" id="perm-bus" value="bus" ${allowedApps.includes('bus') ? 'checked' : ''} class="w-4 h-4 text-emerald-600 rounded" />
-                  <span class="font-semibold text-slate-800">BUS</span>
-                  <span class="text-slate-500 text-[11px]">— Buat SPPA (Surat Permohonan Penutupan Asuransi)</span>
+                  <span class="font-semibold text-slate-800">BUSET</span>
+                  <span class="text-slate-500 text-[11px]">— Buat SPPA Elektronik Terpadu (Surat Permohonan Penutupan Asuransi)</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" id="perm-pelaku" value="pelaku" ${allowedApps.includes('pelaku') ? 'checked' : ''} class="w-4 h-4 text-purple-600 rounded" />

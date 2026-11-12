@@ -221,7 +221,7 @@ window.DashboardModule = {
               <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Katalog Aplikasi</p>
               <h4 class="text-2xl font-bold text-slate-800">4 <span class="text-xs font-normal text-slate-400">Modul Kerja</span></h4>
               <p class="text-[11px] text-orange-600 font-medium flex items-center gap-1">
-                <i data-lucide="layers" class="w-3 h-3"></i> KABAR, TTK, BUS, PELAKU
+                <i data-lucide="layers" class="w-3 h-3"></i> KABAR, TTK, BUSET, PELAKU
               </p>
             </div>
             <div class="w-12 h-12 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">

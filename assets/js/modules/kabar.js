@@ -279,7 +279,7 @@ window.KabarModule = {
               <div class="space-y-2 pt-2">
                 <button onclick="window.KabarModule.forwardToBus()" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 shadow-md transition-all">
                   <i data-lucide="file-plus" class="w-4 h-4"></i>
-                  <span>Lanjutkan Terbitkan SPPA (Modul BUS)</span>
+                  <span>Lanjutkan Terbitkan SPPA (Modul BUSET)</span>
                 </button>
 
                 <button onclick="window.KabarModule.printQuotation()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-xs text-slate-700 bg-slate-100 hover:bg-slate-200 transition">
@@ -404,7 +404,7 @@ window.KabarModule = {
 
   forwardToBus() {
     if (!this.currentCalc) this.calculate();
-    // Save to temp storage for BUS module
+    // Save to temp storage for BUSET module
     sessionStorage.setItem('askrindo_pending_sppa_from_kabar', JSON.stringify({
       productType: 'Asuransi Kebakaran Standar Indonesia (FLEXAS)',
       riskLocation: this.currentCalc.location,
@@ -413,9 +413,9 @@ window.KabarModule = {
       notes: `Dihitung via modul KABAR. Okupasi: ${this.currentCalc.okupasiName}, Rate Dasar: ${this.currentCalc.baseRate}‰`
     }));
 
-    window.askrindoDB.logActivity('KABAR', 'Transfer ke SPPA (BUS)', `Meneruskan simulasi premi kebakaran TSI ${this.currentCalc.totalTsi} ke modul penerbitan SPPA.`);
-    window.askrindoApp.showToast('Data kalkulasi berhasil diteruskan ke formulir SPPA!', 'success');
-    window.location.hash = '#/bus';
+    window.askrindoDB.logActivity('KABAR', 'Transfer ke SPPA (BUSET)', `Meneruskan simulasi premi kebakaran TSI ${this.currentCalc.totalTsi} ke modul penerbitan SPPA (BUSET).`);
+    window.askrindoApp.showToast('Data kalkulasi berhasil diteruskan ke formulir SPPA (BUSET)!', 'success');
+    window.location.hash = '#/buset';
   },
 
   printQuotation() {

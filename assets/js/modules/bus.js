@@ -1,5 +1,5 @@
 /**
- * Askrindo SATU - BUS Module (Buat SPPA)
+ * Askrindo SATU - BUSET Module (Buat SPPA Elektronik Terpadu)
  * Digital Insurance Closing Application Form (SPPA) Generator with QR code and PDF print.
  */
 
@@ -27,7 +27,7 @@ window.BusModule = {
   render() {
     const user = window.authService.getCurrentUser();
     if (!user || !window.authService.hasAccess('bus')) {
-      return window.askrindoApp.renderUnauthorized('BUS');
+      return window.askrindoApp.renderUnauthorized('BUSET');
     }
 
     // Check if there is pending data from KABAR
@@ -55,9 +55,9 @@ window.BusModule = {
             </div>
             <div>
               <div class="flex items-center gap-2">
-                <h1 class="text-2xl font-black text-slate-800 tracking-tight">BUS</h1>
+                <h1 class="text-2xl font-black text-slate-800 tracking-tight">BUSET</h1>
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                  Buat SPPA
+                  Buat SPPA Elektronik Terpadu
                 </span>
               </div>
               <p class="text-xs text-slate-500 mt-0.5">
@@ -485,7 +485,7 @@ window.BusModule = {
     };
 
     window.askrindoDB.saveSppa(newSppa);
-    window.askrindoDB.logActivity('BUS', 'Penerbitan SPPA', `Menerbitkan SPPA nomor ${docNo} untuk tertanggung ${this.formData.insuredName}`);
+    window.askrindoDB.logActivity('BUSET', 'Penerbitan SPPA', `Menerbitkan SPPA nomor ${docNo} untuk tertanggung ${this.formData.insuredName}`);
     
     // Clear pending session
     sessionStorage.removeItem('askrindo_pending_sppa_from_kabar');

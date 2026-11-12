@@ -15,7 +15,7 @@ Aplikasi ini mengadopsi arsitektur modular di mana seluruh sub-aplikasi berada d
 
 2. **🛡️ Portal Web Admin (`#/admin`)**:
    - **Manajemen Pengguna**: Tambah user baru, edit profil/divisi/cabang, aktifkan/nonaktifkan akun, dan hapus user.
-   - **Matriks Hak Akses Sub-Aplikasi (Live Matrix)**: Atur secara spesifik aplikasi mana saja yang boleh diakses oleh tiap pegawai (KABAR, TTK, BUS, PELAKU, dan Admin) dengan saklar interaktif *real-time*.
+   - **Matriks Hak Akses Sub-Aplikasi (Live Matrix)**: Atur secara spesifik aplikasi mana saja yang boleh diakses oleh tiap pegawai (KABAR, TTK, BUSET, PELAKU, dan Admin) dengan saklar interaktif *real-time*.
    - **Audit Trail & Log Aktivitas**: Perekaman jejak seluruh aktivitas (login, kalkulasi premi, penerbitan SPPA, analisis laporan keuangan) untuk kepatuhan tata kelola (*Governance, Risk, and Compliance*).
    - **Backup & Konfigurasi**: Ekspor basis data ke JSON/CSV dan kustomisasi pengumuman *ticker*.
 
@@ -24,7 +24,7 @@ Aplikasi ini mengadopsi arsitektur modular di mana seluruh sub-aplikasi berada d
    - Parameter lengkap: Okupasi (Rumah Tinggal, Ruko, Kantor, Hotel, Pabrik Garmen, Gudang, dll.) & Kelas Konstruksi (1, 2, 3).
    - Komponen TSI: Bangunan, Mesin, Stok Dagangan, dan Perabot.
    - Perluasan Jaminan: RSMDCC 4.1A, Terorisme & Sabotase, Banjir TSFWD, Gempa Bumi EQVET Zona 3, Tertimpa Pesawat, Pembersihan Puing.
-   - Cetak *Slip Penawaran / Quotation PDF* resmi & tombol teruskan langsung ke modul BUS.
+   - Cetak *Slip Penawaran / Quotation PDF* resmi & tombol teruskan langsung ke modul BUSET.
 
 4. **💬 TTK (Tanya-Tanya KUR) (`#/ttk`)**:
    - Pusat konsultasi dan simulasi penjaminan Kredit Usaha Rakyat (KUR).
@@ -33,7 +33,7 @@ Aplikasi ini mengadopsi arsitektur modular di mana seluruh sub-aplikasi berada d
    - Wizard Uji Kelayakan Calon Debitur (Lama usaha, status SLIK/BI Checking, kepemilikan kredit komersial, legalitas NIB/SKU).
    - Pusat Pengetahuan & Aturan Operasional KUR (Permenko Perekonomian).
 
-5. **📄 BUS (Buat SPPA) (`#/bus`)**:
+5. **📄 BUSET (Buat SPPA Elektronik Terpadu) (`#/buset` / `#/bus`)**:
    - Generator Surat Permohonan Penutupan Asuransi digital dengan *wizard* 4 langkah.
    - Mendukung lini produk: Asuransi Kebakaran (FLEXAS/PAR), Kendaraan Bermotor, Penjaminan Kontrak (Surety Bond - Jaminan Pelaksanaan/Uang Muka), Kontra Bank Garansi (KBG), dan KUR.
    - Terintegrasi langsung dengan modul KABAR (data simulasi otomatis masuk).
@@ -89,10 +89,10 @@ Untuk memudahkan pengujian fungsionalitas dan matriks hak akses, Anda dapat meng
 
 | Nama Pengguna | NIP / Email | Peran (Role) | Akses Sub-Aplikasi |
 | :--- | :--- | :--- | :--- |
-| **Ahmad Faisal, S.E.** | `19850101` / `admin.satu@askrindo.co.id` | **Super Administrator** | Akses Penuh: KABAR, TTK, BUS, PELAKU, Web Admin |
-| **Budi Santoso, AAIJ** | `19900315` / `budi.santoso@askrindo.co.id` | **Senior Underwriter** | KABAR, BUS, PELAKU |
+| **Ahmad Faisal, S.E.** | `19850101` / `admin.satu@askrindo.co.id` | **Super Administrator** | Akses Penuh: KABAR, TTK, BUSET, PELAKU, Web Admin |
+| **Budi Santoso, AAIJ** | `19900315` / `budi.santoso@askrindo.co.id` | **Senior Underwriter** | KABAR, BUSET, PELAKU |
 | **Siti Rahmawati, S.E.** | `19940722` / `siti.rahma@askrindo.co.id` | **Account Officer KUR** | TTK, PELAKU |
-| **Dian Permana, S.Kom.** | `19971105` / `dian.permana@askrindo.co.id` | **Marketing Officer** | KABAR, BUS |
+| **Dian Permana, S.Kom.** | `19971105` / `dian.permana@askrindo.co.id` | **Marketing Officer** | KABAR, BUSET |
 | **Rizky Pratama** | `20010910` / `rizky.pratama@askrindo.co.id` | **Staff Operasional** | KABAR Saja (Aplikasi lain terkunci) |
 
 > **Uji Coba Hak Akses Terbatas**: Masuklah sebagai akun *Rizky Pratama*, kemudian coba buka modul PELAKU atau Web Admin. Anda akan melihat layar proteksi *Akses Terbatas* yang dinamis dengan opsi mengajukan izin ke Administrator.

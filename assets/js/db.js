@@ -219,13 +219,13 @@ const SUB_APPS_CATALOG = {
   },
   bus: {
     id: 'bus',
-    name: 'BUS',
-    tagline: 'Buat SPPA',
+    name: 'BUSET',
+    tagline: 'Buat SPPA Elektronik Terpadu',
     badge: 'Operasional & Penerbitan',
     category: 'Dokumen & Polis',
     color: 'emerald',
     icon: 'file-text',
-    route: '#/bus',
+    route: '#/buset',
     description: 'Penyusunan Surat Permohonan Penutupan Asuransi secara digital, lengkap dengan validasi data tertanggung, kode registrasi, dan cetak dokumen resmi berstandar Askrindo.',
     features: ['Wizard 4 Langkah Praktis', 'Preview Dokumen Berstempel Digital', 'Unduh Format PDF Siap Tanda Tangan', 'Arsip Riwayat Pengajuan']
   },
