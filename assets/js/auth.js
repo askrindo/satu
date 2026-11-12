@@ -99,13 +99,31 @@ class AuthService {
     window.location.hash = '#/login';
   }
 
+  isAppInDevelopment(appId) {
+    const key = (appId || '').toLowerCase();
+    const devMap = window.APP_DEPLOYMENT_STATUS;
+    if (devMap && devMap[key]) {
+      return devMap[key].status === 'development' || devMap[key].status === 'coming_soon';
+    }
+    return ['kabar', 'ttk', 'bus', 'cepat', 'surety'].includes(key);
+  }
+
   hasAccess(appId) {
     if (!this.currentUser) return false;
-    // Super Administrator has universal access
-    if (this.currentUser.role === 'Super Administrator' || this.currentUser.allowedApps.includes('admin')) {
-      return true;
+    const key = (appId || '').toLowerCase();
+    const isAdmin = this.currentUser.role === 'Super Administrator' || (this.currentUser.allowedApps && this.currentUser.allowedApps.includes('admin'));
+
+    // Pengaturan Bertahap: Aplikasi KABAR, TTK, BUSET, CEPAT, SURETY dinonaktifkan untuk publik.
+    // Namun akun Super Administrator tetap bisa mengaksesnya secara penuh untuk kebutuhan testing.
+    if (this.isAppInDevelopment(key)) {
+      return isAdmin;
     }
-    return this.currentUser.allowedApps && this.currentUser.allowedApps.includes(appId);
+
+    // Super Administrator memiliki akses universal
+    if (isAdmin) return true;
+
+    // Untuk pengguna umum, periksa daftar hak akses (allowedApps)
+    return this.currentUser.allowedApps && this.currentUser.allowedApps.includes(key);
   }
 
   canAccessAdmin() {

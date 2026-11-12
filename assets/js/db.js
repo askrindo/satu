@@ -250,6 +250,53 @@ const INITIAL_AUDIT = [
   }
 ];
 
+// Status Rilis & Deployment Sub-Aplikasi (Pengembangan Bertahap)
+const APP_DEPLOYMENT_STATUS = {
+  pelaku: {
+    status: 'active', // 'active' | 'development' | 'coming_soon'
+    label: 'Rilis Penuh (Aktif)',
+    phase: 'Tahap 1 (Live Operasional)',
+    badge: 'Rilis Penuh (Aktif)',
+    isPublic: true
+  },
+  kabar: {
+    status: 'development',
+    label: 'Tahap Pengembangan (Khusus Testing Admin)',
+    phase: 'Tahap 2 (Uji Coba Tertutup)',
+    badge: 'Khusus Testing Admin',
+    isPublic: false
+  },
+  ttk: {
+    status: 'development',
+    label: 'Tahap Pengembangan (Khusus Testing Admin)',
+    phase: 'Tahap 3 (Uji Coba Tertutup)',
+    badge: 'Khusus Testing Admin',
+    isPublic: false
+  },
+  bus: {
+    status: 'development',
+    label: 'Tahap Pengembangan (Khusus Testing Admin)',
+    phase: 'Tahap 4 (Uji Coba Tertutup)',
+    badge: 'Khusus Testing Admin',
+    isPublic: false
+  },
+  cepat: {
+    status: 'development',
+    label: 'Tahap Pengembangan (Khusus Testing Admin)',
+    phase: 'Tahap 5 (Uji Coba Tertutup)',
+    badge: 'Khusus Testing Admin',
+    isPublic: false
+  },
+  surety: {
+    status: 'coming_soon',
+    label: 'Segera Hadir',
+    phase: 'Roadmap Pengembangan',
+    badge: 'Segera Hadir',
+    isPublic: false
+  }
+};
+window.APP_DEPLOYMENT_STATUS = APP_DEPLOYMENT_STATUS;
+
 // Seed App Catalog Info
 const SUB_APPS_CATALOG = {
   kabar: {

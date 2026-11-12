@@ -96,13 +96,13 @@ Untuk memudahkan pengujian fungsionalitas dan matriks hak akses, Anda dapat meng
 
 | Nama Pengguna | NIP / Email | Peran (Role) | Akses Sub-Aplikasi |
 | :--- | :--- | :--- | :--- |
-| **Ahmad Faisal, S.E.** | `19850101` / `admin.satu@askrindo.co.id` | **Super Administrator** | Akses Penuh: KABAR, TTK, BUSET, CEPAT, PELAKU, Web Admin |
-| **Budi Santoso, AAIJ** | `19900315` / `budi.santoso@askrindo.co.id` | **Senior Underwriter** | KABAR, BUSET, CEPAT, PELAKU |
-| **Siti Rahmawati, S.E.** | `19940722` / `siti.rahma@askrindo.co.id` | **Account Officer KUR** | TTK, PELAKU |
-| **Dian Permana, S.Kom.** | `19971105` / `dian.permana@askrindo.co.id` | **Marketing Officer** | KABAR, BUSET, CEPAT |
-| **Rizky Pratama** | `20010910` / `rizky.pratama@askrindo.co.id` | **Staff Operasional** | KABAR Saja (Aplikasi lain terkunci) |
+| **Ahmad Faisal, S.E.** | `19850101` / `admin.satu@askrindo.co.id` | **Super Administrator** | Akses Penuh: PELAKU (Aktif), KABAR, TTK, BUSET, CEPAT (Mode Testing Admin), Web Admin |
+| **Budi Santoso, AAIJ** | `19900315` / `budi.santoso@askrindo.co.id` | **Senior Underwriter** | PELAKU (Modul Aktif Operasional) |
+| **Siti Rahmawati, S.E.** | `19940722` / `siti.rahma@askrindo.co.id` | **Account Officer KUR** | PELAKU (Modul Aktif Operasional) |
+| **Dian Permana, S.Kom.** | `19971105` / `dian.permana@askrindo.co.id` | **Marketing Officer** | PELAKU (Modul Aktif Operasional) |
+| **Rizky Pratama** | `20010910` / `rizky.pratama@askrindo.co.id` | **Staff Operasional** | PELAKU (Modul Aktif Operasional) |
 
-> **Uji Coba Hak Akses Terbatas**: Masuklah sebagai akun *Rizky Pratama*, kemudian coba buka modul PELAKU atau Web Admin. Anda akan melihat layar proteksi *Akses Terbatas* yang dinamis dengan opsi mengajukan izin ke Administrator.
+> **Tahap Pengembangan Bertahap**: Saat ini modul **PELAKU** telah rilis penuh untuk operasional. Modul **KABAR, TTK, BUSET, CEPAT, dan SURETY** dinonaktifkan untuk publik dan hanya dapat diakses oleh akun **Super Administrator** untuk keperluan pengujian (*testing*). Pengguna non-admin yang membuka modul tersebut akan diarahkan ke layar informasi pengembangan bertahap.
 
 ---
 

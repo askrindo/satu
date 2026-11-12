@@ -146,7 +146,7 @@ class AskrindoApp {
                         <span class="text-[10px] block font-normal text-slate-400">Kalkulator Asuransi Kebakaran</span>
                       </div>
                     </div>
-                    ${!window.authService.hasAccess('kabar') ? `<i data-lucide="lock" class="w-3 h-3 text-slate-300"></i>` : ''}
+                    ${canAdmin ? `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Test</span>` : `<i data-lucide="lock" class="w-3 h-3 text-slate-300"></i>`}
                   </a>
 
                   <!-- TTK -->
@@ -158,7 +158,7 @@ class AskrindoApp {
                         <span class="text-[10px] block font-normal text-slate-400">Tanya-Tanya KUR</span>
                       </div>
                     </div>
-                    ${!window.authService.hasAccess('ttk') ? `<i data-lucide="lock" class="w-3 h-3 text-slate-300"></i>` : ''}
+                    ${canAdmin ? `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Test</span>` : `<i data-lucide="lock" class="w-3 h-3 text-slate-300"></i>`}
                   </a>
 
                   <!-- BUSET -->
@@ -170,7 +170,7 @@ class AskrindoApp {
                         <span class="text-[10px] block font-normal text-slate-400">Buat SPPA Elektronik</span>
                       </div>
                     </div>
-                    ${!window.authService.hasAccess('bus') ? `<i data-lucide="lock" class="w-3 h-3 text-slate-300"></i>` : ''}
+                    ${canAdmin ? `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Test</span>` : `<i data-lucide="lock" class="w-3 h-3 text-slate-300"></i>`}
                   </a>
 
                   <!-- CEPAT -->
@@ -182,7 +182,7 @@ class AskrindoApp {
                         <span class="text-[10px] block font-normal text-slate-400">Cover Note Pertanggungan Asuransi</span>
                       </div>
                     </div>
-                    ${!window.authService.hasAccess('cepat') ? `<i data-lucide="lock" class="w-3 h-3 text-slate-300"></i>` : ''}
+                    ${canAdmin ? `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Test</span>` : `<i data-lucide="lock" class="w-3 h-3 text-slate-300"></i>`}
                   </a>
 
                   <!-- PELAKU -->
@@ -194,7 +194,7 @@ class AskrindoApp {
                         <span class="text-[10px] block font-normal text-slate-400">Laporan Keuangan</span>
                       </div>
                     </div>
-                    ${!window.authService.hasAccess('pelaku') ? `<i data-lucide="lock" class="w-3 h-3 text-slate-300"></i>` : ''}
+                    ${!window.authService.hasAccess('pelaku') ? `<i data-lucide="lock" class="w-3 h-3 text-slate-300"></i>` : `<span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase">Aktif</span>`}
                   </a>
                 </div>
 
@@ -453,7 +453,7 @@ class AskrindoApp {
                   Satu Pintu Untuk Seluruh Kebutuhan Operasional
                 </h2>
                 <p class="text-xs text-slate-300 mt-2 leading-relaxed">
-                  Platform tunggal terintegrasi bagi insan Askrindo dalam memproses kalkulasi tarif kebakaran, penjaminan KUR, penerbitan SPPA, cover note penutupan sementara, dan analisis laporan keuangan.
+                  Platform tunggal terintegrasi bagi insan Askrindo. Saat ini modul <b>PELAKU</b> telah aktif untuk operasional penuh, dan modul lainnya dalam tahap pengujian bertahap oleh Administrator.
                 </p>
               </div>
 
@@ -462,91 +462,94 @@ class AskrindoApp {
                 <div class="flex items-center justify-between text-[11px] font-semibold text-slate-300">
                   <span class="flex items-center gap-1.5 text-amber-300">
                     <i data-lucide="layers" class="w-3.5 h-3.5 text-amber-400"></i>
-                    <span>Ekosistem Aplikasi Terpadu</span>
+                    <span>Pengembangan Bertahap</span>
                   </span>
-                  <span class="text-[10px] text-slate-300 font-mono">5 Aktif · 1 Segera</span>
+                  <span class="text-[10px] text-emerald-300 font-semibold flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    1 Aktif · 5 Uji Coba Admin
+                  </span>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 text-xs">
-                  <!-- KABAR -->
-                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition border border-white/10" title="KABAR: Kalkulator Asuransi Kebakaran">
-                    <div class="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center shrink-0 shadow-sm">
-                      <i data-lucide="flame" class="w-4 h-4 text-white"></i>
-                    </div>
-                    <div class="min-w-0">
-                      <div class="flex items-center gap-1">
-                        <span class="font-bold text-amber-300 text-xs">KABAR</span>
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400" title="Aktif"></span>
-                      </div>
-                      <span class="text-[10px] text-slate-200 block truncate">Kalkulator Kebakaran</span>
-                    </div>
-                  </div>
-
-                  <!-- TTK -->
-                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition border border-white/10" title="TTK: Tanya-Tanya KUR">
-                    <div class="w-7 h-7 rounded-lg bg-blue-500 flex items-center justify-center shrink-0 shadow-sm">
-                      <i data-lucide="help-circle" class="w-4 h-4 text-white"></i>
-                    </div>
-                    <div class="min-w-0">
-                      <div class="flex items-center gap-1">
-                        <span class="font-bold text-cyan-300 text-xs">TTK</span>
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400" title="Aktif"></span>
-                      </div>
-                      <span class="text-[10px] text-slate-200 block truncate">Tanya-Tanya KUR</span>
-                    </div>
-                  </div>
-
-                  <!-- BUSET -->
-                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition border border-white/10" title="BUSET: Buat SPPA Elektronik Terpadu">
-                    <div class="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center shrink-0 shadow-sm">
-                      <i data-lucide="file-text" class="w-4 h-4 text-white"></i>
-                    </div>
-                    <div class="min-w-0">
-                      <div class="flex items-center gap-1">
-                        <span class="font-bold text-emerald-300 text-xs">BUSET</span>
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400" title="Aktif"></span>
-                      </div>
-                      <span class="text-[10px] text-slate-200 block truncate">Buat SPPA Terpadu</span>
-                    </div>
-                  </div>
-
-                  <!-- CEPAT -->
-                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition border border-white/10" title="CEPAT: Cover Note Pertanggungan Asuransi Terintegrasi">
-                    <div class="w-7 h-7 rounded-lg bg-cyan-500 flex items-center justify-center shrink-0 shadow-sm">
-                      <i data-lucide="file-check-2" class="w-4 h-4 text-white"></i>
-                    </div>
-                    <div class="min-w-0">
-                      <div class="flex items-center gap-1">
-                        <span class="font-bold text-cyan-300 text-xs">CEPAT</span>
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400" title="Aktif"></span>
-                      </div>
-                      <span class="text-[10px] text-slate-200 block truncate">Cover Note Asuransi</span>
-                    </div>
-                  </div>
-
-                  <!-- PELAKU -->
-                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition border border-white/10" title="PELAKU: Perhitungan Laporan Keuangan">
-                    <div class="w-7 h-7 rounded-lg bg-purple-500 flex items-center justify-center shrink-0 shadow-sm">
+                  <!-- PELAKU (AKTIF PENUH) -->
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-gradient-to-r from-purple-500/25 to-indigo-500/25 hover:from-purple-500/35 hover:to-indigo-500/35 transition border border-purple-400/40 shadow-sm relative overflow-hidden" title="PELAKU: Perhitungan Laporan Keuangan (Aktif Siap Digunakan)">
+                    <div class="w-7 h-7 rounded-lg bg-purple-500 flex items-center justify-center shrink-0 shadow-md">
                       <i data-lucide="calculator" class="w-4 h-4 text-white"></i>
                     </div>
                     <div class="min-w-0">
                       <div class="flex items-center gap-1">
-                        <span class="font-bold text-purple-300 text-xs">PELAKU</span>
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400" title="Aktif"></span>
+                        <span class="font-black text-purple-200 text-xs">PELAKU</span>
+                        <span class="px-1.5 py-0.2 rounded text-[7px] font-extrabold bg-emerald-500 text-white uppercase tracking-wider">Aktif</span>
                       </div>
                       <span class="text-[10px] text-slate-200 block truncate">Laporan Keuangan</span>
                     </div>
                   </div>
 
-                  <!-- COMING SOON: SURETY -->
-                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-dashed border-white/25 hover:bg-white/10 transition group" title="SURETY: Suretyship & Penjaminan Proyek (Segera Hadir)">
-                    <div class="w-7 h-7 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
-                      <i data-lucide="sparkles" class="w-4 h-4 text-amber-300 group-hover:scale-110 transition-transform"></i>
+                  <!-- KABAR (TESTING ADMIN) -->
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-dashed border-white/20 hover:bg-white/10 transition group" title="KABAR: Kalkulator Asuransi Kebakaran (Khusus Testing Admin)">
+                    <div class="w-7 h-7 rounded-lg bg-orange-500/25 border border-orange-400/30 flex items-center justify-center shrink-0">
+                      <i data-lucide="flame" class="w-4 h-4 text-orange-300"></i>
                     </div>
                     <div class="min-w-0">
-                      <div class="flex items-center gap-1.5">
+                      <div class="flex items-center gap-1">
+                        <span class="font-bold text-slate-300 text-xs">KABAR</span>
+                        <span class="px-1.5 py-0.2 rounded text-[7px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase">Testing</span>
+                      </div>
+                      <span class="text-[10px] text-slate-400 block truncate">Kalkulator Kebakaran</span>
+                    </div>
+                  </div>
+
+                  <!-- TTK (TESTING ADMIN) -->
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-dashed border-white/20 hover:bg-white/10 transition group" title="TTK: Tanya-Tanya KUR (Khusus Testing Admin)">
+                    <div class="w-7 h-7 rounded-lg bg-blue-500/25 border border-blue-400/30 flex items-center justify-center shrink-0">
+                      <i data-lucide="help-circle" class="w-4 h-4 text-blue-300"></i>
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1">
+                        <span class="font-bold text-slate-300 text-xs">TTK</span>
+                        <span class="px-1.5 py-0.2 rounded text-[7px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase">Testing</span>
+                      </div>
+                      <span class="text-[10px] text-slate-400 block truncate">Tanya-Tanya KUR</span>
+                    </div>
+                  </div>
+
+                  <!-- BUSET (TESTING ADMIN) -->
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-dashed border-white/20 hover:bg-white/10 transition group" title="BUSET: Buat SPPA Elektronik Terpadu (Khusus Testing Admin)">
+                    <div class="w-7 h-7 rounded-lg bg-emerald-500/25 border border-emerald-400/30 flex items-center justify-center shrink-0">
+                      <i data-lucide="file-text" class="w-4 h-4 text-emerald-300"></i>
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1">
+                        <span class="font-bold text-slate-300 text-xs">BUSET</span>
+                        <span class="px-1.5 py-0.2 rounded text-[7px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase">Testing</span>
+                      </div>
+                      <span class="text-[10px] text-slate-400 block truncate">Buat SPPA Terpadu</span>
+                    </div>
+                  </div>
+
+                  <!-- CEPAT (TESTING ADMIN) -->
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-dashed border-white/20 hover:bg-white/10 transition group" title="CEPAT: Cover Note Pertanggungan Asuransi Terintegrasi (Khusus Testing Admin)">
+                    <div class="w-7 h-7 rounded-lg bg-cyan-500/25 border border-cyan-400/30 flex items-center justify-center shrink-0">
+                      <i data-lucide="file-check-2" class="w-4 h-4 text-cyan-300"></i>
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1">
+                        <span class="font-bold text-slate-300 text-xs">CEPAT</span>
+                        <span class="px-1.5 py-0.2 rounded text-[7px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase">Testing</span>
+                      </div>
+                      <span class="text-[10px] text-slate-400 block truncate">Cover Note Asuransi</span>
+                    </div>
+                  </div>
+
+                  <!-- SURETY (SEGERA HADIR) -->
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-dashed border-white/20 hover:bg-white/10 transition group" title="SURETY: Suretyship & Penjaminan Proyek (Segera Hadir)">
+                    <div class="w-7 h-7 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+                      <i data-lucide="sparkles" class="w-4 h-4 text-amber-300"></i>
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1">
                         <span class="font-bold text-slate-300 text-xs">SURETY</span>
-                        <span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">Segera</span>
+                        <span class="px-1.5 py-0.2 rounded text-[7px] font-bold bg-slate-400/20 text-slate-300 border border-slate-400/30 uppercase">Segera</span>
                       </div>
                       <span class="text-[10px] text-slate-400 block truncate">Suretyship & KBG</span>
                     </div>
@@ -822,6 +825,46 @@ class AskrindoApp {
 
   renderUnauthorized(appName) {
     const user = window.authService.getCurrentUser();
+    const isDev = window.authService.isAppInDevelopment(appName.toLowerCase()) || 
+                  appName.toLowerCase().includes('kabar') || 
+                  appName.toLowerCase().includes('ttk') || 
+                  appName.toLowerCase().includes('bus') || 
+                  appName.toLowerCase().includes('cepat');
+
+    if (isDev) {
+      return `
+        <div class="max-w-md mx-auto my-12 bg-white p-8 rounded-3xl border border-slate-200 shadow-xl text-center space-y-4 animate-fadeIn">
+          <div class="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200">
+            <i data-lucide="wrench" class="w-8 h-8 text-amber-500"></i>
+          </div>
+          <span class="inline-block px-3 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-wider">
+            Tahap Pengembangan Bertahap
+          </span>
+          <h2 class="text-xl font-black text-slate-800">Modul ${appName} Belum Rilis Publik</h2>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            Sesuai jadwal peluncuran bertahap portal Askrindo SATU, modul <b>${appName}</b> saat ini berada dalam pengujian tertutup oleh Administrator dan belum dibuka untuk peran <b>${user.role}</b>.
+          </p>
+          <div class="p-3.5 rounded-xl bg-purple-50 border border-purple-200 text-left text-xs space-y-1">
+            <div class="flex items-center gap-1.5 text-purple-900 font-bold">
+              <i data-lucide="check-circle" class="w-4 h-4 text-purple-600"></i>
+              <span>Modul Aktif untuk Operasional:</span>
+            </div>
+            <p class="text-slate-600 text-[11px] leading-relaxed">
+              Anda dapat menggunakan modul <b>PELAKU (Perhitungan Laporan Keuangan)</b> yang telah aktif dan siap digunakan secara penuh.
+            </p>
+          </div>
+          <div class="flex items-center justify-center gap-3 pt-2">
+            <a href="#/dashboard" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
+              Kembali ke Beranda
+            </a>
+            <a href="#/pelaku" class="px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-purple-600 hover:bg-purple-700 shadow-sm transition">
+              Buka Modul PELAKU
+            </a>
+          </div>
+        </div>
+      `;
+    }
+
     return `
       <div class="max-w-md mx-auto my-12 bg-white p-8 rounded-3xl border border-slate-200 shadow-xl text-center space-y-4 animate-fadeIn">
         <div class="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200">
@@ -847,6 +890,44 @@ class AskrindoApp {
         </div>
       </div>
     `;
+  }
+
+  showDevelopmentNoticeModal(appName) {
+    const modal = document.getElementById('global-modal-container');
+    if (!modal) return;
+
+    modal.innerHTML = `
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 text-center">
+          <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200">
+            <i data-lucide="wrench" class="w-7 h-7 text-amber-500"></i>
+          </div>
+          <span class="inline-block px-3 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-wider">
+            Pengembangan Bertahap
+          </span>
+          <h3 class="text-lg font-bold text-slate-800">Modul ${appName} Dalam Uji Coba</h3>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            Modul <b>${appName}</b> saat ini dinonaktifkan untuk pengguna umum dan sedang dalam tahap pengujian khusus Administrator sebelum dirilis secara bertahap.
+          </p>
+          <div class="p-3.5 rounded-xl bg-purple-50 border border-purple-200 text-left text-xs space-y-1">
+            <p class="font-bold text-purple-900 flex items-center gap-1.5">
+              <i data-lucide="check-circle" class="w-4 h-4 text-purple-600"></i>
+              Modul Aktif Operasional:
+            </p>
+            <p class="text-slate-600 text-[11px]">Gunakan modul <b>PELAKU (Perhitungan Laporan Keuangan)</b> yang sudah rilis penuh.</p>
+          </div>
+          <div class="flex items-center justify-center gap-2 pt-2">
+            <button onclick="window.askrindoApp.closeAllModals()" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
+              Tutup
+            </button>
+            <a href="#/pelaku" onclick="window.askrindoApp.closeAllModals()" class="px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-purple-600 hover:bg-purple-700 transition">
+              Buka Modul PELAKU
+            </a>
+          </div>
+        </div>
+      </div>
+    `;
+    if (window.lucide) window.lucide.createIcons();
   }
 
   toggleProfileMenu() {
