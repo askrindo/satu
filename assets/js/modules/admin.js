@@ -278,7 +278,7 @@ window.AdminModule = {
 
   renderMatrixTab(allUsers) {
     const appsList = [
-      { id: 'kabar', name: 'KABAR', label: 'Asuransi Kebakaran', color: 'text-orange-600' },
+      { id: 'kabar', name: 'KABAR', label: 'Kalkulator Asuransi Kebakaran', color: 'text-orange-600' },
       { id: 'ttk', name: 'TTK', label: 'Tanya-Tanya KUR', color: 'text-blue-600' },
       { id: 'bus', name: 'BUSET', label: 'Buat SPPA Elektronik', color: 'text-emerald-600' },
       { id: 'cepat', name: 'CEPAT', label: 'Cover Note Asuransi', color: 'text-cyan-600' },
@@ -636,7 +636,7 @@ window.AdminModule = {
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" id="perm-ttk" value="ttk" ${allowedApps.includes('ttk') ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded" />
                   <span class="font-semibold text-slate-800">TTK</span>
-                  <span class="text-slate-500 text-[11px]">— Tanya-Tanya KUR (Kredit Usaha Rakyat)</span>
+                  <span class="text-slate-500 text-[11px]">— Tanya-Tanya KUR</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" id="perm-bus" value="bus" ${allowedApps.includes('bus') ? 'checked' : ''} class="w-4 h-4 text-emerald-600 rounded" />

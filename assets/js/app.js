@@ -143,7 +143,7 @@ class AskrindoApp {
                       <i data-lucide="flame" class="w-4 h-4 text-orange-500"></i>
                       <div class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">KABAR</span>
-                        <span class="text-[10px] block font-normal text-slate-400">Asuransi Kebakaran</span>
+                        <span class="text-[10px] block font-normal text-slate-400">Kalkulator Asuransi Kebakaran</span>
                       </div>
                     </div>
                     ${!window.authService.hasAccess('kabar') ? `<i data-lucide="lock" class="w-3 h-3 text-slate-300"></i>` : ''}
@@ -465,7 +465,7 @@ class AskrindoApp {
                   </div>
                   <div class="min-w-0">
                     <span class="font-bold text-amber-300">KABAR</span>
-                    <span class="text-[11px] text-slate-200 block truncate">Kalkulator Asuransi Kebakaran OJK</span>
+                    <span class="text-[11px] text-slate-200 block truncate">Kalkulator Asuransi Kebakaran</span>
                   </div>
                 </div>
 
@@ -475,7 +475,7 @@ class AskrindoApp {
                   </div>
                   <div class="min-w-0">
                     <span class="font-bold text-cyan-300">TTK</span>
-                    <span class="text-[11px] text-slate-200 block truncate">Tanya-Tanya KUR & Debitur UMKM</span>
+                    <span class="text-[11px] text-slate-200 block truncate">Tanya-Tanya KUR</span>
                   </div>
                 </div>
 
@@ -648,7 +648,7 @@ class AskrindoApp {
               <div class="flex items-center gap-3">
                 <i data-lucide="help-circle" class="w-4 h-4 text-blue-500"></i>
                 <div>
-                  <span class="font-bold">TTK</span> — Tanya-Tanya KUR (Simulasi & Kelayakan)
+                  <span class="font-bold">TTK</span> — Tanya-Tanya KUR
                 </div>
               </div>
               <span class="text-[10px] text-slate-400">Buka Modul &rarr;</span>
