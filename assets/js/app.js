@@ -500,46 +500,6 @@ class AskrindoApp {
                 </button>
               </form>
             </div>
-
-            <!-- Quick Demo Picker (Super handy for instant testing of all roles) -->
-            <div class="pt-4 border-t border-slate-100 space-y-2">
-              <div class="flex items-center justify-between">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Pilih Cepat Pengguna Demo (1-Click Login):</span>
-              </div>
-              <div class="grid grid-cols-2 gap-2 text-[11px]">
-                <button onclick="window.authService.quickLogin('USR-001')" class="p-2 rounded-xl border border-amber-200 bg-amber-50/50 hover:bg-amber-100/60 text-left transition flex items-center gap-2">
-                  <div class="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-[10px]">A</div>
-                  <div class="min-w-0">
-                    <p class="font-bold text-slate-800 truncate">Super Admin</p>
-                    <p class="text-[9px] text-amber-800">Akses Penuh + Admin</p>
-                  </div>
-                </button>
-
-                <button onclick="window.authService.quickLogin('USR-002')" class="p-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-left transition flex items-center gap-2">
-                  <div class="w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-[10px]">U</div>
-                  <div class="min-w-0">
-                    <p class="font-bold text-slate-800 truncate">Senior Underwriter</p>
-                    <p class="text-[9px] text-slate-500">KABAR, BUS, PELAKU</p>
-                  </div>
-                </button>
-
-                <button onclick="window.authService.quickLogin('USR-003')" class="p-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-left transition flex items-center gap-2">
-                  <div class="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-[10px]">K</div>
-                  <div class="min-w-0">
-                    <p class="font-bold text-slate-800 truncate">AO KUR & UMKM</p>
-                    <p class="text-[9px] text-slate-500">TTK & PELAKU</p>
-                  </div>
-                </button>
-
-                <button onclick="window.authService.quickLogin('USR-005')" class="p-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-left transition flex items-center gap-2">
-                  <div class="w-6 h-6 rounded-full bg-slate-500 text-white flex items-center justify-center font-bold text-[10px]">S</div>
-                  <div class="min-w-0">
-                    <p class="font-bold text-slate-800 truncate">Staff Operasional</p>
-                    <p class="text-[9px] text-slate-500">KABAR Saja (Terbatas)</p>
-                  </div>
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       </div>
