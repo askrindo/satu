@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Askrindo SATU - Sistem Aplikasi Terpadu</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/images/logo-icon.png">
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            askrindo: {
+              navy: '#002B49',
+              dark: '#001B2E',
+              blue: '#0A3D62',
+              orange: '#F37021',
+              gold: '#FFB100',
+              accent: '#0077B6',
+              bg: '#F4F7FB'
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="bg-[#F4F7FB] text-slate-800 antialiased selection:bg-orange-500 selection:text-white">
+  <!-- Application Mount Root -->
+  <div id="app-root">
+    <!-- Initial Loading State -->
+    <div class="min-h-screen flex flex-col items-center justify-center space-y-4 bg-gradient-to-br from-[#002B49] to-[#0A3D62] text-white">
+      <img src="assets/images/logo-corporate.png" alt="Askrindo SATU" class="h-16 object-contain animate-pulse" />
+      <div class="flex items-center gap-2 text-xs text-amber-300 font-semibold">
+        <span class="w-2 h-2 rounded-full bg-orange-400 animate-ping"></span>
+        <span>Memuat Portal Askrindo SATU...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Modules & Logic -->
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/modules/dashboard.js"></script>
+  <script src="assets/js/modules/admin.js"></script>
+  <script src="assets/js/modules/kabar.js"></script>
+  <script src="assets/js/modules/ttk.js"></script>
+  <script src="assets/js/modules/bus.js"></script>
+  <script src="assets/js/modules/pelaku.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

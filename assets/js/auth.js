@@ -1,0 +1,94 @@
+/**
+ * Askrindo SATU - Authentication & Access Control
+ * Handles login, session tokens, role-based permissions, and route security.
+ */
+
+class AuthService {
+  constructor() {
+    this.currentUser = null;
+    this.init();
+  }
+
+  init() {
+    this.currentUser = window.askrindoDB.getCurrentSession();
+  }
+
+  isAuthenticated() {
+    return !!this.currentUser;
+  }
+
+  getCurrentUser() {
+    return this.currentUser;
+  }
+
+  login(nipOrEmail, password) {
+    const user = window.askrindoDB.findUserByNipOrEmail(nipOrEmail);
+    if (!user) {
+      return { success: false, message: 'NIP atau Email tidak terdaftar dalam sistem Askrindo SATU.' };
+    }
+
+    if (user.status !== 'active') {
+      return { success: false, message: 'Akun Anda sedang dinonaktifkan oleh Administrator. Hubungi Divisi TI.' };
+    }
+
+    if (user.password !== password) {
+      return { success: false, message: 'Kata sandi tidak sesuai. Silakan periksa kembali.' };
+    }
+
+    // Update lastLogin
+    user.lastLogin = new Date().toISOString();
+    window.askrindoDB.saveUser(user);
+
+    // Save session
+    this.currentUser = user;
+    window.askrindoDB.setSession(user);
+
+    // Log to audit trail
+    window.askrindoDB.logActivity('AUTH', 'User Login', `Pengguna ${user.name} (NIP ${user.nip}) berhasil masuk ke portal Askrindo SATU.`, user);
+
+    // Dispatch event
+    window.dispatchEvent(new CustomEvent('askrindo:auth-changed', { detail: { user } }));
+
+    return { success: true, user };
+  }
+
+  quickLogin(userId) {
+    const user = window.askrindoDB.getUser(userId);
+    if (user) {
+      user.lastLogin = new Date().toISOString();
+      window.askrindoDB.saveUser(user);
+      this.currentUser = user;
+      window.askrindoDB.setSession(user);
+      window.askrindoDB.logActivity('AUTH', 'Quick Demo Login', `Login demonstrasi sebagai ${user.name} (${user.role})`, user);
+      window.dispatchEvent(new CustomEvent('askrindo:auth-changed', { detail: { user } }));
+      return { success: true, user };
+    }
+    return { success: false, message: 'Pengguna demo tidak ditemukan.' };
+  }
+
+  logout() {
+    if (this.currentUser) {
+      window.askrindoDB.logActivity('AUTH', 'User Logout', `Pengguna ${this.currentUser.name} keluar dari portal Askrindo SATU.`, this.currentUser);
+    }
+    this.currentUser = null;
+    window.askrindoDB.clearSession();
+    window.dispatchEvent(new CustomEvent('askrindo:auth-changed', { detail: { user: null } }));
+    window.location.hash = '#/login';
+  }
+
+  hasAccess(appId) {
+    if (!this.currentUser) return false;
+    // Super Administrator has universal access
+    if (this.currentUser.role === 'Super Administrator' || this.currentUser.allowedApps.includes('admin')) {
+      return true;
+    }
+    return this.currentUser.allowedApps && this.currentUser.allowedApps.includes(appId);
+  }
+
+  canAccessAdmin() {
+    return this.currentUser && (this.currentUser.role === 'Super Administrator' || (this.currentUser.allowedApps && this.currentUser.allowedApps.includes('admin')));
+  }
+}
+
+// Global Export
+window.authService = new AuthService();
