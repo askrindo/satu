@@ -31,6 +31,11 @@ try {
         if (Test-Path $localFilePath -PathType Leaf) {
             $bytes = [System.IO.File]::ReadAllBytes($localFilePath)
             
+            # Anti-cache headers untuk development lokal
+            $response.AddHeader("Cache-Control", "no-cache, no-store, must-revalidate")
+            $response.AddHeader("Pragma", "no-cache")
+            $response.AddHeader("Expires", "0")
+
             # Deteksi Content-Type
             $ext = [System.IO.Path]::GetExtension($localFilePath).ToLower()
             switch ($ext) {
