@@ -262,14 +262,23 @@ class AskrindoDB {
     if (!localStorage.getItem(DB_KEYS.AUDIT)) {
       localStorage.setItem(DB_KEYS.AUDIT, JSON.stringify(INITIAL_AUDIT));
     }
-    if (!localStorage.getItem(DB_KEYS.SETTINGS)) {
+    const existingSettings = localStorage.getItem(DB_KEYS.SETTINGS);
+    if (!existingSettings) {
       localStorage.setItem(DB_KEYS.SETTINGS, JSON.stringify({
         appName: 'Askrindo SATU',
         companyName: 'PT Asuransi Kredit Indonesia (Askrindo)',
         memberOf: '',
         maintenanceMode: false,
-        notificationBanner: 'Portal Terpadu Askrindo SATU terhubung dengan Cloud Database Supabase (PostgreSQL).'
+        notificationBanner: 'Selamat datang di Portal Aplikasi Terpadu Askrindo SATU.'
       }));
+    } else {
+      try {
+        const s = JSON.parse(existingSettings);
+        if (s.notificationBanner && s.notificationBanner.includes('Supabase')) {
+          s.notificationBanner = 'Selamat datang di Portal Aplikasi Terpadu Askrindo SATU.';
+          localStorage.setItem(DB_KEYS.SETTINGS, JSON.stringify(s));
+        }
+      } catch (e) {}
     }
 
     // 2. Inisialisasi Supabase SDK
@@ -641,4 +650,3 @@ class AskrindoDB {
 // Global Export
 window.askrindoDB = new AskrindoDB();
 window.SUB_APPS_CATALOG = SUB_APPS_CATALOG;
-window.SUPABASE_CONFIG = SUPABASE_CONFIG;

@@ -435,40 +435,6 @@ window.AdminModule = {
         </div>
 
         <div class="pt-6 border-t border-slate-200 space-y-3">
-          <div class="flex items-center justify-between">
-            <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full ${window.askrindoDB.cloudStatus === 'connected' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}"></span>
-              <span>Integrasi Supabase Cloud Database (PostgreSQL)</span>
-            </h3>
-            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-              window.askrindoDB.cloudStatus === 'connected' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-amber-100 text-amber-800 border border-amber-200'
-            }">
-              ${window.askrindoDB.cloudStatus === 'connected' ? 'Terhubung & Aktif' : 'Perlu Setup Schema'}
-            </span>
-          </div>
-          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
-            <div class="flex items-center justify-between">
-              <span class="text-slate-500 font-medium">Endpoint URL:</span>
-              <span class="font-mono font-bold text-slate-800 text-[11px] truncate max-w-[320px]">${window.SUPABASE_CONFIG.url}</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-slate-500 font-medium">Project ID:</span>
-              <span class="font-mono text-slate-700">${window.SUPABASE_CONFIG.projectId}</span>
-            </div>
-          </div>
-          <div class="flex flex-wrap items-center gap-2 pt-1">
-            <button onclick="window.askrindoApp.showCloudDbModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition flex items-center gap-1.5 shadow-sm">
-              <i data-lucide="database" class="w-4 h-4"></i>
-              <span>Buka Panduan SQL Schema</span>
-            </button>
-            <a href="https://supabase.com/dashboard/project/${window.SUPABASE_CONFIG.projectId}/sql" target="_blank" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition flex items-center gap-1.5">
-              <i data-lucide="external-link" class="w-4 h-4 text-slate-400"></i>
-              <span>Buka SQL Editor Supabase</span>
-            </a>
-          </div>
-        </div>
-
-        <div class="pt-6 border-t border-slate-200 space-y-3">
           <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Pemulihan & Backup Basis Data</h3>
           <p class="text-xs text-slate-500">
             Anda dapat mengekspor seluruh data simulasi SPPA, pengguna, dan audit log ke berkas JSON atau mengembalikan data ke bawaan pabrik.
