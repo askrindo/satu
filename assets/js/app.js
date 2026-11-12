@@ -17,6 +17,15 @@ class AskrindoApp {
     // Listen to auth state changes
     window.addEventListener('askrindo:auth-changed', () => this.handleRouting());
 
+    // Listen to Supabase cloud sync events
+    window.addEventListener('askrindo:db-synced', () => {
+      this.updateCloudPill();
+      this.renderCurrentRoute();
+    });
+    window.addEventListener('askrindo:cloud-status', () => {
+      this.updateCloudPill();
+    });
+
     // Keyboard shortcut for command palette (Ctrl+K or Cmd+K)
     window.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -226,7 +235,21 @@ class AskrindoApp {
               </button>
 
               <!-- Right: Alerts, Branch, User Profile -->
-              <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2 sm:gap-3">
+                <!-- Supabase Cloud DB Status Pill -->
+                <button onclick="window.askrindoApp.showCloudDbModal()" id="topbar-cloud-pill" title="Status Cloud Database Supabase" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold border transition ${
+                  window.askrindoDB.cloudStatus === 'connected' 
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' 
+                    : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
+                }">
+                  <span class="w-2 h-2 rounded-full ${
+                    window.askrindoDB.cloudStatus === 'connected' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'
+                  }"></span>
+                  <span class="hidden sm:inline">${
+                    window.askrindoDB.cloudStatus === 'connected' ? 'Cloud: Active' : 'Cloud: Setup'
+                  }</span>
+                </button>
+
                 <!-- Branch Pill -->
                 <div class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-[11px] font-semibold text-slate-700">
                   <i data-lucide="map-pin" class="w-3.5 h-3.5 text-orange-500"></i>
@@ -696,6 +719,126 @@ class AskrindoApp {
   closeAllModals() {
     const modal = document.getElementById('global-modal-container');
     if (modal) modal.innerHTML = '';
+  }
+
+  updateCloudPill() {
+    const pill = document.getElementById('topbar-cloud-pill');
+    if (!pill) return;
+    const isConn = window.askrindoDB.cloudStatus === 'connected';
+    pill.className = `flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold border transition ${
+      isConn ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
+    }`;
+    pill.innerHTML = `
+      <span class="w-2 h-2 rounded-full ${isConn ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}"></span>
+      <span class="hidden sm:inline">${isConn ? 'Cloud: Active' : 'Cloud: Setup'}</span>
+    `;
+  }
+
+  showCloudDbModal() {
+    const modal = document.getElementById('global-modal-container');
+    if (!modal) return;
+
+    const isConnected = window.askrindoDB.cloudStatus === 'connected';
+
+    modal.innerHTML = `
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-5 max-h-[90vh] overflow-y-auto">
+          <div class="flex items-center justify-between border-b pb-4 border-slate-100">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-bold text-base shadow-md">
+                ⚡
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-slate-800">Status Supabase Cloud Database</h3>
+                <p class="text-xs text-slate-500">PostgreSQL Cloud Hosting (Bebas Server Lokal)</p>
+              </div>
+            </div>
+            <button onclick="window.askrindoApp.closeAllModals()" class="p-1 rounded-lg text-slate-400 hover:text-slate-600">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <div class="space-y-4 text-xs">
+            <!-- Project Info -->
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <span class="text-slate-500 font-semibold">Supabase Endpoint:</span>
+                <span class="font-mono font-bold text-slate-800 text-[11px] truncate max-w-[340px]">${window.SUPABASE_CONFIG.url}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-slate-500 font-semibold">Status Sinkronisasi:</span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                  isConnected ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-amber-100 text-amber-800 border border-amber-200'
+                }">
+                  <span class="w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}"></span>
+                  ${isConnected ? 'Terhubung & Sinkronisasi Aktif' : 'Menunggu Migrasi Schema SQL'}
+                </span>
+              </div>
+            </div>
+
+            <!-- Petunjuk Jika Pending Schema -->
+            ${!isConnected ? `
+              <div class="p-5 rounded-2xl bg-amber-50/70 border border-amber-200 text-amber-900 space-y-3">
+                <div class="flex items-start gap-2.5">
+                  <i data-lucide="info" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5"></i>
+                  <div>
+                    <h4 class="font-bold text-xs">Langkah Terakhir: Jalankan Script SQL di Dashboard Supabase</h4>
+                    <p class="text-[11px] text-amber-800 mt-1 leading-relaxed">
+                      Proyek Supabase Anda (<code>${window.SUPABASE_CONFIG.projectId}</code>) sudah terhubung ke aplikasi. Agar tabel <b>users</b>, <b>sppa_records</b>, dan <b>audit_logs</b> dibuat di cloud, jalankan script SQL yang telah kami siapkan di menu SQL Editor Supabase.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 pt-2">
+                  <a href="https://supabase.com/dashboard/project/${window.SUPABASE_CONFIG.projectId}/sql" target="_blank" class="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition flex items-center gap-1.5 shadow-md shadow-emerald-600/20">
+                    <i data-lucide="external-link" class="w-4 h-4"></i>
+                    <span>Buka SQL Editor Supabase</span>
+                  </a>
+                  <button onclick="window.askrindoApp.copySqlSchema()" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-100 transition flex items-center gap-1.5 shadow-sm">
+                    <i data-lucide="copy" class="w-4 h-4 text-slate-500"></i>
+                    <span>Salin Script SQL (schema.sql)</span>
+                  </button>
+                  <button onclick="window.askrindoDB.syncWithSupabase(); window.askrindoApp.showToast('Memeriksa koneksi Supabase...', 'info'); setTimeout(()=>window.askrindoApp.showCloudDbModal(), 1200);" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 hover:bg-blue-100 transition flex items-center gap-1.5">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    <span>Cek Ulang Koneksi</span>
+                  </button>
+                </div>
+              </div>
+            ` : `
+              <div class="p-5 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-emerald-900 space-y-2">
+                <p class="font-bold flex items-center gap-2 text-xs">
+                  <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+                  Database Cloud Supabase PostgreSQL Berjalan Normal
+                </p>
+                <p class="text-[11px] text-emerald-800 leading-relaxed">
+                  Semua data tersinkronisasi otomatis secara dua arah. Anda dapat membuka portal ini dari komputer atau peramban mana pun dan data akan tetap sama secara real-time.
+                </p>
+              </div>
+            `}
+          </div>
+
+          <div class="flex justify-end pt-3 border-t border-slate-100">
+            <button onclick="window.askrindoApp.closeAllModals()" class="px-5 py-2.5 rounded-xl text-xs font-semibold bg-slate-800 text-white hover:bg-slate-900 transition">
+              Tutup
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  async copySqlSchema() {
+    try {
+      const response = await fetch('schema.sql');
+      const sqlText = await response.text();
+      await navigator.clipboard.writeText(sqlText);
+      this.showToast('Script schema.sql berhasil disalin ke clipboard! Silakan paste di SQL Editor Supabase.', 'success');
+    } catch (e) {
+      window.open('schema.sql', '_blank');
+      this.showToast('Membuka schema.sql di tab baru...', 'info');
+    }
   }
 
   renderUnauthorized(appName) {

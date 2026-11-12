@@ -52,6 +52,22 @@ Aplikasi ini mengadopsi arsitektur modular di mana seluruh sub-aplikasi berada d
 
 ---
 
+## ⚡ Integrasi Cloud Database (Supabase PostgreSQL)
+
+Aplikasi telah terhubung secara otomatis ke database cloud **Supabase (PostgreSQL)**:
+* **Project URL**: `https://jvecpwnvbcildrisgyro.supabase.co`
+* **API Key**: `sb_publishable_RyIwxOVt5_tMMiPbsDh5kQ_pgwlhFYD`
+* **Script Skema Database**: [`schema.sql`](file:///G:/My%20Drive/Personal/Project/ASKRINDO%20SATU/schema.sql)
+
+### 📌 Panduan Menjalankan Script Database (Hanya 1 Kali):
+1. Buka dashboard proyek Supabase Anda: [https://supabase.com/dashboard/project/jvecpwnvbcildrisgyro/sql](https://supabase.com/dashboard/project/jvecpwnvbcildrisgyro/sql)
+2. Buka menu **SQL Editor** di bilah sisi kiri.
+3. Buka berkas **`schema.sql`** di folder proyek ini, salin seluruh isinya, lalu tempel (*paste*) ke SQL Editor Supabase.
+4. Klik tombol **Run** (atau tekan `Ctrl + Enter`).
+5. **Selesai!** Seluruh tabel `users`, `sppa_records`, `audit_logs`, dan `system_settings` otomatis dibuat beserta data bawaan. Aplikasi web Askrindo SATU akan langsung tersinkronisasi online 24 jam!
+
+---
+
 ## 🚀 Cara Menjalankan Aplikasi
 
 Aplikasi dibangun dengan arsitektur web modern yang sangat ringan, tanpa memerlukan proses *build* atau instalasi dependensi `node_modules` (bebas dari resiko sinkronisasi lambat di Google Drive).

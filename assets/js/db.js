@@ -1,7 +1,14 @@
 /**
- * Askrindo SATU - Database & Local Storage Management
- * Provides offline-first persistence with realistic enterprise seed data.
+ * Askrindo SATU - Database & Cloud Sync Management (Supabase PostgreSQL + Local Cache)
+ * Provides hybrid offline-first persistence with real-time cloud synchronization.
  */
+
+// Supabase Cloud Configuration
+const SUPABASE_CONFIG = {
+  url: 'https://jvecpwnvbcildrisgyro.supabase.co',
+  key: 'sb_publishable_RyIwxOVt5_tMMiPbsDh5kQ_pgwlhFYD',
+  projectId: 'jvecpwnvbcildrisgyro'
+};
 
 const DB_KEYS = {
   USERS: 'askrindo_satu_users_v1',
@@ -13,7 +20,7 @@ const DB_KEYS = {
   SETTINGS: 'askrindo_satu_settings_v1'
 };
 
-// Seed Users
+// Seed Users for local fallback
 const INITIAL_USERS = [
   {
     id: 'USR-001',
@@ -181,24 +188,6 @@ const INITIAL_AUDIT = [
     subApp: 'TTK',
     action: 'Simulasi Angsuran KUR',
     details: 'Simulasi KUR Mikro Rp 50.000.000 tenor 36 bulan suku bunga subsidi 6%'
-  },
-  {
-    id: 'LOG-1004',
-    timestamp: '2026-11-11T15:20:00Z',
-    user: 'Budi Santoso, AAIJ',
-    role: 'Senior Underwriter',
-    subApp: 'PELAKU',
-    action: 'Analisis Laporan Keuangan',
-    details: 'Menilai laporan keuangan PT Maju Bersama Sejahtera periode 2025. Hasil: Grade A (Sehat)'
-  },
-  {
-    id: 'LOG-1005',
-    timestamp: '2026-11-11T14:10:00Z',
-    user: 'Dian Permana, S.Kom.',
-    role: 'Marketing Officer',
-    subApp: 'BUS',
-    action: 'Penerbitan SPPA Baru',
-    details: 'Menerbitkan SPPA-2026-0081 untuk PT Maju Bersama Sejahtera'
   }
 ];
 
@@ -256,10 +245,14 @@ const SUB_APPS_CATALOG = {
 
 class AskrindoDB {
   constructor() {
+    this.supabase = null;
+    this.cloudStatus = 'connecting'; // 'connected' | 'pending_schema' | 'offline'
+    this.cloudError = null;
     this.init();
   }
 
   init() {
+    // 1. Inisialisasi Cache Lokal jika kosong
     if (!localStorage.getItem(DB_KEYS.USERS)) {
       localStorage.setItem(DB_KEYS.USERS, JSON.stringify(INITIAL_USERS));
     }
@@ -275,12 +268,128 @@ class AskrindoDB {
         companyName: 'PT Asuransi Kredit Indonesia (Askrindo)',
         memberOf: 'Indonesia Financial Group (IFG)',
         maintenanceMode: false,
-        notificationBanner: 'Selamat datang di Portal Terpadu Askrindo SATU. Pastikan data tertanggung diverifikasi dengan NIK/NPWP valid.'
+        notificationBanner: 'Portal Terpadu Askrindo SATU terhubung dengan Cloud Database Supabase (PostgreSQL).'
       }));
+    }
+
+    // 2. Inisialisasi Supabase SDK
+    if (window.supabase) {
+      try {
+        this.supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+        this.syncWithSupabase();
+      } catch (e) {
+        console.warn('[Supabase] Gagal inisialisasi client:', e);
+        this.cloudStatus = 'offline';
+      }
+    } else {
+      this.cloudStatus = 'offline';
     }
   }
 
-  // --- Users ---
+  // --- Sinkronisasi Cloud Dua Arah (Supabase <-> LocalStorage) ---
+  async syncWithSupabase() {
+    if (!this.supabase) return;
+
+    try {
+      // Test fetch tabel users
+      const { data: users, error: userErr } = await this.supabase
+        .from('users')
+        .select('*');
+
+      if (userErr) {
+        // Jika tabel belum dibuat di Supabase (relation does not exist)
+        console.info('[Supabase] Menunggu migrasi tabel schema.sql:', userErr.message);
+        this.cloudStatus = 'pending_schema';
+        this.cloudError = 'Tabel database Supabase belum dibuat. Jalankan schema.sql di SQL Editor Supabase.';
+        window.dispatchEvent(new CustomEvent('askrindo:cloud-status', { detail: { status: this.cloudStatus, error: this.cloudError } }));
+        return;
+      }
+
+      // Jika berhasil connect & tabel ada
+      this.cloudStatus = 'connected';
+      this.cloudError = null;
+
+      if (users && users.length > 0) {
+        // Map database columns to app schema
+        const mappedUsers = users.map(u => ({
+          id: u.id,
+          nip: u.nip,
+          name: u.name,
+          email: u.email,
+          password: u.password,
+          role: u.role,
+          division: u.division,
+          branch: u.branch,
+          avatar: u.avatar,
+          allowedApps: u.allowed_apps || ['kabar'],
+          status: u.status,
+          createdAt: u.created_at,
+          lastLogin: u.last_login
+        }));
+        localStorage.setItem(DB_KEYS.USERS, JSON.stringify(mappedUsers));
+      }
+
+      // Fetch SPPA records
+      const { data: sppaData } = await this.supabase
+        .from('sppa_records')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (sppaData && sppaData.length > 0) {
+        const mappedSppa = sppaData.map(s => ({
+          id: s.id,
+          date: s.date,
+          insuredName: s.insured_name,
+          insuredType: s.insured_type,
+          nikNpwp: s.nik_npwp,
+          phone: s.phone,
+          email: s.email,
+          address: s.address,
+          productType: s.product_type,
+          periodStart: s.period_start,
+          periodEnd: s.period_end,
+          riskLocation: s.risk_location,
+          totalTsi: Number(s.total_tsi) || 0,
+          estimatedPremium: Number(s.estimated_premium) || 0,
+          status: s.status,
+          registeredBy: s.registered_by,
+          branch: s.branch
+        }));
+        localStorage.setItem(DB_KEYS.SPPA, JSON.stringify(mappedSppa));
+      }
+
+      // Fetch Audit logs
+      const { data: auditData } = await this.supabase
+        .from('audit_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (auditData && auditData.length > 0) {
+        const mappedLogs = auditData.map(l => ({
+          id: l.id,
+          timestamp: l.timestamp,
+          user: l.user_name,
+          role: l.role,
+          subApp: l.sub_app,
+          action: l.action,
+          details: l.details
+        }));
+        localStorage.setItem(DB_KEYS.AUDIT, JSON.stringify(mappedLogs));
+      }
+
+      // Trigger event update UI
+      window.dispatchEvent(new CustomEvent('askrindo:db-synced'));
+      window.dispatchEvent(new CustomEvent('askrindo:cloud-status', { detail: { status: this.cloudStatus } }));
+      console.log('[Supabase] Sinkronisasi data cloud sukses terhubung!');
+    } catch (e) {
+      console.warn('[Supabase Sync Error]:', e);
+      this.cloudStatus = 'offline';
+      window.dispatchEvent(new CustomEvent('askrindo:cloud-status', { detail: { status: this.cloudStatus, error: e.message } }));
+    }
+  }
+
+  // --- Users CRUD ---
   getUsers() {
     try {
       return JSON.parse(localStorage.getItem(DB_KEYS.USERS)) || [];
@@ -303,25 +412,49 @@ class AskrindoDB {
 
   saveUser(userData) {
     const users = this.getUsers();
+    let targetUser = null;
+
     if (userData.id) {
       // Update
       const index = users.findIndex(u => u.id === userData.id);
       if (index !== -1) {
         users[index] = { ...users[index], ...userData };
+        targetUser = users[index];
       }
     } else {
       // Create new
       const newId = 'USR-' + String(users.length + 1).padStart(3, '0');
-      const newUser = {
+      targetUser = {
         id: newId,
         createdAt: new Date().toISOString(),
         status: 'active',
         avatar: `https://images.unsplash.com/photo-${1534528741775 + users.length * 1000}?auto=format&fit=crop&w=256&q=80`,
         ...userData
       };
-      users.push(newUser);
+      users.push(targetUser);
     }
     localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
+
+    // Async sync to Supabase
+    if (this.supabase && this.cloudStatus === 'connected' && targetUser) {
+      this.supabase.from('users').upsert({
+        id: targetUser.id,
+        nip: targetUser.nip,
+        name: targetUser.name,
+        email: targetUser.email,
+        password: targetUser.password || 'password123',
+        role: targetUser.role,
+        division: targetUser.division,
+        branch: targetUser.branch,
+        avatar: targetUser.avatar,
+        allowed_apps: targetUser.allowedApps,
+        status: targetUser.status || 'active',
+        last_login: targetUser.lastLogin || new Date().toISOString()
+      }).then(({ error }) => {
+        if (error) console.warn('[Supabase Sync User Error]:', error);
+      });
+    }
+
     return true;
   }
 
@@ -329,6 +462,14 @@ class AskrindoDB {
     let users = this.getUsers();
     users = users.filter(u => u.id !== id);
     localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
+
+    // Async sync to Supabase
+    if (this.supabase && this.cloudStatus === 'connected') {
+      this.supabase.from('users').delete().eq('id', id).then(({ error }) => {
+        if (error) console.warn('[Supabase Delete User Error]:', error);
+      });
+    }
+
     return true;
   }
 
@@ -338,6 +479,13 @@ class AskrindoDB {
     if (user) {
       user.allowedApps = allowedApps;
       localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
+
+      // Async sync to Supabase
+      if (this.supabase && this.cloudStatus === 'connected') {
+        this.supabase.from('users').update({ allowed_apps: allowedApps }).eq('id', userId).then(({ error }) => {
+          if (error) console.warn('[Supabase Update Permissions Error]:', error);
+        });
+      }
       return true;
     }
     return false;
@@ -386,6 +534,32 @@ class AskrindoDB {
       }
     }
     localStorage.setItem(DB_KEYS.SPPA, JSON.stringify(list));
+
+    // Async sync to Supabase
+    if (this.supabase && this.cloudStatus === 'connected') {
+      this.supabase.from('sppa_records').upsert({
+        id: sppaData.id,
+        date: sppaData.date,
+        insured_name: sppaData.insuredName,
+        insured_type: sppaData.insuredType,
+        nik_npwp: sppaData.nikNpwp,
+        phone: sppaData.phone,
+        email: sppaData.email,
+        address: sppaData.address,
+        product_type: sppaData.productType,
+        period_start: sppaData.periodStart,
+        period_end: sppaData.periodEnd,
+        risk_location: sppaData.riskLocation,
+        total_tsi: sppaData.totalTsi,
+        estimated_premium: sppaData.estimatedPremium,
+        status: sppaData.status,
+        registered_by: sppaData.registeredBy,
+        branch: sppaData.branch
+      }).then(({ error }) => {
+        if (error) console.warn('[Supabase Sync SPPA Error]:', error);
+      });
+    }
+
     return sppaData;
   }
 
@@ -411,9 +585,23 @@ class AskrindoDB {
       details: details
     };
     logs.unshift(newLog);
-    // Keep max 150 items
     if (logs.length > 150) logs.pop();
     localStorage.setItem(DB_KEYS.AUDIT, JSON.stringify(logs));
+
+    // Async sync to Supabase
+    if (this.supabase && this.cloudStatus === 'connected') {
+      this.supabase.from('audit_logs').insert({
+        id: newLog.id,
+        timestamp: newLog.timestamp,
+        user_name: newLog.user,
+        role: newLog.role,
+        sub_app: newLog.subApp,
+        action: newLog.action,
+        details: newLog.details
+      }).then(({ error }) => {
+        if (error) console.warn('[Supabase Log Activity Error]:', error);
+      });
+    }
   }
 
   // --- Settings ---
@@ -427,6 +615,18 @@ class AskrindoDB {
 
   updateSettings(settings) {
     localStorage.setItem(DB_KEYS.SETTINGS, JSON.stringify(settings));
+
+    if (this.supabase && this.cloudStatus === 'connected') {
+      this.supabase.from('system_settings').upsert({
+        id: 'config',
+        app_name: settings.appName,
+        company_name: settings.companyName,
+        notification_banner: settings.notificationBanner,
+        updated_at: new Date().toISOString()
+      }).then(({ error }) => {
+        if (error) console.warn('[Supabase Settings Error]:', error);
+      });
+    }
   }
 
   // Reset to Factory Default
@@ -441,3 +641,4 @@ class AskrindoDB {
 // Global Export
 window.askrindoDB = new AskrindoDB();
 window.SUB_APPS_CATALOG = SUB_APPS_CATALOG;
+window.SUPABASE_CONFIG = SUPABASE_CONFIG;
