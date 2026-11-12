@@ -103,7 +103,7 @@ class AskrindoApp {
               <!-- Sidebar Brand Header -->
               <div class="flex items-center justify-between px-2">
                 <a href="#/dashboard" class="flex items-center gap-3 group">
-                  <img src="assets/images/logo-icon.png" alt="A" class="w-9 h-9 object-contain rounded-xl shadow-sm" />
+                  <img src="assets/images/logo-icon.png" alt="A" class="w-9 h-9 object-contain" />
                   <div class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                     <h2 class="font-extrabold text-[#002B49] text-sm tracking-tight leading-tight flex items-center gap-1.5">
                       <span>ASKRINDO</span>
@@ -377,7 +377,7 @@ class AskrindoApp {
 
             <div class="space-y-6 relative z-10">
               <div class="flex items-center gap-3">
-                <img src="assets/images/logo-corporate.png" alt="Askrindo Corporate Logo" class="h-12 object-contain filter drop-shadow" />
+                <img src="assets/images/logo-corporate-white.png" alt="Askrindo Corporate Logo" class="h-11 object-contain" />
               </div>
 
               <div>
