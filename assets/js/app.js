@@ -438,10 +438,10 @@ class AskrindoApp {
         <div class="absolute -top-32 -left-32 w-96 h-96 bg-[#F37021]/20 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div class="max-w-4xl w-full grid grid-cols-1 md:grid-cols-12 bg-white rounded-3xl shadow-2xl overflow-hidden border border-white/20 relative z-10 animate-fadeIn">
-          <!-- Left Col: Askrindo SATU Brand & Sub-Apps Showcase (5 cols) -->
-          <div class="md:col-span-5 bg-gradient-to-b from-[#002B49] to-[#0A3D62] p-8 text-white flex flex-col justify-between relative overflow-hidden">
-            <div class="absolute right-0 top-0 w-64 h-64 bg-[#F37021]/10 rounded-full blur-2xl"></div>
+        <div class="max-w-4xl lg:max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 bg-white rounded-3xl shadow-2xl overflow-hidden border border-white/20 relative z-10 animate-fadeIn">
+          <!-- Left Col: Askrindo SATU Brand & Sub-Apps Showcase (50% Width) -->
+          <div class="bg-gradient-to-b from-[#002B49] to-[#0A3D62] p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden">
+            <div class="absolute right-0 top-0 w-64 h-64 bg-[#F37021]/10 rounded-full blur-2xl pointer-events-none"></div>
 
             <div class="space-y-6 relative z-10">
               <div class="flex items-center gap-3">
@@ -461,63 +461,64 @@ class AskrindoApp {
               </div>
 
               <!-- List of Sub-Apps Pill -->
-              <div class="space-y-2 pt-2">
-                <div class="flex items-center gap-2.5 p-2 rounded-xl bg-white/10 text-xs">
+              <div class="space-y-2 pt-1">
+                <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition text-xs">
                   <div class="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center shrink-0">
                     <i data-lucide="flame" class="w-4 h-4 text-white"></i>
                   </div>
-                  <div>
+                  <div class="min-w-0">
                     <span class="font-bold text-amber-300">KABAR</span>
-                    <span class="text-[11px] text-slate-200 block">Kalkulator Asuransi Kebakaran OJK</span>
+                    <span class="text-[11px] text-slate-200 block truncate">Kalkulator Asuransi Kebakaran OJK</span>
                   </div>
                 </div>
 
-                <div class="flex items-center gap-2.5 p-2 rounded-xl bg-white/10 text-xs">
+                <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition text-xs">
                   <div class="w-7 h-7 rounded-lg bg-blue-500 flex items-center justify-center shrink-0">
                     <i data-lucide="help-circle" class="w-4 h-4 text-white"></i>
                   </div>
-                  <div>
+                  <div class="min-w-0">
                     <span class="font-bold text-cyan-300">TTK</span>
-                    <span class="text-[11px] text-slate-200 block">Tanya-Tanya KUR & Debitur UMKM</span>
+                    <span class="text-[11px] text-slate-200 block truncate">Tanya-Tanya KUR & Debitur UMKM</span>
                   </div>
                 </div>
 
-                <div class="flex items-center gap-2.5 p-2 rounded-xl bg-white/10 text-xs">
+                <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition text-xs">
                   <div class="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center shrink-0">
                     <i data-lucide="file-text" class="w-4 h-4 text-white"></i>
                   </div>
-                  <div>
+                  <div class="min-w-0">
                     <span class="font-bold text-emerald-300">BUS</span>
-                    <span class="text-[11px] text-slate-200 block">Buat SPPA Digital Terintegrasi</span>
+                    <span class="text-[11px] text-slate-200 block truncate">Buat SPPA Digital Terintegrasi</span>
                   </div>
                 </div>
 
-                <div class="flex items-center gap-2.5 p-2 rounded-xl bg-white/10 text-xs">
+                <div class="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/10 hover:bg-white/15 transition text-xs">
                   <div class="w-7 h-7 rounded-lg bg-purple-500 flex items-center justify-center shrink-0">
                     <i data-lucide="calculator" class="w-4 h-4 text-white"></i>
                   </div>
-                  <div>
+                  <div class="min-w-0">
                     <span class="font-bold text-purple-300">PELAKU</span>
-                    <span class="text-[11px] text-slate-200 block">Perhitungan Laporan Keuangan</span>
+                    <span class="text-[11px] text-slate-200 block truncate">Perhitungan Laporan Keuangan</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div class="pt-6 border-t border-white/10 text-[10px] text-slate-400">
-              PT Asuransi Kredit Indonesia (Askrindo)
+            <div class="pt-6 border-t border-white/10 text-[11px] text-slate-400 flex items-center justify-between">
+              <span>PT Asuransi Kredit Indonesia</span>
+              <span class="text-[10px] text-slate-400 font-mono">v2.4 Enterprise</span>
             </div>
           </div>
 
-          <!-- Right Col: Login Form & Quick Demo Pickers (7 cols) -->
-          <div class="md:col-span-7 p-8 sm:p-10 flex flex-col justify-between space-y-6">
-            <div>
-              <div class="flex items-center justify-between mb-4">
-                <img src="assets/images/logo-satu.png" alt="SATU" class="h-10 object-contain" />
-                <span class="text-[11px] font-semibold text-slate-400">Single Sign-On (SSO)</span>
-              </div>
+          <!-- Right Col: Login Form (50% Width, Proportional & Centered) -->
+          <div class="p-8 sm:p-10 flex flex-col justify-between bg-white">
+            <div class="flex items-center justify-between">
+              <img src="assets/images/logo-satu.png" alt="SATU" class="h-10 object-contain" />
+              <span class="text-[11px] font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">Single Sign-On (SSO)</span>
+            </div>
 
-              <h3 class="text-xl font-black text-slate-800">Masuk ke Askrindo SATU</h3>
+            <div class="my-auto py-4">
+              <h3 class="text-2xl font-black text-slate-800">Masuk ke Askrindo SATU</h3>
               <p class="text-xs text-slate-500 mt-1">Gunakan Nomor Induk Pegawai (NIP) atau alamat email resmi Askrindo.</p>
 
               <!-- Form -->
@@ -525,14 +526,14 @@ class AskrindoApp {
                 <div>
                   <label class="block font-semibold text-slate-700 mb-1">NIP atau Email Askrindo</label>
                   <div class="relative">
-                    <i data-lucide="user" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
+                    <i data-lucide="user" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5"></i>
                     <input 
                       type="text" 
                       id="login-nip" 
                       required 
                       value="admin.satu@askrindo.co.id"
                       placeholder="Contoh: 19850101 atau nama@askrindo.co.id" 
-                      class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#F37021] bg-slate-50 focus:bg-white text-xs transition"
+                      class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#F37021] bg-slate-50 focus:bg-white text-xs transition"
                     />
                   </div>
                 </div>
@@ -543,14 +544,14 @@ class AskrindoApp {
                     <a href="javascript:void(0)" onclick="alert('Untuk demonstrasi, kata sandi bawaan adalah: password123')" class="text-[11px] text-[#F37021] hover:underline font-medium">Lupa Kata Sandi?</a>
                   </div>
                   <div class="relative">
-                    <i data-lucide="lock" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
+                    <i data-lucide="lock" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5"></i>
                     <input 
                       type="password" 
                       id="login-password" 
                       required 
                       value="password123"
                       placeholder="••••••••" 
-                      class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-[#F37021] bg-slate-50 focus:bg-white text-xs transition"
+                      class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#F37021] bg-slate-50 focus:bg-white text-xs transition"
                     />
                   </div>
                 </div>
@@ -562,11 +563,20 @@ class AskrindoApp {
                   </label>
                 </div>
 
-                <button type="submit" class="w-full py-3 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-[#F37021] to-[#FF8C38] hover:from-[#D95D12] hover:to-[#F37021] shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2">
+                <button type="submit" class="w-full py-3.5 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-[#F37021] to-[#FF8C38] hover:from-[#D95D12] hover:to-[#F37021] shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer">
                   <span>Masuk ke Portal Terpadu</span>
                   <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </button>
               </form>
+            </div>
+
+            <!-- Footer on Right Col (Matches Baseline of Left Col) -->
+            <div class="pt-6 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+              <div class="flex items-center gap-1.5 text-slate-500">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-600"></i>
+                <span>Koneksi Aman TLS 1.3</span>
+              </div>
+              <span>Helpdesk TI Ext. 1404</span>
             </div>
           </div>
         </div>
