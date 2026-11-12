@@ -280,8 +280,8 @@ window.AdminModule = {
     const appsList = [
       { id: 'kabar', name: 'KABAR', label: 'Kalkulator Asuransi Kebakaran', color: 'text-orange-600' },
       { id: 'ttk', name: 'TTK', label: 'Tanya-Tanya KUR', color: 'text-blue-600' },
-      { id: 'bus', name: 'BUSET', label: 'Buat SPPA Elektronik', color: 'text-emerald-600' },
-      { id: 'cepat', name: 'CEPAT', label: 'Cover Note Asuransi', color: 'text-cyan-600' },
+      { id: 'bus', name: 'BUSET', label: 'Buat SPPA Elektronik Terpadu', color: 'text-emerald-600' },
+      { id: 'cepat', name: 'CEPAT', label: 'Cover Note Pertanggungan Asuransi Terintegrasi', color: 'text-cyan-600' },
       { id: 'pelaku', name: 'PELAKU', label: 'Laporan Keuangan', color: 'text-purple-600' },
       { id: 'admin', name: 'ADMIN', label: 'Web Admin Portal', color: 'text-amber-600' }
     ];

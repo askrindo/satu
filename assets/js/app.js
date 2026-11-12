@@ -179,7 +179,7 @@ class AskrindoApp {
                       <i data-lucide="file-check-2" class="w-4 h-4 text-cyan-500"></i>
                       <div class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">CEPAT</span>
-                        <span class="text-[10px] block font-normal text-slate-400">Cover Note Asuransi</span>
+                        <span class="text-[10px] block font-normal text-slate-400">Cover Note Pertanggungan Asuransi</span>
                       </div>
                     </div>
                     ${!window.authService.hasAccess('cepat') ? `<i data-lucide="lock" class="w-3 h-3 text-slate-300"></i>` : ''}
@@ -495,7 +495,7 @@ class AskrindoApp {
                   </div>
                   <div class="min-w-0">
                     <span class="font-bold text-cyan-300">CEPAT</span>
-                    <span class="text-[11px] text-slate-200 block truncate">Cover Note Asuransi Terintegrasi</span>
+                    <span class="text-[11px] text-slate-200 block truncate">Cover Note Pertanggungan Asuransi Terintegrasi</span>
                   </div>
                 </div>
 
