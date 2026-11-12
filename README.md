@@ -49,17 +49,24 @@ Aplikasi ini mengadopsi arsitektur modular di mana seluruh sub-aplikasi berada d
 
 7. **📊 PELAKU (Perhitungan Laporan Keuangan) (`#/pelaku`)**:
    - Modul analisis rasio keuangan calon debitur atau rekanan penjaminan.
-   - **🤖 Fitur Unggulan AI OCR Vision Laporan Keuangan (Diadopsi dari ASCA)**:
-     - Pemindaian berkas Laporan Keuangan Neraca & Laba Rugi otomatis berbasis **Google Gemini Multimodal Vision API** (`gemini-2.5-flash` / `gemini-3.5-flash`).
+   - **🏛️ Model Finansial 27 Pos Neraca & Laba Rugi Komparatif 2 Tahun Buku (Standar Penuh ASCA)**:
+     - Mengadopsi struktur akuntansi komprehensif 27 pos finansial persis seperti aplikasi ASCA:
+       - **I. Aktiva**: Kas & Bank (`a`), Uang Jaminan/Lancar Lain (`a2`), Piutang Usaha (`b`), Persediaan (`c`), Piutang Lain (`d`), Biaya Dibayar Dimuka (`e`), Total Aktiva Lancar (`f`), Aktiva Tetap (`h`), Akumulasi Penyusutan (`i`), Investasi Saham (`g`), Aset Pajak Tangguhan/Lainnya (`j`), Total Aktiva Tetap & Lainnya (`k`), serta Total Aktiva (`l`).
+       - **II. Passiva**: Hutang Usaha (`m1`), Hutang Bank Jk. Pendek (`m2`), Hutang Lainnya (`m3`), Biaya YMH Dibayar (`m4`), Total Hutang Lancar (`m`), Hutang Jk. Panjang (`n`), Total Hutang (`o`), Modal Disetor (`p`), Setoran Modal Lain (`q`), Laba Ditahan Lalu (`q1`), Laba Tahun Berjalan (`q2`), Modal Sendiri / Ekuitas (`r`), serta Total Passiva (`s`).
+       - **III. Laba Rugi**: Pendapatan Netto (`t`), Pendapatan/Bulan (`t/bln`), HPP (`u`), Laba Kotor (`w`), Beban Usaha (`v`), Laba Bruto Operasi (`v2`), Pendapatan Lain (`x`), Beban Lain (`x2`), EBIT (`y1`), EBIT/Bulan (`Y2`), Bunga (`y3`), EBT (`y`), Pajak (`z1`), Deviden (`z2`), EAT / Laba Bersih (`z`), serta EAT/Bulan (`z/bln`).
+     - Kolom analisis komparatif 2 tahun buku lengkap dengan persentase *common-size* (%) dan pertumbuhan *Growth* (%).
+     - Indikator keseimbangan neraca *real-time* (*Balance Bar*) dengan tombol cerdas *"Seimbangkan Neraca Otomatis"*.
+   - **🤖 Fitur AI OCR Vision Laporan Keuangan (Google Gemini Multimodal Vision API)**:
+     - Pemindaian berkas Laporan Keuangan Neraca & Laba Rugi otomatis berbasis model Gemini Multimodal (`gemini-2.5-flash` / `gemini-3.5-flash`).
      - Mendukung *multi-file upload* (PDF, JPG, PNG, WEBP) hingga 25 MB per berkas dengan *drag & drop*.
      - Rekonsiliasi data akuntansi standar Indonesia: deteksi otomatis format desimal/ribuan, konversi skala (Rupiah penuh, ribuan, jutaan), serta otomatisasi penggabungan akun fisik **Kas & Bank** menjadi satu pos kas dengan *breakdown tooltip*.
      - **Tabel Verifikasi & Review Interaktif**: 27 akun keuangan, pengecekan *balance* Aset vs Liabilitas + Ekuitas secara *real-time*, tombol cerdas *"Seimbangkan Neraca Otomatis"*, serta deteksi opini audit KAP (WTP, WDP, Tidak Wajar, Tidak Memberikan Pendapat / In-House).
-     - Tombol saklar periode komparasi 2 tahun buku (*Tahun Terakhir* vs *Tahun Sebelumnya*) langsung ke formulir evaluasi underwriting.
-   - Input komponen Neraca (Aset Lancar, Kas, Piutang, Persediaan, Aset Tetap, Kewajiban Lancar, Hutang Bank, Ekuitas) dan Laba Rugi (Omset, HPP, Laba Bersih).
+     - Tombol 1-klik langsung mengisi seluruh 27 pos keuangan untuk kedua tahun buku sekaligus.
    - Perhitungan rasio otomatis:
-     - **Likuiditas**: Current Ratio, Quick Ratio.
+     - **Likuiditas**: Current Ratio, Quick Ratio, Cash Ratio.
      - **Solvabilitas**: Debt to Equity Ratio (DER), Debt to Asset Ratio (DAR).
-     - **Profitabilitas**: Net Profit Margin (NPM), Return on Assets (ROA), Return on Equity (ROE).
+     - **Profitabilitas**: Gross Margin, Operating Margin, Net Profit Margin (NPM), Return on Assets (ROA), Return on Equity (ROE).
+     - **Pertumbuhan**: Pertumbuhan Omset (Sales Growth YoY) & Pertumbuhan Laba Bersih (Net Profit Growth YoY).
    - *Automated Scoring & Underwriting Assessment* (Grade A Sehat, Grade B Standar, Grade C Bersyarat, Grade D Berisiko Tinggi) dilengkapi narasi rekomendasi komite penjaminan.
    - Ekspor lembar evaluasi rasio keuangan ke format cetak PDF resmi berstandar Askrindo.
 
