@@ -30,8 +30,8 @@ const INITIAL_USERS = [
     email: 'admin.satu@askrindo.co.id',
     password: 'password123',
     role: 'Super Administrator',
-    division: 'Divisi Teknologi Informasi & Digitalisasi',
-    branch: 'Kantor Pusat - Jakarta',
+    division: 'Divisi Teknologi Informasi (Technology Information Division)',
+    branch: 'Divisi Teknologi Informasi (Technology Information Division)',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
     allowedApps: ['kabar', 'ttk', 'bus', 'pelaku', 'cepat', 'admin'],
     status: 'active',
@@ -45,8 +45,8 @@ const INITIAL_USERS = [
     email: 'budi.santoso@askrindo.co.id',
     password: 'password123',
     role: 'Underwriter',
-    division: 'Divisi Underwriting & Penjaminan Non-Bank',
-    branch: 'Kantor Cabang Utama Jakarta Gambir',
+    division: 'Main Branch Office (Kantor Cabang Utama)',
+    branch: 'Main Branch Office (Kantor Cabang Utama)',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80',
     allowedApps: ['kabar', 'bus', 'pelaku', 'cepat'],
     status: 'active',
@@ -60,8 +60,8 @@ const INITIAL_USERS = [
     email: 'siti.rahma@askrindo.co.id',
     password: 'password123',
     role: 'Relationship Manager',
-    division: 'Divisi Penjaminan Perbankan & Program KUR',
-    branch: 'Kantor Cabang Surabaya',
+    division: 'Branch Office Surabaya',
+    branch: 'Branch Office Surabaya',
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=256&q=80',
     allowedApps: ['ttk', 'pelaku'],
     status: 'active',
@@ -75,8 +75,8 @@ const INITIAL_USERS = [
     email: 'dian.permana@askrindo.co.id',
     password: 'password123',
     role: 'Business Head',
-    division: 'Divisi Pemasaran Korporasi & Broker',
-    branch: 'Kantor Cabang Medan',
+    division: 'Branch Office Medan',
+    branch: 'Branch Office Medan',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&q=80',
     allowedApps: ['kabar', 'bus', 'cepat'],
     status: 'active',
@@ -90,8 +90,8 @@ const INITIAL_USERS = [
     email: 'rizky.pratama@askrindo.co.id',
     password: 'password123',
     role: 'Branch Support',
-    division: 'Divisi Pelayanan & Operasional Cabang',
-    branch: 'Kantor Cabang Bandung',
+    division: 'Branch Office Bandung',
+    branch: 'Branch Office Bandung',
     avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=256&q=80',
     allowedApps: ['kabar'],
     status: 'active',
@@ -398,6 +398,9 @@ class AskrindoDB {
           if (u.role) {
             u.role = this.normalizeLegacyRole(u.role);
           }
+          const normalizedUnit = this.normalizeLegacyUnitKerja(u.division, u.branch);
+          u.division = normalizedUnit;
+          u.branch = normalizedUnit;
         });
         localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
 
@@ -412,6 +415,12 @@ class AskrindoDB {
           const normalizedSessRole = this.normalizeLegacyRole(sess.role);
           if (normalizedSessRole !== sess.role) {
             sess.role = normalizedSessRole;
+            sessUpdated = true;
+          }
+          const normalizedSessUnit = this.normalizeLegacyUnitKerja(sess.division, sess.branch);
+          if (normalizedSessUnit !== sess.branch || normalizedSessUnit !== sess.division) {
+            sess.division = normalizedSessUnit;
+            sess.branch = normalizedSessUnit;
             sessUpdated = true;
           }
           if (sessUpdated) this.setSession(sess);
@@ -496,8 +505,8 @@ class AskrindoDB {
           email: u.email,
           password: u.password,
           role: this.normalizeLegacyRole(u.role),
-          division: u.division,
-          branch: u.branch,
+          division: this.normalizeLegacyUnitKerja(u.division, u.branch),
+          branch: this.normalizeLegacyUnitKerja(u.division, u.branch),
           avatar: u.avatar,
           allowedApps: u.allowed_apps || ['kabar'],
           status: u.status,
@@ -579,6 +588,140 @@ class AskrindoDB {
     }
   }
 
+  getStandardUnitKerja() {
+    return [
+      'Divisi Transformasi Perusahaan (Corporate Transformation Division)',
+      'Divisi Audit Internal (Internal Audit Division)',
+      'Divisi Sekretaris Perusahaan (Corporate Secretary Division)',
+      'Divisi Bisnis Program (Program Business Division)',
+      'Divisi Bisnis Bank & IKNB (Bank & NBFI Business Division)',
+      'Divisi Bisnis BUMN (SOE Business Division)',
+      'Divisi Bisnis Komersil & Ritel (Commercial & Retail Bisnis Division)',
+      'Divisi Pengelolaan Jaringan (Network Management Division)',
+      'Divisi Underwriting dan Reasuransi (Underwriting & Reinsurance Division)',
+      'Divisi Klaim (Claims Division)',
+      'Divisi Aktuaria & Manajemen Portofolio (Actuarial & Portfolio Management Division)',
+      'Divisi Riset & Pengembangan Produk (Research & Product Development Division)',
+      'Divisi Teknologi Informasi (Technology Information Division)',
+      'Divisi Akuntansi (Accounting Division)',
+      'Divisi Keuangan & Investasi (Finance & Investment Division)',
+      'Divisi Subrogasi (Subrogation Division)',
+      'Divisi Strategi & Pengelolaan Anak Perusahaan (Corporate Strategy & Subsidiaries Division)',
+      'Divisi Operasional & Layanan Pelanggan (Operational & Customer Care Division)',
+      'Divisi Kepatuhan (Compliance Division)',
+      'Divisi Sumber Daya Manusia (Human Resource Division)',
+      'Divisi Manajemen Risiko (Risk Management Division)',
+      'Divisi Hukum (Legal Division)',
+      'Divisi Pengadaan & Layanan Umum (Procurement & General Service Division)',
+      'Regional Office I',
+      'Regional Office II',
+      'Regional Office III',
+      'Regional Office IV',
+      'Regional Office V',
+      'Regional Office VI',
+      'Regional Office VII',
+      'Main Branch Office (Kantor Cabang Utama)',
+      'Branch Office Jakarta Cikini',
+      'Branch Office Surabaya',
+      'Branch Office Semarang',
+      'Branch Office Bandung',
+      'Branch Office Medan',
+      'Branch Office Makassar',
+      'Branch Office Denpasar',
+      'Branch Office Palembang',
+      'Branch Office Lampung',
+      'Branch Office Pontianak',
+      'Branch Office Banjarmasin',
+      'Branch Office Pekanbaru',
+      'Branch Office Padang',
+      'Branch Office Jambi',
+      'Branch Office Bengkulu',
+      'Branch Office Palangkaraya',
+      'Branch Office Balikpapan',
+      'Branch Office Samarinda',
+      'Branch Office Manado',
+      'Branch Office Palu',
+      'Branch Office Serang',
+      'Branch Office Tegal',
+      'Branch Office Cirebon',
+      'Branch Office Tasikmalaya',
+      'Branch Office Yogyakarta',
+      'Branch Office Surakarta',
+      'Branch Office Jember',
+      'Branch Office Madiun',
+      'Branch Office Kediri',
+      'Branch Office Jayapura',
+      'Branch Office Jakarta Utara',
+      'Branch Office Jakarta Barat',
+      'Branch Office Jakarta Timur',
+      'Branch Office Jakarta Selatan',
+      'Branch Office Bekasi',
+      'Branch Office Tangerang',
+      'Branch Office Bogor',
+      'Branch Office Karawang',
+      'Branch Office Sukabumi',
+      'Branch Office Pangkal Pinang',
+      'Branch Office Batam',
+      'Branch Office Kisaran',
+      'Branch Office Padang Sidempuan',
+      'Branch Office Purwokerto',
+      'Branch Office Magelang',
+      'Branch Office Pati',
+      'Branch Office Malang',
+      'Branch Office Madura',
+      'Branch Office Pangkalan Bun',
+      'Branch Office Tarakan',
+      'Branch Office Ternate',
+      'Branch Office Kendari',
+      'Branch Office Gorontalo',
+      'Branch Office Mataram',
+      'Branch Office Ambon',
+      'Branch Office Mamuju',
+      'Branch Office Kupang',
+      'Branch Office Sorong'
+    ];
+  }
+
+  normalizeLegacyUnitKerja(division, branch) {
+    const units = this.getStandardUnitKerja();
+    const cleanBranch = (branch || '').trim();
+    const cleanDivision = (division || '').trim();
+
+    if (cleanBranch && units.includes(cleanBranch)) return cleanBranch;
+
+    const legacyBranchMap = {
+      'Kantor Cabang Utama Jakarta Gambir': 'Main Branch Office (Kantor Cabang Utama)',
+      'Kantor Cabang Khusus Jakarta': 'Main Branch Office (Kantor Cabang Utama)',
+      'KCU Jakarta Gambir': 'Main Branch Office (Kantor Cabang Utama)'
+    };
+    if (legacyBranchMap[cleanBranch]) return legacyBranchMap[cleanBranch];
+
+    if (cleanBranch.startsWith('Kantor Cabang ')) {
+      const city = cleanBranch.slice('Kantor Cabang '.length).trim();
+      const candidate = `Branch Office ${city}`;
+      if (units.includes(candidate)) return candidate;
+    }
+
+    if (cleanDivision && units.includes(cleanDivision)) return cleanDivision;
+
+    const legacyDivisionMap = {
+      'Divisi Teknologi Informasi & Digitalisasi': 'Divisi Teknologi Informasi (Technology Information Division)',
+      'Divisi Underwriting & Penjaminan Non-Bank': 'Divisi Underwriting dan Reasuransi (Underwriting & Reinsurance Division)',
+      'Divisi Penjaminan Perbankan & Program KUR': 'Divisi Bisnis Program (Program Business Division)',
+      'Divisi Pemasaran Korporasi & Broker': 'Divisi Bisnis Komersil & Ritel (Commercial & Retail Bisnis Division)',
+      'Divisi Pelayanan & Operasional Cabang': 'Divisi Operasional & Layanan Pelanggan (Operational & Customer Care Division)',
+      'Divisi Manajemen Risiko & Kepatuhan': 'Divisi Manajemen Risiko (Risk Management Division)'
+    };
+    if (legacyDivisionMap[cleanDivision]) return legacyDivisionMap[cleanDivision];
+
+    return cleanBranch || cleanDivision || units[0];
+  }
+
+  getUserUnitKerja(user) {
+    if (!user) return '';
+    return this.normalizeLegacyUnitKerja(user.division, user.branch);
+  }
+
   getUser(id) {
     const users = this.getUsers();
     return users.find(u => u.id === id);
@@ -594,12 +737,22 @@ class AskrindoDB {
   saveUser(userData) {
     const users = this.getUsers();
     let targetUser = null;
+    const normalizedUnit = userData.unitKerja
+      ? userData.unitKerja.trim()
+      : (userData.branch || userData.division
+        ? this.normalizeLegacyUnitKerja(userData.division, userData.branch)
+        : undefined);
+    const normalizedPayload = {
+      ...userData,
+      ...(normalizedUnit ? { division: normalizedUnit, branch: normalizedUnit } : {})
+    };
+    delete normalizedPayload.unitKerja;
 
-    if (userData.id) {
+    if (normalizedPayload.id) {
       // Update
-      const index = users.findIndex(u => u.id === userData.id);
+      const index = users.findIndex(u => u.id === normalizedPayload.id);
       if (index !== -1) {
-        users[index] = { ...users[index], ...userData };
+        users[index] = { ...users[index], ...normalizedPayload };
         targetUser = users[index];
       }
     } else {
@@ -610,7 +763,7 @@ class AskrindoDB {
         createdAt: new Date().toISOString(),
         status: 'active',
         avatar: `https://images.unsplash.com/photo-${1534528741775 + users.length * 1000}?auto=format&fit=crop&w=256&q=80`,
-        ...userData
+        ...normalizedPayload
       };
       users.push(targetUser);
     }

@@ -178,7 +178,7 @@ window.DashboardModule = {
                 </div>
                 <div class="flex items-center gap-1.5">
                   <i data-lucide="building" class="w-4 h-4 text-cyan-300"></i>
-                  <span>${user.branch}</span>
+                  <span>${window.askrindoDB.getUserUnitKerja(user)}</span>
                 </div>
                 <div class="flex items-center gap-1.5">
                   <i data-lucide="shield" class="w-4 h-4 text-amber-400"></i>

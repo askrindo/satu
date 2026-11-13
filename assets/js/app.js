@@ -259,12 +259,12 @@ class AskrindoApp {
                 <kbd class="px-1.5 py-0.5 rounded bg-white border border-slate-300 font-mono text-[10px] text-slate-600">Ctrl K</kbd>
               </button>
 
-              <!-- Right: Alerts, Branch, User Profile -->
+              <!-- Right: Alerts, Unit Kerja, User Profile -->
               <div class="flex items-center gap-2 sm:gap-3">
-                <!-- Branch Pill -->
-                <div class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-[11px] font-semibold text-slate-700">
-                  <i data-lucide="map-pin" class="w-3.5 h-3.5 text-orange-500"></i>
-                  <span>${user.branch}</span>
+                <!-- Unit Kerja Pill -->
+                <div class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-[11px] font-semibold text-slate-700 max-w-[260px]" title="${window.askrindoDB.getUserUnitKerja(user)}">
+                  <i data-lucide="map-pin" class="w-3.5 h-3.5 text-orange-500 shrink-0"></i>
+                  <span class="truncate">${window.askrindoDB.getUserUnitKerja(user)}</span>
                 </div>
 
                 <!-- Notifications Button -->
@@ -298,12 +298,12 @@ class AskrindoApp {
                     <div class="px-4 py-3 border-b border-slate-100 bg-gradient-to-br from-slate-50 to-orange-50/30 rounded-t-xl">
                       <div class="flex items-start gap-3">
                         <img src="${user.avatar}" class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm shrink-0" />
-                        <div class="min-w-0">
+                        <div class="min-w-0 flex-1">
                           <p class="text-xs font-bold text-slate-900 truncate" title="${user.name}">${user.name}</p>
                           <p class="text-[11px] text-slate-600 truncate mt-0.5">${user.role}</p>
-                          <div class="flex items-center gap-1.5 mt-1">
-                            <span class="inline-block px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 font-mono text-[9px] font-bold">NIP ${user.nip}</span>
-                            <span class="text-[9px] text-slate-400 truncate">${user.branch ? user.branch.split(' - ')[0] : ''}</span>
+                          <div class="flex items-center gap-1.5 mt-1 min-w-0">
+                            <span class="inline-block px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 font-mono text-[9px] font-bold shrink-0">NIP ${user.nip}</span>
+                            <span class="text-[9px] text-slate-400 truncate" title="${window.askrindoDB.getUserUnitKerja(user)}">${window.askrindoDB.getUserUnitKerja(user)}</span>
                           </div>
                         </div>
                       </div>

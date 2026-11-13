@@ -40,11 +40,13 @@ window.AdminModule = {
 
     // Filtered users for tab 1
     const filteredUsers = users.filter(u => {
-      const matchSearch = !this.searchQuery || 
-        u.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        u.nip.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        u.email.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        u.branch.toLowerCase().includes(this.searchQuery.toLowerCase());
+      const q = this.searchQuery.toLowerCase();
+      const unitKerja = window.askrindoDB.getUserUnitKerja(u).toLowerCase();
+      const matchSearch = !q ||
+        u.name.toLowerCase().includes(q) ||
+        u.nip.toLowerCase().includes(q) ||
+        u.email.toLowerCase().includes(q) ||
+        unitKerja.includes(q);
       const matchRole = this.roleFilter === 'all' || u.role === this.roleFilter;
       return matchSearch && matchRole;
     });
@@ -182,7 +184,7 @@ window.AdminModule = {
             <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
             <input 
               type="text" 
-              placeholder="Cari nama, NIP, email, cabang..." 
+              placeholder="Cari nama, NIP, email, unit kerja..." 
               value="${this.searchQuery}"
               oninput="window.AdminModule.handleSearch(this.value)"
               class="w-full pl-10 pr-4 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500 bg-slate-50 focus:bg-white transition-colors"
@@ -207,8 +209,8 @@ window.AdminModule = {
             <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider border-b border-slate-200">
               <tr>
                 <th class="py-3 px-4">Pengguna</th>
-                <th class="py-3 px-4">NIP & Divisi</th>
-                <th class="py-3 px-4">Cabang</th>
+                <th class="py-3 px-4">NIP</th>
+                <th class="py-3 px-4">Unit Kerja</th>
                 <th class="py-3 px-4">Role</th>
                 <th class="py-3 px-4">Akses Aplikasi</th>
                 <th class="py-3 px-4 text-center">Status</th>
@@ -236,10 +238,9 @@ window.AdminModule = {
                   </td>
                   <td class="py-3 px-4">
                     <span class="font-mono font-medium text-slate-700">${user.nip}</span>
-                    <p class="text-[11px] text-slate-500 line-clamp-1">${user.division}</p>
                   </td>
-                  <td class="py-3 px-4 text-slate-700 font-medium">
-                    ${user.branch}
+                  <td class="py-3 px-4 text-slate-700 font-medium max-w-[240px]">
+                    <span class="line-clamp-2" title="${window.askrindoDB.getUserUnitKerja(user)}">${window.askrindoDB.getUserUnitKerja(user)}</span>
                   </td>
                   <td class="py-3 px-4">
                     <span class="px-2.5 py-1 rounded-md text-[11px] font-semibold ${user.role.includes('Admin') ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-700'}">
@@ -322,7 +323,7 @@ window.AdminModule = {
             <thead class="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
               <tr>
                 <th class="py-3.5 px-4 w-72">Pegawai / NIP</th>
-                <th class="py-3.5 px-4">Jabatan & Cabang</th>
+                <th class="py-3.5 px-4">Jabatan & Unit Kerja</th>
                 ${appsList.map(app => `
                   <th class="py-3.5 px-4 text-center">
                     <div class="font-extrabold ${app.color}">${app.name}</div>
@@ -345,7 +346,7 @@ window.AdminModule = {
                   </td>
                   <td class="py-3 px-4">
                     <span class="font-semibold text-slate-700">${user.role}</span>
-                    <p class="text-[11px] text-slate-500">${user.branch}</p>
+                    <p class="text-[11px] text-slate-500">${window.askrindoDB.getUserUnitKerja(user)}</p>
                   </td>
                   ${appsList.map(app => {
                     const isChecked = user.allowedApps && user.allowedApps.includes(app.id);
@@ -609,33 +610,11 @@ window.AdminModule = {
               </div>
             ` : ''}
 
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block font-semibold text-slate-700 mb-1">Divisi Kerja</label>
-                <select id="modal-division" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500 bg-white">
-                  <option value="Divisi Underwriting & Penjaminan Non-Bank" ${user && user.division.includes('Underwriting') ? 'selected' : ''}>Divisi Underwriting</option>
-                  <option value="Divisi Penjaminan Perbankan & Program KUR" ${user && user.division.includes('KUR') ? 'selected' : ''}>Divisi Penjaminan KUR</option>
-                  <option value="Divisi Pemasaran Korporasi & Broker" ${user && user.division.includes('Pemasaran') ? 'selected' : ''}>Divisi Pemasaran</option>
-                  <option value="Divisi Pelayanan & Operasional Cabang" ${user && user.division.includes('Operasional') ? 'selected' : ''}>Divisi Operasional</option>
-                  <option value="Divisi Teknologi Informasi & Digitalisasi" ${user && user.division.includes('Teknologi') ? 'selected' : ''}>Divisi TI & Digital</option>
-                  <option value="Divisi Manajemen Risiko & Kepatuhan" ${user && user.division.includes('Risiko') ? 'selected' : ''}>Divisi Manajemen Risiko</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block font-semibold text-slate-700 mb-1">Kantor Cabang</label>
-                <select id="modal-branch" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500 bg-white">
-                  <option value="Kantor Pusat - Jakarta" ${user && user.branch.includes('Pusat') ? 'selected' : ''}>Kantor Pusat</option>
-                  <option value="Kantor Cabang Utama Jakarta Gambir" ${user && user.branch.includes('Gambir') ? 'selected' : ''}>KCU Jakarta Gambir</option>
-                  <option value="Kantor Cabang Surabaya" ${user && user.branch.includes('Surabaya') ? 'selected' : ''}>KC Surabaya</option>
-                  <option value="Kantor Cabang Medan" ${user && user.branch.includes('Medan') ? 'selected' : ''}>KC Medan</option>
-                  <option value="Kantor Cabang Bandung" ${user && user.branch.includes('Bandung') ? 'selected' : ''}>KC Bandung</option>
-                  <option value="Kantor Cabang Semarang" ${user && user.branch.includes('Semarang') ? 'selected' : ''}>KC Semarang</option>
-                  <option value="Kantor Cabang Makassar" ${user && user.branch.includes('Makassar') ? 'selected' : ''}>KC Makassar</option>
-                  <option value="Kantor Cabang Balikpapan" ${user && user.branch.includes('Balikpapan') ? 'selected' : ''}>KC Balikpapan</option>
-                  <option value="Kantor Cabang Denpasar" ${user && user.branch.includes('Denpasar') ? 'selected' : ''}>KC Denpasar</option>
-                </select>
-              </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Unit Kerja</label>
+              <select id="modal-unit-kerja" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500 bg-white">
+                ${this.renderUnitKerjaOptions(user)}
+              </select>
             </div>
 
             <div>
@@ -698,13 +677,36 @@ window.AdminModule = {
     if (window.lucide) window.lucide.createIcons();
   },
 
+  renderUnitKerjaOptions(user = null) {
+    const units = window.askrindoDB.getStandardUnitKerja();
+    const resolvedUnit = user ? window.askrindoDB.getUserUnitKerja(user) : units[0];
+    const esc = (str) => String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    const buildOption = (u) => `<option value="${esc(u)}" ${resolvedUnit === u ? 'selected' : ''}>${esc(u)}</option>`;
+
+    const groups = [
+      { label: 'Divisi (Kantor Pusat)', items: units.filter(u => u.startsWith('Divisi ')) },
+      { label: 'Regional Office', items: units.filter(u => u.startsWith('Regional Office ')) },
+      { label: 'Main Branch & Branch Office', items: units.filter(u => !u.startsWith('Divisi ') && !u.startsWith('Regional Office ')) }
+    ];
+
+    const extra = resolvedUnit && !units.includes(resolvedUnit) ? buildOption(resolvedUnit) : '';
+    return extra + groups.map(g => `
+      <optgroup label="${esc(g.label)}">
+        ${g.items.map(buildOption).join('')}
+      </optgroup>
+    `).join('');
+  },
+
   submitUserForm(e, existingId) {
     e.preventDefault();
     const nip = document.getElementById('modal-nip').value.trim();
     const name = document.getElementById('modal-name').value.trim();
     const email = document.getElementById('modal-email').value.trim();
-    const division = document.getElementById('modal-division').value;
-    const branch = document.getElementById('modal-branch').value;
+    const unitKerja = document.getElementById('modal-unit-kerja').value;
     const role = document.getElementById('modal-role').value;
 
     const allowedApps = [];
@@ -719,8 +721,9 @@ window.AdminModule = {
       nip,
       name,
       email,
-      division,
-      branch,
+      unitKerja,
+      division: unitKerja,
+      branch: unitKerja,
       role,
       allowedApps
     };
