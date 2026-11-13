@@ -482,7 +482,7 @@ class AskrindoApp {
 
                 <div class="grid grid-cols-2 gap-2 text-xs">
                   <!-- PELAKU (AKTIF PENUH) -->
-                  <div class="col-span-2 flex items-center gap-2 p-2.5 rounded-xl bg-gradient-to-r from-purple-500/25 to-indigo-500/25 hover:from-purple-500/35 hover:to-indigo-500/35 transition border border-purple-400/40 shadow-sm relative overflow-hidden" title="PELAKU: Perhitungan Laporan Keuangan (Aktif Siap Digunakan)">
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-gradient-to-r from-purple-500/25 to-indigo-500/25 hover:from-purple-500/35 hover:to-indigo-500/35 transition border border-purple-400/40 shadow-sm relative overflow-hidden" title="PELAKU: Perhitungan Laporan Keuangan (Aktif Siap Digunakan)">
                     <div class="w-7 h-7 rounded-lg bg-purple-500 flex items-center justify-center shrink-0 shadow-md">
                       <i data-lucide="calculator" class="w-4 h-4 text-white"></i>
                     </div>
