@@ -676,12 +676,12 @@ window.PelakuModule = {
                       <span>3. Matriks Kepatuhan Standar Risk Acceptance Criteria (RAC) Askrindo</span>
                     </h3>
                     <p class="text-[11px] text-slate-500">
-                      Evaluasi 6 Rasio Standar Akseptasi Penjaminan Proyek &amp; Kredit: Current Ratio, DER, ROA, ROE, NWC, dan NWC / Nilai Proyek.
+                      Evaluasi Rasio Utama Akseptasi Penjaminan Proyek &amp; Kredit: <strong>Current Ratio (CR &ge; 100,00%)</strong> sebagai indikator tunggal kelayakan likuiditas.
                     </p>
                   </div>
                   <div class="flex items-center gap-2">
                     <span id="badge_rac_pass_count" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                      6 RAC LULUS
+                      1 RAC LULUS
                     </span>
                     <span id="badge_rac_fail_count" class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
                       0 TIDAK LULUS
@@ -693,14 +693,14 @@ window.PelakuModule = {
                   <table class="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr class="bg-slate-100/90 text-slate-700 font-bold border-b border-slate-200">
-                        <th class="py-2.5 px-3 w-[4%] text-center">No</th>
-                        <th class="py-2.5 px-3 w-[16%]">Indikator Rasio</th>
-                        <th class="py-2.5 px-3 w-[17%]">Rumus Perhitungan</th>
-                        <th class="py-2.5 px-2 w-[11%] text-center">Standar <span class="underline decoration-dotted">RAC</span></th>
+                        <th class="py-2.5 px-3 w-[5%] text-center">No</th>
+                        <th class="py-2.5 px-3 w-[20%]">Indikator Rasio Utama</th>
+                        <th class="py-2.5 px-3 w-[18%]">Rumus Perhitungan</th>
+                        <th class="py-2.5 px-2 w-[12%] text-center">Standar <span class="underline decoration-dotted">RAC</span></th>
                         <th class="py-2.5 px-2 w-[11%] text-center">Tahun <span id="thRacYear1">${this.escapeHtml(ws.year1)}</span></th>
                         <th class="py-2.5 px-2 w-[13%] text-center text-emerald-900 bg-emerald-50/70">Tahun <span id="thRacYear2">${this.escapeHtml(ws.year2)}</span> (Eval)</th>
                         <th class="py-2.5 px-2 w-[10%] text-center">Status <span class="underline decoration-dotted">RAC</span></th>
-                        <th class="py-2.5 px-3 w-[18%]">Analisis &amp; Keterangan Komparasi</th>
+                        <th class="py-2.5 px-3 w-[21%]">Analisis &amp; Keterangan Komparasi</th>
                       </tr>
                     </thead>
                     <tbody id="racTableBody" class="divide-y divide-slate-100 font-sans">
@@ -1277,20 +1277,23 @@ window.PelakuModule = {
     if (racBody) {
       racBody.innerHTML = racList.map(r => `
         <tr class="hover:bg-slate-50/70 transition-colors">
-          <td class="py-2.5 px-3 text-center font-bold text-slate-500">${r.no}</td>
-          <td class="py-2.5 px-3 font-bold text-slate-800">
-            ${r.name}
+          <td class="py-3 px-3 text-center font-bold text-slate-500">${r.no}</td>
+          <td class="py-3 px-3 font-bold text-slate-800">
+            <div class="flex items-center gap-2">
+              <span>${r.name}</span>
+              ${r.badge ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 border border-purple-200">${r.badge}</span>` : ''}
+            </div>
           </td>
-          <td class="py-2.5 px-3 text-slate-600 font-mono text-[11px]">${r.formula}</td>
-          <td class="py-2.5 px-2 text-center font-bold text-slate-700 font-mono">${r.rac}</td>
-          <td class="py-2.5 px-2 text-center text-slate-500 font-mono">${r.v1}</td>
-          <td class="py-2.5 px-2 text-center font-bold font-mono text-xs ${r.pass ? 'text-emerald-700' : 'text-rose-700'}">${r.v2}</td>
-          <td class="py-2.5 px-2 text-center">
-            <span class="inline-block px-2.5 py-0.5 rounded-md font-bold text-[10px] ${r.pass ? 'bg-emerald-50 text-emerald-700 border border-emerald-300' : 'bg-rose-50 text-rose-700 border border-rose-300'}">
+          <td class="py-3 px-3 text-slate-600 font-mono text-[11px]">${r.formula}</td>
+          <td class="py-3 px-2 text-center font-bold text-slate-700 font-mono">${r.rac}</td>
+          <td class="py-3 px-2 text-center text-slate-500 font-mono">${r.v1}</td>
+          <td class="py-3 px-2 text-center font-bold font-mono text-xs ${r.pass ? 'text-emerald-700' : 'text-rose-700'}">${r.v2}</td>
+          <td class="py-3 px-2 text-center">
+            <span class="inline-block px-2.5 py-1 rounded-md font-bold text-[10px] ${r.pass ? 'bg-emerald-50 text-emerald-700 border border-emerald-300' : 'bg-rose-50 text-rose-700 border border-rose-300'}">
               ${r.pass ? 'LULUS' : 'TIDAK LULUS'}
             </span>
           </td>
-          <td class="py-2.5 px-3 text-[11px] leading-relaxed text-slate-700">
+          <td class="py-3 px-3 text-[11px] leading-relaxed text-slate-700">
             ${r.ket}
           </td>
         </tr>
@@ -1299,7 +1302,10 @@ window.PelakuModule = {
 
     const bPass = document.getElementById('badge_rac_pass_count');
     const bFail = document.getElementById('badge_rac_fail_count');
-    if (bPass) bPass.textContent = `${passRacCount} RAC LULUS`;
+    if (bPass) {
+      bPass.textContent = `${passRacCount} RAC LULUS`;
+      bPass.className = `px-2.5 py-1 rounded-full text-xs font-bold ${passRacCount > 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-slate-100 text-slate-600 border border-slate-200'}`;
+    }
     if (bFail) {
       bFail.textContent = `${failRacCount} TIDAK LULUS`;
       bFail.className = `px-2.5 py-1 rounded-full text-xs font-bold ${failRacCount === 0 ? 'bg-slate-100 text-slate-600 border border-slate-200' : 'bg-rose-100 text-rose-800 border border-rose-300'}`;
@@ -1347,42 +1353,18 @@ window.PelakuModule = {
   },
 
   computeRacMatrix(totals1, totals2, yr1, yr2, projectVal) {
-    // 1. Current Ratio
+    // Rasio Utama: Current Ratio (CR) - Standar Tunggal RAC Likuiditas Askrindo (>= 100,00%)
     const isNoDebt1 = !totals1.cl || totals1.cl === 0;
     const isNoDebt2 = !totals2.cl || totals2.cl === 0;
     const cr1 = isNoDebt1 ? null : (totals1.ca / totals1.cl) * 100;
     const cr2 = isNoDebt2 ? null : (totals2.ca / totals2.cl) * 100;
     const passCR = isNoDebt2 ? true : (cr2 >= 100);
 
-    // 2. DER (Total Liab / Total Ekuitas)
-    const der1 = totals1.eq > 0 ? (totals1.tl / totals1.eq) * 100 : 0;
-    const der2 = totals2.eq > 0 ? (totals2.tl / totals2.eq) * 100 : 0;
-    const passDER = der2 <= 400;
-
-    // 3. ROA (EAT / Total Aset)
-    const roa1 = totals1.ta > 0 ? (totals1.eat / totals1.ta) * 100 : 0;
-    const roa2 = totals2.ta > 0 ? (totals2.eat / totals2.ta) * 100 : 0;
-    const passROA = roa2 >= 1.0;
-
-    // 4. ROE (EAT / Total Ekuitas)
-    const roe1 = totals1.eq > 0 ? (totals1.eat / totals1.eq) * 100 : 0;
-    const roe2 = totals2.eq > 0 ? (totals2.eat / totals2.eq) * 100 : 0;
-    const passROE = roe2 >= 5.0;
-
-    // 5. NWC (Aset Lancar - Liab Lancar)
-    const nwc1 = totals1.ca - totals1.cl;
-    const nwc2 = totals2.ca - totals2.cl;
-    const passNWC = nwc2 > 0;
-
-    // 6. NWC / Nilai Proyek (NWC Riil / Nilai Proyek)
-    const nwcToProj1 = projectVal > 0 ? (nwc1 / projectVal) * 100 : 0;
-    const nwcToProj2 = projectVal > 0 ? (nwc2 / projectVal) * 100 : 0;
-    const passNWCProj = projectVal > 0 && nwcToProj2 >= 10.0;
-
     return [
       {
         no: 1,
         name: 'Current Ratio (CR)',
+        badge: 'Rasio Utama',
         formula: 'Aset Lancar / Liab. Lancar',
         rac: '&ge; 100,00%',
         v1: isNoDebt1 ? 'N/A (Bebas Utang)' : `${this.fmtNum(cr1, 2)}%`,
@@ -1393,68 +1375,6 @@ window.PelakuModule = {
           : (passCR
             ? `Current Ratio ${this.fmtNum(cr2, 2)}% memenuhi standar RAC (&ge; 100,00%). Debitur memiliki likuiditas lancar memadai untuk melunasi kewajiban jangka pendek.`
             : `Current Ratio ${this.fmtNum(cr2, 2)}% di bawah standar RAC (&ge; 100,00%). Likuiditas jangka pendek ketat dan berisiko saat penagihan piutang terlambat.`)
-      },
-      {
-        no: 2,
-        name: 'Debt to Equity Ratio (DER)',
-        formula: 'Total Liab. / Total Ekuitas',
-        rac: '&le; 400,00%',
-        v1: `${this.fmtNum(der1, 2)}%`,
-        v2: `${this.fmtNum(der2, 2)}%`,
-        pass: passDER,
-        ket: passDER
-          ? `DER ${this.fmtNum(der2, 2)}% memenuhi standar RAC (&le; 400,00%). Tingkat leverage permodalan debitur dalam toleransi risiko wajar.`
-          : `DER ${this.fmtNum(der2, 2)}% melampaui standar RAC (&le; 400,00%). Beban utang terlalu dominan terhadap modal sendiri.`
-      },
-      {
-        no: 3,
-        name: 'Return on Assets (ROA)',
-        formula: 'EAT / Total Aset',
-        rac: '&ge; 1,00%',
-        v1: `${this.fmtNum(roa1, 2)}%`,
-        v2: `${this.fmtNum(roa2, 2)}%`,
-        pass: passROA,
-        ket: passROA
-          ? `ROA ${this.fmtNum(roa2, 2)}% memenuhi standar RAC (&ge; 1,00%). Aset perusahaan bekerja produktif menghasilkan laba bersih.`
-          : `ROA ${this.fmtNum(roa2, 2)}% di bawah standar RAC (&ge; 1,00%). Efisiensi pemanfaatan aset masih perlu ditingkatkan.`
-      },
-      {
-        no: 4,
-        name: 'Return on Equity (ROE)',
-        formula: 'EAT / Total Ekuitas',
-        rac: '&ge; 5,00%',
-        v1: `${this.fmtNum(roe1, 2)}%`,
-        v2: `${this.fmtNum(roe2, 2)}%`,
-        pass: passROE,
-        ket: passROE
-          ? `ROE ${this.fmtNum(roe2, 2)}% memenuhi standar RAC (&ge; 5,00%). Imbal hasil modal memadai untuk pertumbuhan internal.`
-          : `ROE ${this.fmtNum(roe2, 2)}% di bawah standar RAC (&ge; 5,00%). Kemampuan mencetak keuntungan ekuitas belum optimal.`
-      },
-      {
-        no: 5,
-        name: 'Net Working Capital (NWC)',
-        formula: 'Aset Lancar &minus; Liab. Lancar',
-        rac: '> Rp 0',
-        v1: this.fmtRp(nwc1, true),
-        v2: this.fmtRp(nwc2, true),
-        pass: passNWC,
-        ket: passNWC
-          ? `NWC bernilai positif (${this.fmtRp(nwc2, true)}) memenuhi standar RAC (> Rp 0). Aset lancar surplus terhadap kewajiban jangka pendek.`
-          : `NWC bernilai negatif (${this.fmtRp(nwc2, true)}) tidak memenuhi standar RAC (> Rp 0). Terjadi defisit modal kerja riil.`
-      },
-      {
-        no: 6,
-        name: 'NWC / Nilai Proyek',
-        formula: 'NWC Riil / Nilai Proyek',
-        rac: '&ge; 10,00%',
-        v1: projectVal > 0 ? `${this.fmtNum(nwcToProj1, 2)}%` : 'N/A',
-        v2: projectVal > 0 ? `${this.fmtNum(nwcToProj2, 2)}%` : 'N/A',
-        pass: passNWCProj,
-        ket: projectVal > 0
-          ? (passNWCProj
-            ? `Rasio NWC/Nilai Proyek ${this.fmtNum(nwcToProj2, 2)}% memenuhi standar RAC (&ge; 10,00%). Debitur memiliki penyangga modal kerja bersih memadai.`
-            : `Rasio NWC/Nilai Proyek ${this.fmtNum(nwcToProj2, 2)}% di bawah standar RAC (&ge; 10,00%). Penyangga modal kerja terlalu tipis relatif terhadap nilai proyek.`)
-          : 'Nilai Proyek belum ditentukan. Silakan isi nilai proyek yang dijaminkan.'
       }
     ];
   },
@@ -3454,18 +3374,18 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
             </p>
           </div>
 
-          <!-- Matriks Kepatuhan Standar Risk Acceptance Criteria (RAC) Askrindo -->
+          <!-- Matriks Kepatuhan Standar Risk Acceptance Criteria (RAC) Askrindo - Rasio Utama -->
           <div>
             <div class="flex items-center justify-between mb-2">
-              <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Matriks Kepatuhan Standar Risk Acceptance Criteria (RAC) Askrindo</h4>
+              <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Kepatuhan Standar Risk Acceptance Criteria (RAC) &bull; Rasio Utama</h4>
               <span class="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded">
-                ${c.passRacCount} RAC LULUS &bull; Nilai Proyek: ${this.fmtRp(c.projectVal, false)}
+                ${c.passRacCount} RAC LULUS &bull; Indikator Utama: Current Ratio (&ge; 100%)
               </span>
             </div>
             <table class="w-full text-xs border border-slate-200">
               <tr class="bg-slate-100 font-bold">
                 <th class="p-2 text-center w-7">No</th>
-                <th class="p-2 text-left">Indikator Rasio</th>
+                <th class="p-2 text-left">Indikator Rasio Utama</th>
                 <th class="p-2 text-left">Rumus Perhitungan</th>
                 <th class="p-2 text-center">Standar RAC</th>
                 <th class="p-2 text-center">Tahun ${c.year1}</th>
