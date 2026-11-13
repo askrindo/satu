@@ -534,16 +534,21 @@ window.PelakuModule = {
             <!-- Kolom Kiri: Tabel 27 Pos Laporan Keuangan Lengkap ASCA (8 cols) -->
             <div class="lg:col-span-8 space-y-6">
               
-              <!-- Card 1: Identitas Calon Debitur / Rekanan Penjaminan -->
+              <!-- Card 1: Identitas Calon Debitur / Rekanan Penjaminan & Kepatuhan Standar RAC -->
               <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                 <div class="flex items-center justify-between flex-wrap gap-2">
                   <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                    <i data-lucide="building" class="w-4 h-4 text-purple-600"></i>
-                    <span>1. Profil Calon Debitur / Rekanan Penjaminan</span>
+                    <i data-lucide="shield-check" class="w-4 h-4 text-purple-600"></i>
+                    <span>1. Profil Calon Debitur / Rekanan &amp; Kepatuhan Standar RAC</span>
                   </h3>
-                  <span class="text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-100">
-                    Nama Perusahaan = ID Otomatis
-                  </span>
+                  <div class="flex items-center gap-2">
+                    <span id="badge_rac_pass_count" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      1 RAC LULUS
+                    </span>
+                    <span id="badge_rac_fail_count" class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                      0 TIDAK LULUS
+                    </span>
+                  </div>
                 </div>
 
                 <!-- Baris 1: Nama Perusahaan Rekanan (Full Width) -->
@@ -605,6 +610,38 @@ window.PelakuModule = {
                     <input type="text" id="inp_projectValue" value="${projFormatted}" oninput="window.PelakuModule.handleDotInput(this); window.PelakuModule.onMetaFieldChanged();" onblur="window.PelakuModule.handleDotBlur(this); window.PelakuModule.calculateRatios();" class="w-full px-3 py-2 rounded-xl border border-purple-200 font-bold font-mono focus:border-purple-500 focus:outline-none bg-white" placeholder="Contoh: 15.000.000.000" />
                   </div>
                 </div>
+
+                <!-- Baris 3: Matriks Kepatuhan Standar Risk Acceptance Criteria (RAC) Askrindo -->
+                <div class="pt-3 border-t border-slate-100">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600"></i>
+                      <span>Kepatuhan Standar Risk Acceptance Criteria (RAC) &bull; Rasio Utama</span>
+                    </span>
+                    <span class="text-[11px] text-slate-500">
+                      Standar RAC Likuiditas: <strong>Current Ratio (CR &ge; 100,00%)</strong>
+                    </span>
+                  </div>
+
+                  <div class="overflow-x-auto rounded-xl border border-slate-200">
+                    <table class="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr class="bg-slate-100/90 text-slate-700 font-bold border-b border-slate-200">
+                          <th class="py-2 px-3 w-[5%] text-center">No</th>
+                          <th class="py-2 px-3 w-[20%]">Indikator Rasio Utama</th>
+                          <th class="py-2 px-3 w-[18%]">Rumus Perhitungan</th>
+                          <th class="py-2 px-2 w-[12%] text-center">Standar <span class="underline decoration-dotted">RAC</span></th>
+                          <th class="py-2 px-2 w-[11%] text-center">Tahun <span id="thRacYear1">${this.escapeHtml(ws.year1)}</span></th>
+                          <th class="py-2 px-2 w-[13%] text-center text-emerald-900 bg-emerald-50/70">Tahun <span id="thRacYear2">${this.escapeHtml(ws.year2)}</span> (Eval)</th>
+                          <th class="py-2 px-2 w-[10%] text-center">Status <span class="underline decoration-dotted">RAC</span></th>
+                          <th class="py-2 px-3 w-[21%]">Analisis &amp; Keterangan Komparasi</th>
+                        </tr>
+                      </thead>
+                      <tbody id="racTableBody" class="divide-y divide-slate-100 font-sans bg-white">
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
 
               <!-- Card 2: Tabel Pos-Pos Laporan Keuangan Lengkap 27 Akun (Persis ASCA) -->
@@ -640,48 +677,6 @@ window.PelakuModule = {
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                       ${this.renderFinStatementTableRows()}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <!-- Card 3: Matriks Kepatuhan Standar Risk Acceptance Criteria (RAC) Askrindo -->
-              <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                      <i data-lucide="shield-check" class="w-4 h-4 text-purple-600"></i>
-                      <span>3. Matriks Kepatuhan Standar Risk Acceptance Criteria (RAC) Askrindo</span>
-                    </h3>
-                    <p class="text-[11px] text-slate-500">
-                      Evaluasi Rasio Utama Akseptasi Penjaminan Proyek &amp; Kredit: <strong>Current Ratio (CR &ge; 100,00%)</strong> sebagai indikator tunggal kelayakan likuiditas.
-                    </p>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <span id="badge_rac_pass_count" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                      1 RAC LULUS
-                    </span>
-                    <span id="badge_rac_fail_count" class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                      0 TIDAK LULUS
-                    </span>
-                  </div>
-                </div>
-
-                <div class="overflow-x-auto">
-                  <table class="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr class="bg-slate-100/90 text-slate-700 font-bold border-b border-slate-200">
-                        <th class="py-2.5 px-3 w-[5%] text-center">No</th>
-                        <th class="py-2.5 px-3 w-[20%]">Indikator Rasio Utama</th>
-                        <th class="py-2.5 px-3 w-[18%]">Rumus Perhitungan</th>
-                        <th class="py-2.5 px-2 w-[12%] text-center">Standar <span class="underline decoration-dotted">RAC</span></th>
-                        <th class="py-2.5 px-2 w-[11%] text-center">Tahun <span id="thRacYear1">${this.escapeHtml(ws.year1)}</span></th>
-                        <th class="py-2.5 px-2 w-[13%] text-center text-emerald-900 bg-emerald-50/70">Tahun <span id="thRacYear2">${this.escapeHtml(ws.year2)}</span> (Eval)</th>
-                        <th class="py-2.5 px-2 w-[10%] text-center">Status <span class="underline decoration-dotted">RAC</span></th>
-                        <th class="py-2.5 px-3 w-[21%]">Analisis &amp; Keterangan Komparasi</th>
-                      </tr>
-                    </thead>
-                    <tbody id="racTableBody" class="divide-y divide-slate-100 font-sans">
                     </tbody>
                   </table>
                 </div>
