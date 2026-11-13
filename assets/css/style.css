@@ -100,16 +100,21 @@ body {
 }
 
 .ticker-wrap {
+  flex: 1 1 0%;
+  min-width: 0;
+  width: 100%;
   overflow: hidden;
   white-space: nowrap;
 }
 
 .ticker-content {
   display: inline-block;
-  animation: ticker 35s linear infinite;
+  padding-left: 100%;
+  will-change: transform;
+  animation: ticker 28s linear infinite;
 }
 
-.ticker-content:hover {
+.ticker-wrap:hover .ticker-content {
   animation-play-state: paused;
 }
 

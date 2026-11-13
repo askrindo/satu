@@ -102,10 +102,10 @@ class AskrindoApp {
       <div class="min-h-screen flex flex-col bg-[#F4F7FB]">
         <!-- Running Announcement Ticker -->
         ${settings.notificationBanner ? `
-          <div class="bg-[#002B49] text-white text-[11px] py-1 px-4 flex items-center justify-between border-b border-white/10 no-print">
+          <div class="bg-[#002B49] text-white text-[11px] py-1 pl-4 pr-0 flex items-center justify-between border-b border-white/10 no-print">
             <div class="flex items-center gap-2 overflow-hidden w-full">
               <span class="px-2 py-0.5 rounded font-extrabold bg-[#F37021] text-white text-[9px] uppercase tracking-wider shrink-0">Info SATU</span>
-              <div class="ticker-wrap w-full">
+              <div class="ticker-wrap flex-1 min-w-0">
                 <span class="ticker-content text-slate-200">
                   ${settings.notificationBanner} &nbsp; • &nbsp; Hotline Cabang Askrindo 24/7: 1500-405 &nbsp; • &nbsp; PT Asuransi Kredit Indonesia terdaftar dan diawasi oleh OJK.
                 </span>
@@ -615,8 +615,18 @@ class AskrindoApp {
                       required 
                       value="password123"
                       placeholder="••••••••" 
-                      class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#F37021] bg-slate-50 focus:bg-white text-xs transition"
+                      class="w-full pl-10 pr-10 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#F37021] bg-slate-50 focus:bg-white text-xs transition"
                     />
+                    <button
+                      type="button"
+                      id="toggle-login-password"
+                      onclick="window.askrindoApp.togglePasswordVisibility('login-password', this)"
+                      aria-label="Tampilkan atau sembunyikan kata sandi"
+                      class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                      tabindex="-1"
+                    >
+                      <i data-lucide="eye" class="w-4 h-4"></i>
+                    </button>
                   </div>
                 </div>
 

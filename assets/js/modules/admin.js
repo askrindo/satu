@@ -567,13 +567,13 @@ window.AdminModule = {
     const container = document.getElementById('admin-modal-container');
     if (!container) return;
 
-    const allowedApps = user ? user.allowedApps : ['kabar'];
+    const allowedApps = user && Array.isArray(user.allowedApps) ? user.allowedApps : [];
     const normalizedRole = user
       ? (window.askrindoDB?.normalizeLegacyRole ? window.askrindoDB.normalizeLegacyRole(user.role) : user.role)
       : '';
     const resolvedRole = user
       ? (this.STANDARD_ROLES.includes(normalizedRole) ? normalizedRole : 'Officer')
-      : 'Officer';
+      : '';
 
     container.innerHTML = `
       <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
@@ -587,7 +587,7 @@ window.AdminModule = {
             </button>
           </div>
 
-          <form onsubmit="window.AdminModule.submitUserForm(event, '${user ? user.id : ''}')" class="space-y-3 text-xs">
+          <form onsubmit="window.AdminModule.submitUserForm(event, '${user ? user.id : ''}')" autocomplete="off" class="space-y-3 text-xs">
             <div>
               <label class="block font-semibold text-slate-700 mb-1">Nomor Induk Pegawai (NIP)</label>
               <input type="text" id="modal-nip" required value="${user ? user.nip : ''}" placeholder="Contoh: 19950812" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500" />
@@ -600,26 +600,39 @@ window.AdminModule = {
 
             <div>
               <label class="block font-semibold text-slate-700 mb-1">Email Askrindo (@askrindo.co.id)</label>
-              <input type="email" id="modal-email" required value="${user ? user.email : ''}" placeholder="nama.depan@askrindo.co.id" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500" />
+              <input type="email" id="modal-email" required value="${user ? user.email : ''}" autocomplete="off" placeholder="nama.depan@askrindo.co.id" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500" />
             </div>
 
             ${!isEdit ? `
               <div>
                 <label class="block font-semibold text-slate-700 mb-1">Kata Sandi Awal</label>
-                <input type="password" id="modal-password" required value="password123" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500" />
+                <div class="relative">
+                  <input type="password" id="modal-password" required value="" autocomplete="new-password" placeholder="Masukkan kata sandi awal" class="w-full px-3.5 py-2 pr-10 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500" />
+                  <button
+                    type="button"
+                    id="toggle-modal-password"
+                    onclick="window.askrindoApp.togglePasswordVisibility('modal-password', this)"
+                    aria-label="Tampilkan atau sembunyikan kata sandi"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                    tabindex="-1"
+                  >
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                  </button>
+                </div>
               </div>
             ` : ''}
 
             <div>
               <label class="block font-semibold text-slate-700 mb-1">Unit Kerja</label>
-              <select id="modal-unit-kerja" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500 bg-white">
+              <select id="modal-unit-kerja" required class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500 bg-white">
                 ${this.renderUnitKerjaOptions(user)}
               </select>
             </div>
 
             <div>
               <label class="block font-semibold text-slate-700 mb-1">Jabatan / Role</label>
-              <select id="modal-role" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500 bg-white">
+              <select id="modal-role" required class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500 bg-white">
+                ${!isEdit ? '<option value="" disabled selected>-- Pilih Jabatan / Role --</option>' : ''}
                 ${this.STANDARD_ROLES.map(r => `<option value="${r}" ${resolvedRole === r ? 'selected' : ''}>${r}</option>`).join('')}
               </select>
             </div>
@@ -679,7 +692,7 @@ window.AdminModule = {
 
   renderUnitKerjaOptions(user = null) {
     const units = window.askrindoDB.getStandardUnitKerja();
-    const resolvedUnit = user ? window.askrindoDB.getUserUnitKerja(user) : units[0];
+    const resolvedUnit = user ? window.askrindoDB.getUserUnitKerja(user) : '';
     const esc = (str) => String(str)
       .replace(/&/g, '&amp;')
       .replace(/"/g, '&quot;')
@@ -693,8 +706,9 @@ window.AdminModule = {
       { label: 'Main Branch & Branch Office', items: units.filter(u => !u.startsWith('Divisi ') && !u.startsWith('Regional Office ')) }
     ];
 
+    const placeholder = !user ? '<option value="" disabled selected>-- Pilih Unit Kerja --</option>' : '';
     const extra = resolvedUnit && !units.includes(resolvedUnit) ? buildOption(resolvedUnit) : '';
-    return extra + groups.map(g => `
+    return placeholder + extra + groups.map(g => `
       <optgroup label="${esc(g.label)}">
         ${g.items.map(buildOption).join('')}
       </optgroup>
@@ -734,7 +748,12 @@ window.AdminModule = {
       window.askrindoDB.logActivity('ADMIN', 'Edit Pengguna', `Memperbarui data dan hak akses pengguna ${name}`);
       window.askrindoApp.showToast(`Data pengguna ${name} berhasil diperbarui.`, 'success');
     } else {
-      userData.password = document.getElementById('modal-password').value || 'password123';
+      const password = document.getElementById('modal-password')?.value || '';
+      if (!password) {
+        window.askrindoApp.showToast('Kata sandi awal wajib diisi.', 'warning');
+        return;
+      }
+      userData.password = password;
       window.askrindoDB.saveUser(userData);
       window.askrindoDB.logActivity('ADMIN', 'Tambah Pengguna Baru', `Menambahkan pengguna baru ${name} (NIP ${nip}) dengan role ${role}`);
       window.askrindoApp.showToast(`Pengguna baru ${name} berhasil didaftarkan.`, 'success');
