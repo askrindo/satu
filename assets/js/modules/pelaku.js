@@ -742,7 +742,7 @@ window.PelakuModule = {
                     <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Current Ratio % x</span>
-                        <span class="block text-[10px] text-slate-400">Standar: &ge; 100% (A: &ge;100% &bull; B: &ge;75% &bull; C: &ge;0,1%) &bull; <span id="badge_rac_pass_status" class="font-bold text-slate-400">-</span></span>
+                        <span class="block text-[10px] text-slate-400">Standar: &ge; 100%</span>
                       </div>
                       <span id="ratio-cr" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
@@ -751,7 +751,7 @@ window.PelakuModule = {
                     <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Quick Ratio % x</span>
-                        <span class="block text-[10px] text-slate-400">Acid Test &bull; Standar: &gt; 100% (A: &gt;100% &bull; B: &gt;75% &bull; C: &gt;60% &bull; D: &gt;40%)</span>
+                        <span class="block text-[10px] text-slate-400">Acid Test &bull; Standar: &gt; 100%</span>
                       </div>
                       <span id="ratio-qr" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
@@ -769,7 +769,7 @@ window.PelakuModule = {
                     <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">DER% x</span>
-                        <span class="block text-[10px] text-slate-400">Debt to Equity &bull; Standar: &lt; 200% (A: &lt;200% &bull; B: &lt;250% &bull; C: &lt;300%)</span>
+                        <span class="block text-[10px] text-slate-400">Debt to Equity &bull; Standar: &lt; 200%</span>
                       </div>
                       <span id="ratio-der" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
@@ -859,7 +859,7 @@ window.PelakuModule = {
                     <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">ROA % x</span>
-                        <span class="block text-[10px] text-slate-400">Return on Asset &bull; Standar: &ge; 1,0% (A: &ge;1% &bull; B: &ge;0,5% &bull; C: &ge;0,1%)</span>
+                        <span class="block text-[10px] text-slate-400">Return on Asset &bull; Standar: &ge; 1,0%</span>
                       </div>
                       <span id="ratio-roa" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
@@ -868,7 +868,7 @@ window.PelakuModule = {
                     <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">ROE % x</span>
-                        <span class="block text-[10px] text-slate-400">Return on Equity &bull; Standar: &ge; 5,0% (A: &ge;5% &bull; B: &ge;3% &bull; C: &ge;0,1%)</span>
+                        <span class="block text-[10px] text-slate-400">Return on Equity &bull; Standar: &ge; 5,0%</span>
                       </div>
                       <span id="ratio-roe" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
@@ -895,7 +895,7 @@ window.PelakuModule = {
                     <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Net Profit Margin % x</span>
-                        <span class="block text-[10px] text-slate-400">Laba Bersih / Penjualan &bull; Standar: &gt; 10% (A: &gt;10% &bull; B: &gt;5% &bull; C: &gt;2%)</span>
+                        <span class="block text-[10px] text-slate-400">Laba Bersih / Penjualan &bull; Standar: &gt; 10%</span>
                       </div>
                       <span id="ratio-npm" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
@@ -922,7 +922,7 @@ window.PelakuModule = {
                     <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Cash Ratio % x</span>
-                        <span class="block text-[10px] text-slate-400">Kas &amp; Bank / Hutang Lancar &bull; Standar: &gt; 40% (A: &gt;40% &bull; B: &gt;30% &bull; C: &gt;20%)</span>
+                        <span class="block text-[10px] text-slate-400">Kas &amp; Bank / Hutang Lancar &bull; Standar: &gt; 40%</span>
                       </div>
                       <span id="ratio-cash" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
@@ -976,7 +976,7 @@ window.PelakuModule = {
                     <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Net Working Capital</span>
-                        <span class="block text-[10px] text-slate-400">Modal Kerja Bersih &bull; Standar: &gt; 40% Nilai Proyek (A: &gt;40% &bull; B: &gt;20%)</span>
+                        <span class="block text-[10px] text-slate-400">Modal Kerja Bersih &bull; Standar: &gt; 40% Nilai Proyek</span>
                       </div>
                       <span id="ratio-nwc" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
@@ -1427,10 +1427,10 @@ window.PelakuModule = {
         summaryText: 'Belum ada data laporan keuangan yang dimasukkan untuk dianalisis.',
         narrative: 'Silakan lengkapi pos-pos Laporan Keuangan pada tabel di sebelah kiri untuk melihat evaluasi finansial dan scoring otomatis.',
         ratios27: [
-          { no: 1, name: 'Current Ratio% x', val: '-', std: 'Standar: ≥ 100,00% (A: ≥100% • B: ≥75% • C: ≥0,1%)', pass: false },
-          { no: 2, name: 'Quick Ratio % x', val: '-', std: 'Standar: > 100,00% (A: >100% • B: >75% • C: >60% • D: >40%)', pass: false },
+          { no: 1, name: 'Current Ratio% x', val: '-', std: 'Standar: ≥ 100,00%', pass: false },
+          { no: 2, name: 'Quick Ratio % x', val: '-', std: 'Standar: > 100,00%', pass: false },
           { no: 3, name: 'Working Capital To Total Asset%', val: '-', std: 'Modal Kerja Bersih / Total Aktiva (Standar: > 0%)', pass: false },
-          { no: 4, name: 'DER% x', val: '-', std: 'Standar: < 200,00% (A: <200% • B: <250% • C: <300%)', pass: false },
+          { no: 4, name: 'DER% x', val: '-', std: 'Standar: < 200,00%', pass: false },
           { no: 5, name: 'DAR% x', val: '-', std: 'Batas Toleransi: < 70,00%', pass: false },
           { no: 6, name: 'Long Term Debt to Equity%', val: '-', std: 'Hutang Jk. Panjang / Modal Sendiri (Standar: < 100%)', pass: false },
           { no: 7, name: 'Total Asset Turnover x', val: '-', std: 'Penjualan / Total Aset (Standar: ≥ 1.0x)', pass: false },
@@ -1440,20 +1440,20 @@ window.PelakuModule = {
           { no: 11, name: 'Inventory Turnover Ratio X', val: '-', std: 'HPP / Persediaan Barang (Standar: ≥ 4.0x)', pass: false },
           { no: 12, name: 'Day Inventory (hari)', val: '-', std: 'Rata-rata Hari Persediaan Tersimpan (Batas: ≤ 90 hari)', pass: false },
           { no: 13, name: 'Day account payable (hari)', val: '-', std: 'Rata-rata Hari Pembayaran Utang Usaha', pass: false },
-          { no: 14, name: 'ROA % x', val: '-', std: 'Standar: ≥ 1,00% (A: ≥1% • B: ≥0,5% • C: ≥0,1%)', pass: false },
-          { no: 15, name: 'ROE % x', val: '-', std: 'Standar: ≥ 5,00% (A: ≥5% • B: ≥3% • C: ≥0,1%)', pass: false },
+          { no: 14, name: 'ROA % x', val: '-', std: 'Standar: ≥ 1,00%', pass: false },
+          { no: 15, name: 'ROE % x', val: '-', std: 'Standar: ≥ 5,00%', pass: false },
           { no: 16, name: 'ROI %', val: '-', std: 'Return on Investment (EBIT / Total Aktiva) (Standar: > 0%)', pass: false },
           { no: 17, name: 'Gross Profit Margin %', val: '-', std: 'Laba Kotor / Penjualan (Standar: > 0%)', pass: false },
-          { no: 18, name: 'Net Profit Margin % x', val: '-', std: 'Standar: > 10,00% (A: >10% • B: >5% • C: >2%)', pass: false },
+          { no: 18, name: 'Net Profit Margin % x', val: '-', std: 'Standar: > 10,00%', pass: false },
           { no: 19, name: 'Operating Income Ratio %', val: '-', std: 'EBIT / Penjualan (Net Operating Margin)', pass: false },
           { no: 20, name: 'Operating Ratio %', val: '-', std: '(HPP + Beban Usaha) / Penjualan (Batas: ≤ 95%)', pass: false },
-          { no: 21, name: 'Cash Ratio % x', val: '-', std: 'Standar: > 40,00% (A: >40% • B: >30% • C: >20%)', pass: false },
+          { no: 21, name: 'Cash Ratio % x', val: '-', std: 'Standar: > 40,00%', pass: false },
           { no: 22, name: 'Sales Growth %', val: '-', std: 'Pertumbuhan Penjualan YoY (Standar: Positif)', pass: false },
           { no: 23, name: 'Operating Profit Margin %', val: '-', std: 'Laba Bruto Operasional / Penjualan', pass: false },
           { no: 24, name: 'Ebitda', val: '-', std: 'Laba Usaha (EBIT) + Akum. Penyusutan', pass: false },
           { no: 25, name: 'Ebitda to interest %', val: '-', std: 'Interest Coverage Ratio (Standar: ≥ 2.0x)', pass: false },
           { no: 26, name: 'Ebitda to debt %', val: '-', std: 'EBITDA / Total Hutang (Standar: ≥ 20%)', pass: false },
-          { no: 27, name: 'Net Working Capital', val: '-', std: 'Standar: > 40,00% Nilai Proyek (A: >40% • B: >20%)', pass: false }
+          { no: 27, name: 'Net Working Capital', val: '-', std: 'Standar: > 40,00% Nilai Proyek', pass: false }
         ],
         racList: emptyRac,
         passRacCount: 0,
@@ -1792,10 +1792,10 @@ window.PelakuModule = {
     }
 
     const ratios27 = [
-      { no: 1, name: 'Current Ratio% x', val: crTxt, std: 'Standar: ≥ 100,00% (A: ≥100% • B: ≥75% • C: ≥0,1%)', pass: crVal >= 100 || cl2 === 0 },
-      { no: 2, name: 'Quick Ratio % x', val: qrTxt, std: 'Standar: > 100,00% (A: >100% • B: >75% • C: >60% • D: >40%)', pass: qrVal > 100 || cl2 === 0 },
+      { no: 1, name: 'Current Ratio% x', val: crTxt, std: 'Standar: ≥ 100,00%', pass: crVal >= 100 || cl2 === 0 },
+      { no: 2, name: 'Quick Ratio % x', val: qrTxt, std: 'Standar: > 100,00%', pass: qrVal > 100 || cl2 === 0 },
       { no: 3, name: 'Working Capital To Total Asset%', val: `${wctaVal.toFixed(2)}%`, std: 'Modal Kerja Bersih / Total Aktiva (Standar: > 0%)', pass: wctaVal > 0 },
-      { no: 4, name: 'DER% x', val: `${derVal.toFixed(2)}% (${derX.toFixed(2)}x)`, std: 'Standar: < 200,00% (A: <200% • B: <250% • C: <300%)', pass: derVal < 200 },
+      { no: 4, name: 'DER% x', val: `${derVal.toFixed(2)}% (${derX.toFixed(2)}x)`, std: 'Standar: < 200,00%', pass: derVal < 200 },
       { no: 5, name: 'DAR% x', val: `${darVal.toFixed(2)}% (${darX.toFixed(2)}x)`, std: 'Batas Toleransi: < 70,00%', pass: darVal < 70 },
       { no: 6, name: 'Long Term Debt to Equity%', val: `${ltdeVal.toFixed(2)}%`, std: 'Hutang Jk. Panjang / Modal Sendiri (Standar: < 100%)', pass: ltdeVal < 100 },
       { no: 7, name: 'Total Asset Turnover x', val: `${tatoVal.toFixed(2)}x`, std: 'Penjualan / Total Aset (Standar: ≥ 1.0x)', pass: tatoVal >= 1.0 },
@@ -1805,20 +1805,20 @@ window.PelakuModule = {
       { no: 11, name: 'Inventory Turnover Ratio X', val: invVal > 0 ? `${itoVal.toFixed(2)}x` : 'N/A', std: 'HPP / Persediaan Barang (Standar: ≥ 4.0x)', pass: itoVal >= 4.0 },
       { no: 12, name: 'Day Inventory (hari)', val: `${Math.round(dioVal)} hari`, std: 'Rata-rata Hari Persediaan Tersimpan (Batas: ≤ 90 hari)', pass: dioVal <= 90 },
       { no: 13, name: 'Day account payable (hari)', val: `${Math.round(dpoVal)} hari`, std: 'Rata-rata Hari Pembayaran Utang Usaha', pass: true },
-      { no: 14, name: 'ROA % x', val: `${roaVal.toFixed(2)}% (${roaX.toFixed(2)}x)`, std: 'Standar: ≥ 1,00% (A: ≥1% • B: ≥0,5% • C: ≥0,1%)', pass: roaVal >= 1.0 },
-      { no: 15, name: 'ROE % x', val: `${roeVal.toFixed(2)}% (${roeX.toFixed(2)}x)`, std: 'Standar: ≥ 5,00% (A: ≥5% • B: ≥3% • C: ≥0,1%)', pass: roeVal >= 5.0 },
+      { no: 14, name: 'ROA % x', val: `${roaVal.toFixed(2)}% (${roaX.toFixed(2)}x)`, std: 'Standar: ≥ 1,00%', pass: roaVal >= 1.0 },
+      { no: 15, name: 'ROE % x', val: `${roeVal.toFixed(2)}% (${roeX.toFixed(2)}x)`, std: 'Standar: ≥ 5,00%', pass: roeVal >= 5.0 },
       { no: 16, name: 'ROI %', val: `${roiVal.toFixed(2)}%`, std: 'Return on Investment (EBIT / Total Aktiva) (Standar: > 0%)', pass: roiVal > 0 },
       { no: 17, name: 'Gross Profit Margin %', val: `${gpmVal.toFixed(2)}%`, std: 'Laba Kotor / Penjualan (Standar: > 0%)', pass: gpmVal > 0 },
-      { no: 18, name: 'Net Profit Margin % x', val: `${npmVal.toFixed(2)}% (${npmX.toFixed(2)}x)`, std: 'Standar: > 10,00% (A: >10% • B: >5% • C: >2%)', pass: npmVal > 10.0 },
+      { no: 18, name: 'Net Profit Margin % x', val: `${npmVal.toFixed(2)}% (${npmX.toFixed(2)}x)`, std: 'Standar: > 10,00%', pass: npmVal > 10.0 },
       { no: 19, name: 'Operating Income Ratio %', val: `${oirVal.toFixed(2)}%`, std: 'EBIT / Penjualan (Net Operating Margin)', pass: oirVal > 0 },
       { no: 20, name: 'Operating Ratio %', val: `${oprVal.toFixed(2)}%`, std: '(HPP + Beban Usaha) / Penjualan (Batas: ≤ 95%)', pass: oprVal <= 95 },
-      { no: 21, name: 'Cash Ratio % x', val: cashRatioTxt, std: 'Standar: > 40,00% (A: >40% • B: >30% • C: >20%)', pass: cashRatioVal > 40 || cl2 === 0 },
+      { no: 21, name: 'Cash Ratio % x', val: cashRatioTxt, std: 'Standar: > 40,00%', pass: cashRatioVal > 40 || cl2 === 0 },
       { no: 22, name: 'Sales Growth %', val: `${salesGrowth >= 0 ? '+' : ''}${salesGrowth.toFixed(2)}%`, std: 'Pertumbuhan Penjualan YoY (Standar: Positif)', pass: salesGrowth >= 0 },
       { no: 23, name: 'Operating Profit Margin %', val: `${opmVal.toFixed(2)}%`, std: 'Laba Bruto Operasional / Penjualan', pass: opmVal > 0 },
       { no: 24, name: 'Ebitda', val: this.fmtRp(ebitdaVal), std: 'Laba Usaha (EBIT) + Akum. Penyusutan', pass: ebitdaVal > 0 },
       { no: 25, name: 'Ebitda to interest %', val: ebitdaIntVal !== null ? `${ebitdaIntVal.toFixed(2)}% (${ebitdaIntX.toFixed(2)}x)` : 'N/A (Bebas Bunga)', std: 'Interest Coverage Ratio (Standar: ≥ 2.0x)', pass: ebitdaIntX >= 2.0 || ebitdaIntVal === null },
       { no: 26, name: 'Ebitda to debt %', val: ebitdaDebtVal !== null ? `${ebitdaDebtVal.toFixed(2)}%` : 'N/A (Bebas Hutang)', std: 'EBITDA / Total Hutang (Standar: ≥ 20%)', pass: ebitdaDebtVal >= 20 || ebitdaDebtVal === null },
-      { no: 27, name: 'Net Working Capital', val: this.fmtRp(nwcVal), std: 'Standar: > 40,00% Nilai Proyek (A: >40% • B: >20%)', pass: projectVal > 0 ? (nwcToProject > 40) : (nwcVal >= 0) }
+      { no: 27, name: 'Net Working Capital', val: this.fmtRp(nwcVal), std: 'Standar: > 40,00% Nilai Proyek', pass: projectVal > 0 ? (nwcToProject > 40) : (nwcVal >= 0) }
     ];
 
     // Simpan objek analisis untuk lembar cetak
