@@ -672,43 +672,21 @@ window.PelakuModule = {
                   </p>
                 </div>
 
-                <!-- Indikator Rasio Utama (RAC Askrindo) Highlight Box -->
-                <div id="pelaku-rac-highlight-box" class="rounded-2xl border border-purple-200 bg-purple-50/40 p-3.5 space-y-2.5">
-                  <div class="flex items-start justify-between gap-2">
-                    <div>
-                      <div class="flex items-center gap-1.5 flex-wrap">
-                        <span class="font-extrabold text-slate-900 text-xs">Current Ratio (CR)</span>
-                        <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-purple-100 text-purple-800 border border-purple-200 uppercase tracking-wider">Rasio Utama</span>
-                      </div>
-                      <p class="text-[10px] text-slate-500 mt-0.5">Aset Lancar / Liab. Lancar &bull; Standar RAC: <strong class="text-slate-700">&ge; 100,00%</strong></p>
-                    </div>
-                    <span id="badge_rac_pass_status" class="inline-block px-2.5 py-1 rounded-md font-bold text-[10px] shrink-0 bg-emerald-100 text-emerald-800 border border-emerald-300">
-                      LULUS RAC
-                    </span>
-                  </div>
-
-                  <div class="grid grid-cols-2 gap-2 text-center text-xs">
-                    <div class="bg-white rounded-xl border border-slate-200 py-2 px-2">
-                      <span class="block text-[10px] text-slate-400 font-semibold">Tahun <span id="thRacYear1">${this.escapeHtml(ws.year1)}</span></span>
-                      <span id="rac-cr-val1" class="font-mono font-bold text-slate-700 text-xs">151.42%</span>
-                    </div>
-                    <div class="bg-emerald-50 rounded-xl border border-emerald-200 py-2 px-2">
-                      <span class="block text-[10px] text-emerald-800 font-semibold">Tahun <span id="thRacYear2">${this.escapeHtml(ws.year2)}</span> (Eval)</span>
-                      <span id="ratio-cr" class="font-mono font-bold text-xs text-emerald-700">166.13%</span>
-                    </div>
-                  </div>
-
-                  <p id="rac-cr-desc" class="text-[11px] leading-relaxed text-slate-700 bg-white rounded-xl border border-slate-200/80 p-2.5">
-                    Current Ratio memenuhi standar RAC (&ge; 100,00%). Debitur memiliki likuiditas lancar memadai untuk melunasi kewajiban jangka pendek.
-                  </p>
-                </div>
-
-                <!-- Ratio Breakdown Lainnya -->
+                <!-- Ratio Breakdown -->
                 <div class="space-y-3 text-xs">
                   <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px] flex items-center justify-between">
-                    <span>Rasio Finansial Lainnya (Th <span id="lbl_ratio_eval_yr">${this.escapeHtml(ws.year2)}</span>)</span>
+                    <span>Indikator Rasio (Th <span id="lbl_ratio_eval_yr">${this.escapeHtml(ws.year2)}</span>)</span>
                     <span class="text-[10px] font-normal text-slate-400">Standar Askrindo</span>
                   </h4>
+
+                  <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
+                    <div>
+                      <span class="font-semibold text-slate-700">Current Ratio (CR)</span>
+                      <span class="ml-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-100 text-purple-700 border border-purple-200 uppercase">Rasio Utama</span>
+                      <span class="block text-[10px] text-slate-400">Standar RAC: &ge; 100% &bull; <span id="badge_rac_pass_status" class="font-bold text-emerald-600">LULUS</span></span>
+                    </div>
+                    <span id="ratio-cr" class="font-mono font-bold text-emerald-600 text-sm">166.13%</span>
+                  </div>
 
                   <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
                     <div>
@@ -1225,19 +1203,15 @@ window.PelakuModule = {
     const failRacCount = racList.length - passRacCount;
 
     const racItem = racList[0] || {};
-    const thRac1 = document.getElementById('thRacYear1');
-    const thRac2 = document.getElementById('thRacYear2');
-    const crVal1 = document.getElementById('rac-cr-val1');
-    const crDesc = document.getElementById('rac-cr-desc');
     const bStatus = document.getElementById('badge_rac_pass_status');
-
-    if (thRac1) thRac1.textContent = y1;
-    if (thRac2) thRac2.textContent = y2;
-    if (crVal1) crVal1.textContent = racItem.v1 || '-';
-    if (crDesc) crDesc.textContent = racItem.ket || '-';
     if (bStatus) {
-      bStatus.textContent = racItem.pass ? 'LULUS RAC' : 'TIDAK LULUS RAC';
-      bStatus.className = `inline-block px-2.5 py-1 rounded-md font-bold text-[10px] shrink-0 ${racItem.pass ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300'}`;
+      bStatus.textContent = racItem.pass ? 'LULUS' : 'TIDAK LULUS';
+      bStatus.className = `font-bold ${racItem.pass ? 'text-emerald-600' : 'text-rose-600'}`;
+    }
+    const crEl = document.getElementById('ratio-cr');
+    if (crEl && racItem.v2) {
+      crEl.textContent = racItem.v2;
+      crEl.className = `font-mono font-bold text-sm ${racItem.pass ? 'text-emerald-600' : 'text-rose-600'}`;
     }
 
     const bPass = document.getElementById('badge_rac_pass_count');
