@@ -224,7 +224,7 @@ window.DashboardModule = {
                   </a>
                   <div class="p-2.5 rounded-xl bg-white/10 text-[11px] text-slate-200 flex items-center gap-2">
                     <i data-lucide="sparkles" class="w-4 h-4 text-amber-300 shrink-0"></i>
-                    <span>Modul KABAR, TTK, BUSET, CEPAT, dan SURETY segera hadir.</span>
+                    <span>Modul KABAR, TTK, BUSET, dan CEPAT segera hadir.</span>
                   </div>
                 </div>
               `}
@@ -265,7 +265,7 @@ window.DashboardModule = {
           <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
             <div class="space-y-1">
               <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Status Aplikasi</p>
-              <h4 class="text-2xl font-bold text-slate-800">1 Aktif <span class="text-xs font-normal text-slate-400">· 5 Segera</span></h4>
+              <h4 class="text-2xl font-bold text-slate-800">1 Aktif <span class="text-xs font-normal text-slate-400">· 4 Segera</span></h4>
               <p class="text-[11px] text-purple-700 font-semibold flex items-center gap-1">
                 <i data-lucide="check-circle" class="w-3 h-3 text-purple-600"></i> PELAKU (Live Operasional)
               </p>
@@ -297,7 +297,7 @@ window.DashboardModule = {
                 <i data-lucide="layout-grid" class="w-5 h-5 text-orange-500"></i>
                 <span>Katalog Aplikasi Askrindo SATU</span>
               </h2>
-              <p class="text-xs text-slate-500 mt-0.5">Pengembangan sistem bertahap: 1 modul aktif operasional & 5 modul segera hadir.</p>
+              <p class="text-xs text-slate-500 mt-0.5">Pengembangan sistem bertahap: 1 modul aktif operasional & 4 modul segera hadir.</p>
             </div>
             <div class="flex items-center gap-2">
               <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">1 Aktif · 4 Segera Hadir</span>

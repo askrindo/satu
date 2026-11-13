@@ -105,7 +105,7 @@ class AuthService {
     if (devMap && devMap[key]) {
       return devMap[key].status === 'coming_soon' || devMap[key].status === 'development';
     }
-    return ['kabar', 'ttk', 'bus', 'cepat', 'surety'].includes(key);
+    return ['kabar', 'ttk', 'bus', 'cepat'].includes(key);
   }
 
   isAppComingSoon(appId) {
@@ -117,7 +117,7 @@ class AuthService {
     const key = (appId || '').toLowerCase();
     const isAdmin = this.currentUser.role === 'Super Administrator' || (this.currentUser.allowedApps && this.currentUser.allowedApps.includes('admin'));
 
-    // Pengaturan Bertahap: Modul KABAR, TTK, BUSET, CEPAT, SURETY berstatus Segera Hadir.
+    // Pengaturan Bertahap: Modul KABAR, TTK, BUSET, CEPAT berstatus Segera Hadir.
     // Akun Super Administrator dapat mengakses pratinjau modul.
     if (this.isAppComingSoon(key)) {
       return isAdmin;

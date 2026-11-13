@@ -476,13 +476,13 @@ class AskrindoApp {
                   </span>
                   <span class="text-[10px] text-emerald-300 font-semibold flex items-center gap-1">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    1 Aktif · 5 Segera Hadir
+                    1 Aktif · 4 Segera Hadir
                   </span>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 text-xs">
                   <!-- PELAKU (AKTIF PENUH) -->
-                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-gradient-to-r from-purple-500/25 to-indigo-500/25 hover:from-purple-500/35 hover:to-indigo-500/35 transition border border-purple-400/40 shadow-sm relative overflow-hidden" title="PELAKU: Perhitungan Laporan Keuangan (Aktif Siap Digunakan)">
+                  <div class="col-span-2 flex items-center gap-2 p-2.5 rounded-xl bg-gradient-to-r from-purple-500/25 to-indigo-500/25 hover:from-purple-500/35 hover:to-indigo-500/35 transition border border-purple-400/40 shadow-sm relative overflow-hidden" title="PELAKU: Perhitungan Laporan Keuangan (Aktif Siap Digunakan)">
                     <div class="w-7 h-7 rounded-lg bg-purple-500 flex items-center justify-center shrink-0 shadow-md">
                       <i data-lucide="calculator" class="w-4 h-4 text-white"></i>
                     </div>
@@ -548,20 +548,6 @@ class AskrindoApp {
                         <span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">Segera</span>
                       </div>
                       <span class="text-[10px] text-slate-400 block truncate">Cover Note Asuransi</span>
-                    </div>
-                  </div>
-
-                  <!-- SURETY (SEGERA HADIR) -->
-                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-dashed border-white/20 hover:bg-white/10 transition group" title="SURETY: Suretyship & Penjaminan Proyek (Segera Hadir)">
-                    <div class="w-7 h-7 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
-                      <i data-lucide="sparkles" class="w-4 h-4 text-amber-300"></i>
-                    </div>
-                    <div class="min-w-0">
-                      <div class="flex items-center gap-1">
-                        <span class="font-bold text-slate-300 text-xs">SURETY</span>
-                        <span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">Segera</span>
-                      </div>
-                      <span class="text-[10px] text-slate-400 block truncate">Suretyship & KBG</span>
                     </div>
                   </div>
                 </div>

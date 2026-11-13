@@ -286,13 +286,6 @@ const APP_DEPLOYMENT_STATUS = {
     phase: 'Roadmap Pengembangan',
     badge: 'Segera Hadir',
     isPublic: false
-  },
-  surety: {
-    status: 'coming_soon',
-    label: 'Segera Hadir',
-    phase: 'Roadmap Pengembangan',
-    badge: 'Segera Hadir',
-    isPublic: false
   }
 };
 window.APP_DEPLOYMENT_STATUS = APP_DEPLOYMENT_STATUS;
