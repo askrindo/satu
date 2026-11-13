@@ -539,92 +539,70 @@ window.PelakuModule = {
                 <div class="flex items-center justify-between flex-wrap gap-2">
                   <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
                     <i data-lucide="building" class="w-4 h-4 text-purple-600"></i>
-                    <span>1. Profil Calon Debitur / Rekanan &amp; Legalitas Audit</span>
+                    <span>1. Profil Calon Debitur / Rekanan Penjaminan</span>
                   </h3>
                   <span class="text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-100">
                     Nama Perusahaan = ID Otomatis
                   </span>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div id="pelaku-company-autocomplete-wrap" class="relative">
-                    <div class="flex items-center justify-between gap-2 mb-1">
-                      <label for="pelaku-company" class="font-semibold text-slate-700">Nama Perusahaan / Rekanan <span class="text-purple-600 font-bold">(ID)</span></label>
-                      <span id="pelaku-company-id-badge" class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200 truncate max-w-[180px]">
-                        ID: -
-                      </span>
-                    </div>
-                    <div class="relative">
-                      <input
-                        type="text"
-                        id="pelaku-company"
-                        value="${this.escapeHtml(ws.companyName)}"
-                        placeholder="Ketik Nama Perusahaan (jika pernah dibuat, data otomatis muncul)..."
-                        autocomplete="off"
-                        onfocus="window.PelakuModule.openCompanyAutocomplete()"
-                        oninput="window.PelakuModule.handleCompanyInput(this.value)"
-                        onblur="window.PelakuModule.handleCompanyBlur()"
-                        onkeydown="window.PelakuModule.handleCompanyKeydown(event)"
-                        class="w-full pl-3 pr-9 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 font-semibold text-slate-800 bg-white"
-                      />
-                      <button
-                        type="button"
-                        onmousedown="event.preventDefault(); window.PelakuModule.toggleCompanyAutocomplete();"
-                        title="Lihat daftar perusahaan tersimpan"
-                        class="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg text-slate-400 hover:text-purple-700 hover:bg-purple-50 flex items-center justify-center transition"
-                      >
-                        <i data-lucide="chevron-down" class="w-4 h-4"></i>
-                      </button>
-                    </div>
-                    <!-- Smart Company Autocomplete Dropdown -->
-                    <div id="pelaku-company-dropdown" class="hidden absolute left-0 right-0 mt-1.5 bg-white rounded-2xl border border-slate-200 shadow-2xl z-40 max-h-64 overflow-y-auto divide-y divide-slate-100"></div>
+                <!-- Baris 1: Nama Perusahaan Rekanan (Full Width) -->
+                <div id="pelaku-company-autocomplete-wrap" class="relative text-xs">
+                  <div class="flex items-center justify-between gap-2 mb-1">
+                    <label for="pelaku-company" class="font-semibold text-slate-700">Nama Perusahaan / Rekanan <span class="text-purple-600 font-bold">(ID)</span></label>
+                    <span id="pelaku-company-id-badge" class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200 truncate max-w-[180px]">
+                      ID: -
+                    </span>
                   </div>
-                  <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Sektor Industri / Bidang Usaha</label>
-                    <select id="pelaku-sector" onchange="window.PelakuModule.onMetaFieldChanged()" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 bg-white">
-                      <option value="konstruksi" ${ws.sector === 'konstruksi' ? 'selected' : ''}>Konstruksi &amp; Infrastruktur</option>
-                      <option value="perdagangan" ${ws.sector === 'perdagangan' ? 'selected' : ''}>Perdagangan Besar &amp; Distributor</option>
-                      <option value="manufaktur" ${ws.sector === 'manufaktur' ? 'selected' : ''}>Manufaktur &amp; Pabrikasi</option>
-                      <option value="jasa" ${ws.sector === 'jasa' ? 'selected' : ''}>Jasa &amp; Pengadaan Barang/Jasa (Vendor)</option>
-                    </select>
+                  <div class="relative">
+                    <input
+                      type="text"
+                      id="pelaku-company"
+                      value="${this.escapeHtml(ws.companyName)}"
+                      placeholder="Ketik Nama Perusahaan (jika pernah dibuat, data otomatis muncul)..."
+                      autocomplete="off"
+                      onfocus="window.PelakuModule.openCompanyAutocomplete()"
+                      oninput="window.PelakuModule.handleCompanyInput(this.value)"
+                      onblur="window.PelakuModule.handleCompanyBlur()"
+                      onkeydown="window.PelakuModule.handleCompanyKeydown(event)"
+                      class="w-full pl-3 pr-9 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 font-semibold text-slate-800 bg-white"
+                    />
+                    <button
+                      type="button"
+                      onmousedown="event.preventDefault(); window.PelakuModule.toggleCompanyAutocomplete();"
+                      title="Lihat daftar perusahaan tersimpan"
+                      class="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg text-slate-400 hover:text-purple-700 hover:bg-purple-50 flex items-center justify-center transition"
+                    >
+                      <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                    </button>
                   </div>
+                  <!-- Smart Company Autocomplete Dropdown -->
+                  <div id="pelaku-company-dropdown" class="hidden absolute left-0 right-0 mt-1.5 bg-white rounded-2xl border border-slate-200 shadow-2xl z-40 max-h-64 overflow-y-auto divide-y divide-slate-100"></div>
                 </div>
 
                 <!-- Dynamic Inline Banner when Existing Company ID is Detected -->
                 <div id="pelaku-company-history-banner" class="hidden"></div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+                <!-- Baris 2: Periode Finansial, Status Audit & Nilai Proyek -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                   <div>
                     <label class="block font-semibold text-slate-700 mb-1">Tahun 1 (Sebelumnya)</label>
-                    <input type="number" id="inp_year1" value="${this.escapeHtml(ws.year1)}" oninput="window.PelakuModule.updateYearLabels(); window.PelakuModule.onMetaFieldChanged();" class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-center font-bold font-mono" />
+                    <input type="number" id="inp_year1" value="${this.escapeHtml(ws.year1)}" oninput="window.PelakuModule.updateYearLabels(); window.PelakuModule.onMetaFieldChanged();" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-center font-bold font-mono focus:border-purple-500 focus:outline-none bg-white" />
                   </div>
                   <div>
                     <label class="block font-semibold text-slate-700 mb-1">Tahun 2 (Terakhir)</label>
-                    <input type="number" id="inp_year2" value="${this.escapeHtml(ws.year2)}" oninput="window.PelakuModule.updateYearLabels(); window.PelakuModule.onMetaFieldChanged();" class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-center font-bold font-mono" />
+                    <input type="number" id="inp_year2" value="${this.escapeHtml(ws.year2)}" oninput="window.PelakuModule.updateYearLabels(); window.PelakuModule.onMetaFieldChanged();" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-center font-bold font-mono focus:border-purple-500 focus:outline-none bg-white" />
                   </div>
                   <div>
                     <label class="block font-semibold text-slate-700 mb-1">Status Audit</label>
-                    <select id="pelaku-audit-status" onchange="window.PelakuModule.onMetaFieldChanged()" class="w-full px-3 py-1.5 rounded-lg border border-slate-200 bg-white font-medium">
+                    <select id="pelaku-audit-status" onchange="window.PelakuModule.onMetaFieldChanged()" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium focus:border-purple-500 focus:outline-none">
                       <option value="audited" ${ws.auditStatus === 'audited' ? 'selected' : ''}>Audited KAP</option>
                       <option value="unaudited" ${ws.auditStatus === 'unaudited' ? 'selected' : ''}>In-House / Unaudited</option>
                     </select>
                   </div>
                   <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Opini Auditor</label>
-                    <input type="text" id="pelaku-opinion" value="${this.escapeHtml(ws.opinion)}" oninput="window.PelakuModule.onMetaFieldChanged()" class="w-full px-3 py-1.5 rounded-lg border border-slate-200 font-medium" />
-                  </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div>
                     <label class="block font-semibold text-slate-700 mb-1">Nilai Proyek yang Dijamin (Rp)</label>
-                    <input type="text" id="inp_projectValue" value="${projFormatted}" oninput="window.PelakuModule.handleDotInput(this); window.PelakuModule.onMetaFieldChanged();" onblur="window.PelakuModule.handleDotBlur(this); window.PelakuModule.calculateRatios();" class="w-full px-3 py-1.5 rounded-lg border border-purple-200 font-bold font-mono focus:border-purple-500 bg-white" placeholder="Contoh: 15.000.000.000" />
-                    <span class="text-[10px] text-slate-400">Dasar perhitungan rasio kecukupan modal kerja NWC / Nilai Proyek</span>
-                  </div>
-                  <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Nama Kantor Akuntan Publik (KAP)</label>
-                    <input type="text" id="pelaku-kap-name" value="${this.escapeHtml(ws.kapName)}" oninput="window.PelakuModule.onMetaFieldChanged()" class="w-full px-3 py-1.5 rounded-lg border border-slate-200 font-medium" />
-                    <span class="text-[10px] text-slate-400">KAP terdaftar OJK / Kemenkeu</span>
+                    <input type="text" id="inp_projectValue" value="${projFormatted}" oninput="window.PelakuModule.handleDotInput(this); window.PelakuModule.onMetaFieldChanged();" onblur="window.PelakuModule.handleDotBlur(this); window.PelakuModule.calculateRatios();" class="w-full px-3 py-2 rounded-xl border border-purple-200 font-bold font-mono focus:border-purple-500 focus:outline-none bg-white" placeholder="Contoh: 15.000.000.000" />
                   </div>
                 </div>
               </div>
@@ -3367,10 +3345,7 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
               </span>
             </div>
             <p class="text-slate-600">
-              Sektor Usaha: <strong class="capitalize">${this.escapeHtml(c.sector)}</strong> &bull; Nilai Proyek: <strong>${this.fmtRp(c.projectVal, false)}</strong> &bull; Periode Buku: <strong>Th ${this.escapeHtml(c.year1)} &amp; ${this.escapeHtml(c.year2)}</strong> &bull; Legalitas: <strong>${this.escapeHtml(c.auditStatus)}</strong>
-            </p>
-            <p class="text-slate-500 text-[11px]">
-              KAP: <strong>${this.escapeHtml(c.kapName)}</strong> &bull; Opini Auditor: <strong>${this.escapeHtml(c.opinion)}</strong>
+              Nilai Proyek: <strong>${this.fmtRp(c.projectVal, false)}</strong> &bull; Periode Buku: <strong>Th ${this.escapeHtml(c.year1)} &amp; ${this.escapeHtml(c.year2)}</strong> &bull; Status Laporan: <strong>${this.escapeHtml(c.auditStatus)}</strong>
             </p>
           </div>
 
