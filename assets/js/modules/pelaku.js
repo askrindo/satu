@@ -508,15 +508,15 @@ window.PelakuModule = {
             <div class="flex items-center gap-4 flex-wrap">
               <div class="flex items-center gap-2">
                 <span class="text-xs text-slate-300 font-semibold">Status Neraca Th <span id="lbl_balance_yr1" class="font-bold text-amber-300">${this.escapeHtml(ws.year1)}</span>:</span>
-                <span id="badge_balance_yr1" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                  &check; BALANCE
+                <span id="badge_balance_yr1" class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-500/20 text-slate-300 border border-slate-500/40">
+                  MENUNGGU DATA
                 </span>
               </div>
               <div class="h-4 w-px bg-slate-700 hidden sm:block"></div>
               <div class="flex items-center gap-2">
                 <span class="text-xs text-slate-300 font-semibold">Status Neraca Th <span id="lbl_balance_yr2" class="font-bold text-amber-300">${this.escapeHtml(ws.year2)}</span>:</span>
-                <span id="badge_balance_yr2" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                  &check; BALANCE
+                <span id="badge_balance_yr2" class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-500/20 text-slate-300 border border-slate-500/40">
+                  MENUNGGU DATA
                 </span>
               </div>
             </div>
@@ -653,8 +653,8 @@ window.PelakuModule = {
                     <span class="text-[10px] font-bold uppercase tracking-wider text-purple-600">Evaluasi Finansial Askrindo</span>
                     <h3 class="text-base font-black text-slate-800">Scoring &amp; Kelayakan Rekanan</h3>
                   </div>
-                  <div id="pelaku-grade-badge" class="px-3.5 py-1.5 rounded-xl font-black text-xs bg-emerald-100 text-emerald-800 border border-emerald-300">
-                    GRADE A (SEHAT)
+                  <div id="pelaku-grade-badge" class="px-3.5 py-1.5 rounded-xl font-black text-xs bg-slate-100 text-slate-500 border border-slate-200">
+                    BELUM DIANALISIS
                   </div>
                 </div>
 
@@ -662,13 +662,13 @@ window.PelakuModule = {
                 <div class="p-5 rounded-2xl bg-gradient-to-br from-[#002B49] via-indigo-900 to-[#0A3D62] text-white shadow-lg space-y-2">
                   <div class="flex items-center justify-between text-xs text-indigo-200">
                     <span>Skor Finansial Komposit:</span>
-                    <span id="pelaku-score-num" class="font-mono font-bold text-amber-300 text-sm">88.5 / 100</span>
+                    <span id="pelaku-score-num" class="font-mono font-bold text-slate-300 text-sm">- / 100</span>
                   </div>
                   <div class="w-full h-2.5 bg-white/20 rounded-full overflow-hidden">
-                    <div id="pelaku-score-bar" class="h-full bg-gradient-to-r from-amber-400 to-emerald-400 rounded-full" style="width: 88.5%;"></div>
+                    <div id="pelaku-score-bar" class="h-full bg-gradient-to-r from-amber-400 to-emerald-400 rounded-full" style="width: 0%;"></div>
                   </div>
                   <p id="pelaku-short-summary" class="text-[11px] text-slate-200 pt-1 leading-relaxed">
-                    Perusahaan memiliki struktur permodalan yang sehat dan likuiditas lancar untuk mendukung proyek penjaminan.
+                    Belum ada data laporan keuangan yang dimasukkan untuk dianalisis.
                   </p>
                 </div>
 
@@ -701,9 +701,9 @@ window.PelakuModule = {
                           <span class="font-semibold text-slate-700">Current Ratio % x</span>
                           <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-100 text-purple-700 border border-purple-200 uppercase">Utama</span>
                         </div>
-                        <span class="block text-[10px] text-slate-400">Standar RAC: &ge; 100% &bull; <span id="badge_rac_pass_status" class="font-bold text-emerald-600">LULUS</span></span>
+                        <span class="block text-[10px] text-slate-400">Standar RAC: &ge; 100% &bull; <span id="badge_rac_pass_status" class="font-bold text-slate-400">-</span></span>
                       </div>
-                      <span id="ratio-cr" class="font-mono font-bold text-emerald-600 text-xs shrink-0 text-right">166.13% (1.66x)</span>
+                      <span id="ratio-cr" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 2. Quick Ratio % x -->
@@ -712,7 +712,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Quick Ratio % x</span>
                         <span class="block text-[10px] text-slate-400">Acid Test &bull; Standar: &ge; 100%</span>
                       </div>
-                      <span id="ratio-qr" class="font-mono font-bold text-emerald-600 text-xs shrink-0 text-right">111.90% (1.12x)</span>
+                      <span id="ratio-qr" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 3. Working Capital To Total Asset% -->
@@ -721,7 +721,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Working Capital To Total Asset%</span>
                         <span class="block text-[10px] text-slate-400">Modal Kerja Bersih / Total Aktiva</span>
                       </div>
-                      <span id="ratio-wcta" class="font-mono font-bold text-slate-800 text-xs shrink-0 text-right">24.66%</span>
+                      <span id="ratio-wcta" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 4. DER% x -->
@@ -730,7 +730,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">DER% x</span>
                         <span class="block text-[10px] text-slate-400">Debt to Equity &bull; Standar: &lt; 200%</span>
                       </div>
-                      <span id="ratio-der" class="font-mono font-bold text-slate-800 text-xs shrink-0 text-right">129.80% (1.30x)</span>
+                      <span id="ratio-der" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 5. DAR% x -->
@@ -739,7 +739,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">DAR% x</span>
                         <span class="block text-[10px] text-slate-400">Debt to Asset &bull; Batas: &lt; 70%</span>
                       </div>
-                      <span id="ratio-dar" class="font-mono font-bold text-slate-800 text-xs shrink-0 text-right">56.48% (0.56x)</span>
+                      <span id="ratio-dar" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 6. Long Term Debt to Equity% -->
@@ -748,7 +748,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Long Term Debt to Equity%</span>
                         <span class="block text-[10px] text-slate-400">Hutang Jk. Panjang / Modal Sendiri</span>
                       </div>
-                      <span id="ratio-ltde" class="font-mono font-bold text-slate-800 text-xs shrink-0 text-right">44.12%</span>
+                      <span id="ratio-ltde" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 7. Total Asset Turnover x -->
@@ -757,7 +757,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Total Asset Turnover x</span>
                         <span class="block text-[10px] text-slate-400">Penjualan / Total Aset</span>
                       </div>
-                      <span id="ratio-tato" class="font-mono font-bold text-slate-800 text-xs shrink-0 text-right">1.91x</span>
+                      <span id="ratio-tato" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 8. Working Capital Turnover x -->
@@ -766,7 +766,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Working Capital Turnover x</span>
                         <span class="block text-[10px] text-slate-400">Penjualan / Modal Kerja Bersih (NWC)</span>
                       </div>
-                      <span id="ratio-wcto" class="font-mono font-bold text-slate-800 text-xs shrink-0 text-right">7.75x</span>
+                      <span id="ratio-wcto" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 9. Receivable Turnover x -->
@@ -775,7 +775,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Receivable Turnover x</span>
                         <span class="block text-[10px] text-slate-400">Penjualan / Piutang Usaha</span>
                       </div>
-                      <span id="ratio-rto" class="font-mono font-bold text-slate-800 text-xs shrink-0 text-right">7.75x</span>
+                      <span id="ratio-rto" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 10. Day account Recieveable /Average Collection Period(hari) -->
@@ -784,7 +784,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Day account Recieveable /Average Collection Period(hari)</span>
                         <span class="block text-[10px] text-slate-400">Rata-rata Waktu Penagihan Piutang</span>
                       </div>
-                      <span id="ratio-acp" class="font-mono font-bold text-slate-800 text-xs shrink-0 text-right">47 hari</span>
+                      <span id="ratio-acp" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 11. Inventory Turnover Ratio X -->
@@ -793,7 +793,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Inventory Turnover Ratio X</span>
                         <span class="block text-[10px] text-slate-400">HPP / Persediaan Barang</span>
                       </div>
-                      <span id="ratio-ito" class="font-mono font-bold text-slate-800 text-xs shrink-0 text-right">8.86x</span>
+                      <span id="ratio-ito" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 12. Day Inventory (hari) -->
@@ -802,7 +802,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Day Inventory (hari)</span>
                         <span class="block text-[10px] text-slate-400">Rata-rata Hari Persediaan Tersimpan</span>
                       </div>
-                      <span id="ratio-dio" class="font-mono font-bold text-slate-800 text-xs shrink-0 text-right">41 hari</span>
+                      <span id="ratio-dio" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 13. Day account payable (hari) -->
@@ -811,7 +811,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Day account payable (hari)</span>
                         <span class="block text-[10px] text-slate-400">Rata-rata Pembayaran Utang Usaha</span>
                       </div>
-                      <span id="ratio-dpo" class="font-mono font-bold text-slate-800 text-xs shrink-0 text-right">34 hari</span>
+                      <span id="ratio-dpo" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 14. ROA % x -->
@@ -820,7 +820,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">ROA % x</span>
                         <span class="block text-[10px] text-slate-400">Return on Asset &bull; Standar: &ge; 1,00%</span>
                       </div>
-                      <span id="ratio-roa" class="font-mono font-bold text-purple-600 text-xs shrink-0 text-right">7.72% (0.08x)</span>
+                      <span id="ratio-roa" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 15. ROE % x -->
@@ -829,7 +829,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">ROE % x</span>
                         <span class="block text-[10px] text-slate-400">Return on Equity &bull; Standar: &ge; 5,00%</span>
                       </div>
-                      <span id="ratio-roe" class="font-mono font-bold text-purple-600 text-xs shrink-0 text-right">17.75% (0.18x)</span>
+                      <span id="ratio-roe" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 16. ROI % -->
@@ -838,7 +838,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">ROI %</span>
                         <span class="block text-[10px] text-slate-400">Return on Investment (EBIT / Aktiva)</span>
                       </div>
-                      <span id="ratio-roi" class="font-mono font-bold text-purple-600 text-xs shrink-0 text-right">15.66%</span>
+                      <span id="ratio-roi" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 17. Gross Profit Margin % -->
@@ -847,7 +847,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Gross Profit Margin %</span>
                         <span class="block text-[10px] text-slate-400">Laba Kotor / Penjualan</span>
                       </div>
-                      <span id="ratio-gpm" class="font-mono font-bold text-blue-600 text-xs shrink-0 text-right">15.40%</span>
+                      <span id="ratio-gpm" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 18. Net Profit Margin % x -->
@@ -856,7 +856,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Net Profit Margin % x</span>
                         <span class="block text-[10px] text-slate-400">Laba Bersih / Penjualan &bull; Standar: &gt; 5%</span>
                       </div>
-                      <span id="ratio-npm" class="font-mono font-bold text-blue-600 text-xs shrink-0 text-right">4.04% (0.04x)</span>
+                      <span id="ratio-npm" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 19. Operating Income Ratio % -->
@@ -865,7 +865,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Operating Income Ratio %</span>
                         <span class="block text-[10px] text-slate-400">EBIT / Penjualan (Net Operating Margin)</span>
                       </div>
-                      <span id="ratio-oir" class="font-mono font-bold text-blue-600 text-xs shrink-0 text-right">8.19%</span>
+                      <span id="ratio-oir" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 20. Operating Ratio % -->
@@ -874,7 +874,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Operating Ratio %</span>
                         <span class="block text-[10px] text-slate-400">(HPP + Beban Usaha) / Penjualan</span>
                       </div>
-                      <span id="ratio-opr" class="font-mono font-bold text-slate-800 text-xs shrink-0 text-right">92.28%</span>
+                      <span id="ratio-opr" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 21. Cash Ratio % x -->
@@ -883,7 +883,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Cash Ratio % x</span>
                         <span class="block text-[10px] text-slate-400">Kas &amp; Bank / Hutang Lancar &bull; Standar: &gt; 30%</span>
                       </div>
-                      <span id="ratio-cash" class="font-mono font-bold text-slate-800 text-xs shrink-0 text-right">42.33% (0.42x)</span>
+                      <span id="ratio-cash" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 22. Sales Growth % -->
@@ -892,7 +892,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Sales Growth %</span>
                         <span class="block text-[10px] text-slate-400">Pertumbuhan Penjualan (YoY)</span>
                       </div>
-                      <span id="ratio-sales-growth" class="font-mono font-bold text-emerald-600 text-xs shrink-0 text-right">+21.08%</span>
+                      <span id="ratio-sales-growth" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 23. Operating Profit Margin % -->
@@ -901,7 +901,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Operating Profit Margin %</span>
                         <span class="block text-[10px] text-slate-400">Laba Bruto Operasi / Penjualan</span>
                       </div>
-                      <span id="ratio-opm" class="font-mono font-bold text-blue-600 text-xs shrink-0 text-right">7.72%</span>
+                      <span id="ratio-opm" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 24. Ebitda -->
@@ -910,7 +910,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Ebitda</span>
                         <span class="block text-[10px] text-slate-400">Laba Usaha (EBIT) + Akum. Penyusutan</span>
                       </div>
-                      <span id="ratio-ebitda" class="font-mono font-bold text-indigo-700 text-xs shrink-0 text-right">Rp 26.550.000.000</span>
+                      <span id="ratio-ebitda" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 25. Ebitda to interest % -->
@@ -919,7 +919,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Ebitda to interest %</span>
                         <span class="block text-[10px] text-slate-400">Interest Coverage (EBITDA / Bunga)</span>
                       </div>
-                      <span id="ratio-ebitda-int" class="font-mono font-bold text-emerald-600 text-xs shrink-0 text-right">632.14% (6.32x)</span>
+                      <span id="ratio-ebitda-int" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 26. Ebitda to debt % -->
@@ -928,7 +928,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Ebitda to debt %</span>
                         <span class="block text-[10px] text-slate-400">EBITDA / Total Hutang (Coverage Hutang)</span>
                       </div>
-                      <span id="ratio-ebitda-debt" class="font-mono font-bold text-indigo-600 text-xs shrink-0 text-right">40.11%</span>
+                      <span id="ratio-ebitda-debt" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
 
                     <!-- 27. Net Working Capital -->
@@ -937,7 +937,7 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Net Working Capital</span>
                         <span class="block text-[10px] text-slate-400">Aset Lancar - Hutang Lancar</span>
                       </div>
-                      <span id="ratio-nwc" class="font-mono font-bold text-indigo-700 text-xs shrink-0 text-right">Rp 28.900.000.000</span>
+                      <span id="ratio-nwc" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
                     </div>
                   </div>
                 </div>
@@ -948,8 +948,8 @@ window.PelakuModule = {
                     <i data-lucide="shield-check" class="w-4 h-4 text-purple-600"></i>
                     Rekomendasi Komite Underwriting
                   </span>
-                  <p id="pelaku-narrative" class="text-xs text-slate-700 leading-relaxed font-medium">
-                    Rekanan memenuhi seluruh parameter underwriting penjaminan kredit &amp; surety bond Askrindo. Layak diberikan persetujuan.
+                  <p id="pelaku-narrative" class="text-xs text-slate-500 leading-relaxed font-normal">
+                    Silakan lengkapi pos-pos Laporan Keuangan pada tabel di sebelah kiri untuk melihat evaluasi finansial dan rekomendasi underwriting otomatis.
                   </p>
                 </div>
 
@@ -1017,13 +1017,13 @@ window.PelakuModule = {
               ${row.code}
             </td>
             <td class="py-2 px-2 text-right font-mono font-extrabold text-xs" id="${row.id}_1">
-              0,00
+              -
             </td>
             <td class="py-2 px-1 text-right font-mono text-[11px] font-bold text-slate-600" id="pct_${row.id}_1">
               -
             </td>
             <td class="py-2 px-2 text-right font-mono font-extrabold text-xs" id="${row.id}_2">
-              0,00
+              -
             </td>
             <td class="py-2 px-1 text-right font-mono text-[11px] font-bold text-slate-600" id="pct_${row.id}_2">
               -
@@ -1044,16 +1044,16 @@ window.PelakuModule = {
               ${row.code}
             </td>
             <td class="py-1.5 px-2 text-right font-mono" id="${row.id}_1">
-              0,00
+              -
             </td>
             <td class="py-1.5 px-1 text-right font-mono text-slate-400">
-              8,3%
+              -
             </td>
             <td class="py-1.5 px-2 text-right font-mono" id="${row.id}_2">
-              0,00
+              -
             </td>
             <td class="py-1.5 px-1 text-right font-mono text-slate-400">
-              8,3%
+              -
             </td>
             <td class="py-1.5 px-2 text-right font-mono font-semibold" id="grw_${row.id}">
               -
@@ -1132,6 +1132,9 @@ window.PelakuModule = {
       d2[k] = getVal(k, 2);
     });
 
+    const hasData1 = FIN_ACCOUNT_KEYS.some(k => Math.abs(d1[k]) > 0);
+    const hasData2 = FIN_ACCOUNT_KEYS.some(k => Math.abs(d2[k]) > 0);
+
     // Tahun 1
     const ca1 = d1.cash + d1.otherCa + d1.ar + d1.inv + d1.otherAr + d1.prepaid;
     const nca1 = (d1.fa - Math.abs(d1.depr)) + d1.invest + d1.taxAsset;
@@ -1176,8 +1179,8 @@ window.PelakuModule = {
     const setCalc = (id, v1, v2) => {
       const el1 = document.getElementById(`${id}_1`);
       const el2 = document.getElementById(`${id}_2`);
-      if (el1) el1.textContent = this.formatNumberWithDots(v1, true);
-      if (el2) el2.textContent = this.formatNumberWithDots(v2, true);
+      if (el1) el1.textContent = hasData1 ? this.formatNumberWithDots(v1, true) : '-';
+      if (el2) el2.textContent = hasData2 ? this.formatNumberWithDots(v2, true) : '-';
     };
 
     setCalc('calc_ca', ca1, ca2);
@@ -1202,25 +1205,28 @@ window.PelakuModule = {
       const el1 = document.getElementById(`pct_${id}_1`);
       const el2 = document.getElementById(`pct_${id}_2`);
       if (el1) {
-        const p1 = base1 > 0 ? (v1 / base1) * 100 : 0;
-        el1.textContent = p1.toFixed(1).replace('.', ',') + '%';
+        if (!hasData1 || !base1 || base1 <= 0) {
+          el1.textContent = '-';
+        } else {
+          const p1 = (v1 / base1) * 100;
+          el1.textContent = p1.toFixed(1).replace('.', ',') + '%';
+        }
       }
       if (el2) {
-        const p2 = base2 > 0 ? (v2 / base2) * 100 : 0;
-        el2.textContent = p2.toFixed(1).replace('.', ',') + '%';
+        if (!hasData2 || !base2 || base2 <= 0) {
+          el2.textContent = '-';
+        } else {
+          const p2 = (v2 / base2) * 100;
+          el2.textContent = p2.toFixed(1).replace('.', ',') + '%';
+        }
       }
     };
 
     const setGrw = (id, v1, v2) => {
       const el = document.getElementById(`grw_${id}`);
       if (!el) return;
-      if (v1 === 0 && v2 === 0) {
-        el.textContent = '0,0%';
-        el.className = 'py-1 px-2 text-right font-mono text-[11px] font-bold text-slate-400';
-        return;
-      }
-      if (v1 === 0) {
-        el.textContent = 'N/A';
+      if (!hasData1 || !hasData2 || v1 === 0) {
+        el.textContent = '-';
         el.className = 'py-1 px-2 text-right font-mono text-[11px] font-bold text-slate-400';
         return;
       }
@@ -1274,20 +1280,150 @@ window.PelakuModule = {
     });
 
     // 3. Balance Indicator Neraca
-    const diff1 = Math.abs(ta1 - pass1);
-    const diff2 = Math.abs(ta2 - pass2);
-    const isBal1 = diff1 < 1.0;
-    const isBal2 = diff2 < 1.0;
-
     const b1 = document.getElementById('badge_balance_yr1');
     const b2 = document.getElementById('badge_balance_yr2');
+    let isBal1 = false;
+    let isBal2 = false;
+
     if (b1) {
-      b1.className = `px-2.5 py-1 rounded-full text-xs font-bold ${isBal1 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/25 text-rose-300 border border-rose-500/50'}`;
-      b1.innerHTML = isBal1 ? '&check; BALANCE' : `SELISIH ${this.fmtRp(diff1)}`;
+      if (!hasData1) {
+        b1.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-slate-500/20 text-slate-300 border border-slate-500/40';
+        b1.innerHTML = 'MENUNGGU DATA';
+      } else {
+        const diff1 = Math.abs(ta1 - pass1);
+        isBal1 = diff1 < 1.0;
+        b1.className = `px-2.5 py-1 rounded-full text-xs font-bold ${isBal1 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/25 text-rose-300 border border-rose-500/50'}`;
+        b1.innerHTML = isBal1 ? '&check; BALANCE' : `SELISIH ${this.fmtRp(diff1)}`;
+      }
     }
+
     if (b2) {
-      b2.className = `px-2.5 py-1 rounded-full text-xs font-bold ${isBal2 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/25 text-rose-300 border border-rose-500/50'}`;
-      b2.innerHTML = isBal2 ? '&check; BALANCE' : `SELISIH ${this.fmtRp(diff2)}`;
+      if (!hasData2) {
+        b2.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-slate-500/20 text-slate-300 border border-slate-500/40';
+        b2.innerHTML = 'MENUNGGU DATA';
+      } else {
+        const diff2 = Math.abs(ta2 - pass2);
+        isBal2 = diff2 < 1.0;
+        b2.className = `px-2.5 py-1 rounded-full text-xs font-bold ${isBal2 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/25 text-rose-300 border border-rose-500/50'}`;
+        b2.innerHTML = isBal2 ? '&check; BALANCE' : `SELISIH ${this.fmtRp(diff2)}`;
+      }
+    }
+
+    // JIKA DATA EVALUASI KOSONG / BELUM DIISI:
+    // Reset seluruh 27 indikator rasio, status RAC, dan scoring komposit ke state 'BELUM DIANALISIS' / '-'
+    if (!hasData2) {
+      const ratioIds = [
+        'ratio-cr', 'ratio-qr', 'ratio-wcta', 'ratio-der', 'ratio-dar', 'ratio-ltde',
+        'ratio-tato', 'ratio-wcto', 'ratio-rto', 'ratio-acp', 'ratio-ito', 'ratio-dio',
+        'ratio-dpo', 'ratio-roa', 'ratio-roe', 'ratio-roi', 'ratio-gpm', 'ratio-npm',
+        'ratio-oir', 'ratio-opr', 'ratio-cash', 'ratio-sales-growth', 'ratio-opm',
+        'ratio-ebitda', 'ratio-ebitda-int', 'ratio-ebitda-debt', 'ratio-nwc'
+      ];
+      ratioIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.textContent = '-';
+          el.className = 'font-mono font-bold text-xs shrink-0 text-right text-slate-400';
+        }
+      });
+
+      const bStatus = document.getElementById('badge_rac_pass_status');
+      if (bStatus) {
+        bStatus.textContent = '-';
+        bStatus.className = 'font-bold text-slate-400';
+      }
+
+      const bPass = document.getElementById('badge_rac_pass_count');
+      const bFail = document.getElementById('badge_rac_fail_count');
+      if (bPass) {
+        bPass.textContent = '0 RAC LULUS';
+        bPass.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200';
+      }
+      if (bFail) {
+        bFail.textContent = '0 TIDAK LULUS';
+        bFail.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200';
+      }
+
+      const elBadge = document.getElementById('pelaku-grade-badge');
+      const elScoreNum = document.getElementById('pelaku-score-num');
+      const elScoreBar = document.getElementById('pelaku-score-bar');
+      const elSumm = document.getElementById('pelaku-short-summary');
+      const elNarr = document.getElementById('pelaku-narrative');
+
+      if (elBadge) {
+        elBadge.className = 'px-3.5 py-1.5 rounded-xl font-black text-xs bg-slate-100 text-slate-500 border border-slate-200';
+        elBadge.textContent = 'BELUM DIANALISIS';
+      }
+      if (elScoreNum) elScoreNum.textContent = '- / 100';
+      if (elScoreBar) elScoreBar.style.width = '0%';
+      if (elSumm) elSumm.textContent = 'Belum ada data laporan keuangan yang dimasukkan untuk dianalisis.';
+      if (elNarr) elNarr.textContent = 'Silakan lengkapi pos-pos Laporan Keuangan pada tabel di sebelah kiri untuk melihat evaluasi finansial dan scoring otomatis.';
+
+      const companyRaw = document.getElementById('pelaku-company')?.value.trim() || '';
+      const companyId = window.askrindoDB ? window.askrindoDB.normalizeCompanyId(companyRaw) : '';
+      const auditStatus = document.getElementById('pelaku-audit-status')?.value || 'audited';
+      const projectVal = this.parseFormattedNumber(document.getElementById('inp_projectValue')?.value) || 0;
+
+      const emptyRac = this.computeRacMatrix(
+        { ca: ca1, nca: nca1, ta: ta1, cl: cl1, tl: tl1, eq: eq1, pass: pass1, rev: rev1, gp: gp1, ebit: ebit1, ebt: ebt1, eat: eat1 },
+        { ca: ca2, nca: nca2, ta: ta2, cl: cl2, tl: tl2, eq: eq2, pass: pass2, rev: rev2, gp: gp2, ebit: ebit2, ebt: ebt2, eat: eat2 },
+        y1, y2, projectVal
+      );
+
+      this.currentAnalysis = {
+        hasData: false,
+        company: companyRaw,
+        companyId,
+        year1: y1,
+        year2: y2,
+        auditStatus,
+        projectVal,
+        score: 0,
+        grade: 'BELUM DIANALISIS',
+        summaryText: 'Belum ada data laporan keuangan yang dimasukkan untuk dianalisis.',
+        narrative: 'Silakan lengkapi pos-pos Laporan Keuangan pada tabel di sebelah kiri untuk melihat evaluasi finansial.',
+        ratios27: [
+          { no: 1, name: 'Current Ratio% x', val: '-', std: 'Standar RAC: ≥ 100,00%', pass: false },
+          { no: 2, name: 'Quick Ratio % x', val: '-', std: 'Standar: ≥ 100,00% (Acid Test)', pass: false },
+          { no: 3, name: 'Working Capital To Total Asset%', val: '-', std: 'Modal Kerja Bersih / Total Aktiva', pass: false },
+          { no: 4, name: 'DER% x', val: '-', std: 'Standar Askrindo: < 200,00%', pass: false },
+          { no: 5, name: 'DAR% x', val: '-', std: 'Batas Toleransi: < 70,00%', pass: false },
+          { no: 6, name: 'Long Term Debt to Equity%', val: '-', std: 'Hutang Jk. Panjang / Modal Sendiri', pass: false },
+          { no: 7, name: 'Total Asset Turnover x', val: '-', std: 'Penjualan / Total Aset', pass: false },
+          { no: 8, name: 'Working Capital Turnover x', val: '-', std: 'Penjualan / Modal Kerja Bersih (NWC)', pass: false },
+          { no: 9, name: 'Receivable Turnover x', val: '-', std: 'Penjualan / Piutang Usaha', pass: false },
+          { no: 10, name: 'Day account Recieveable /Average Collection Period(hari)', val: '-', std: 'Rata-rata Waktu Penagihan Piutang', pass: false },
+          { no: 11, name: 'Inventory Turnover Ratio X', val: '-', std: 'HPP / Persediaan Barang', pass: false },
+          { no: 12, name: 'Day Inventory (hari)', val: '-', std: 'Rata-rata Hari Persediaan Tersimpan', pass: false },
+          { no: 13, name: 'Day account payable (hari)', val: '-', std: 'Rata-rata Hari Pembayaran Utang Usaha', pass: false },
+          { no: 14, name: 'ROA % x', val: '-', std: 'Standar: ≥ 1,00%', pass: false },
+          { no: 15, name: 'ROE % x', val: '-', std: 'Standar: ≥ 5,00%', pass: false },
+          { no: 16, name: 'ROI %', val: '-', std: 'Return on Investment (EBIT / Total Aktiva)', pass: false },
+          { no: 17, name: 'Gross Profit Margin %', val: '-', std: 'Laba Kotor / Penjualan', pass: false },
+          { no: 18, name: 'Net Profit Margin % x', val: '-', std: 'Standar Askrindo: > 5,00%', pass: false },
+          { no: 19, name: 'Operating Income Ratio %', val: '-', std: 'EBIT / Penjualan (Net Operating Margin)', pass: false },
+          { no: 20, name: 'Operating Ratio %', val: '-', std: '(HPP + Beban Usaha) / Penjualan', pass: false },
+          { no: 21, name: 'Cash Ratio % x', val: '-', std: 'Standar Askrindo: > 30,00%', pass: false },
+          { no: 22, name: 'Sales Growth %', val: '-', std: 'Pertumbuhan Penjualan YoY', pass: false },
+          { no: 23, name: 'Operating Profit Margin %', val: '-', std: 'Laba Bruto Operasional / Penjualan', pass: false },
+          { no: 24, name: 'Ebitda', val: '-', std: 'Laba Usaha (EBIT) + Akum. Penyusutan', pass: false },
+          { no: 25, name: 'Ebitda to interest %', val: '-', std: 'Interest Coverage Ratio', pass: false },
+          { no: 26, name: 'Ebitda to debt %', val: '-', std: 'EBITDA / Total Hutang (Coverage Hutang)', pass: false },
+          { no: 27, name: 'Net Working Capital', val: '-', std: 'Aktiva Lancar - Hutang Lancar', pass: false }
+        ],
+        racList: emptyRac,
+        passRacCount: 0,
+        failRacCount: 0,
+        d1,
+        d2,
+        totals1: { ca: ca1, nca: nca1, ta: ta1, cl: cl1, tl: tl1, eq: eq1, pass: pass1, rev: rev1, gp: gp1, ebit: ebit1, ebt: ebt1, eat: eat1 },
+        totals2: { ca: ca2, nca: nca2, ta: ta2, cl: cl2, tl: tl2, eq: eq2, pass: pass2, rev: rev2, gp: gp2, ebit: ebit2, ebt: ebt2, eat: eat2 }
+      };
+
+      this.syncWorkspaceFromDom();
+      this.updateCompanyIdBadgeAndBanner();
+      this.updateSaveIndicators();
+      return;
     }
 
     // 4. Perhitungan Rasio Finansial Komprehensif (27 Indikator Finansial)
@@ -1558,6 +1694,7 @@ window.PelakuModule = {
     const companyRaw = document.getElementById('pelaku-company')?.value.trim() || '';
     const companyId = window.askrindoDB ? window.askrindoDB.normalizeCompanyId(companyRaw) : '';
     this.currentAnalysis = {
+      hasData: true,
       companyId: companyId || '-',
       company: companyRaw || 'PT Rekanan',
       sector: document.getElementById('pelaku-sector')?.value || 'konstruksi',
@@ -1606,10 +1743,29 @@ window.PelakuModule = {
   },
 
   computeRacMatrix(totals1, totals2, yr1, yr2, projectVal) {
+    const hasData1 = totals1 && (totals1.ta > 0 || totals1.tl > 0 || totals1.rev > 0);
+    const hasData2 = totals2 && (totals2.ta > 0 || totals2.tl > 0 || totals2.rev > 0);
+
+    if (!hasData2) {
+      return [
+        {
+          no: 1,
+          name: 'Current Ratio (CR)',
+          badge: 'Rasio Utama',
+          formula: 'Aset Lancar / Liab. Lancar',
+          rac: '&ge; 100,00%',
+          v1: hasData1 ? (totals1.cl === 0 ? 'N/A (Bebas Utang)' : `${this.fmtNum((totals1.ca / totals1.cl) * 100, 2)}%`) : '-',
+          v2: '-',
+          pass: false,
+          ket: 'Belum ada data laporan keuangan yang dimasukkan untuk dianalisis.'
+        }
+      ];
+    }
+
     // Rasio Utama: Current Ratio (CR) - Standar Tunggal RAC Likuiditas Askrindo (>= 100,00%)
-    const isNoDebt1 = !totals1.cl || totals1.cl === 0;
+    const isNoDebt1 = hasData1 && (!totals1.cl || totals1.cl === 0);
     const isNoDebt2 = !totals2.cl || totals2.cl === 0;
-    const cr1 = isNoDebt1 ? null : (totals1.ca / totals1.cl) * 100;
+    const cr1 = !hasData1 ? null : (isNoDebt1 ? null : (totals1.ca / totals1.cl) * 100);
     const cr2 = isNoDebt2 ? null : (totals2.ca / totals2.cl) * 100;
     const passCR = isNoDebt2 ? true : (cr2 >= 100);
 
@@ -1620,7 +1776,7 @@ window.PelakuModule = {
         badge: 'Rasio Utama',
         formula: 'Aset Lancar / Liab. Lancar',
         rac: '&ge; 100,00%',
-        v1: isNoDebt1 ? 'N/A (Bebas Utang)' : `${this.fmtNum(cr1, 2)}%`,
+        v1: !hasData1 ? '-' : (isNoDebt1 ? 'N/A (Bebas Utang)' : `${this.fmtNum(cr1, 2)}%`),
         v2: isNoDebt2 ? 'N/A (Bebas Utang)' : `${this.fmtNum(cr2, 2)}%`,
         pass: passCR,
         ket: isNoDebt2
@@ -1633,11 +1789,17 @@ window.PelakuModule = {
   },
 
   autoBalanceAllYears() {
+    const d1Has = FIN_ACCOUNT_KEYS.some(k => (this.parseFormattedNumber(document.getElementById(`inp_${k}_1`)?.value) || 0) !== 0);
+    const d2Has = FIN_ACCOUNT_KEYS.some(k => (this.parseFormattedNumber(document.getElementById(`inp_${k}_2`)?.value) || 0) !== 0);
+    if (!d1Has && !d2Has) {
+      window.askrindoApp.showToast('Belum ada data neraca yang dimasukkan untuk diseimbangkan.', 'warning');
+      return;
+    }
     [1, 2].forEach(yr => {
       this.autoBalanceYear(yr);
     });
     this.calculateRatios();
-    window.askrindoApp.showToast('Neraca kedua tahun berhasil diseimbangkan otomatis (Aktiva = Passiva)!', 'success');
+    window.askrindoApp.showToast('Neraca berhasil diseimbangkan otomatis (Aktiva = Passiva)!', 'success');
   },
 
   autoBalanceYear(yr) {
@@ -2292,6 +2454,11 @@ window.PelakuModule = {
     this.calculateRatios();
     const c = this.currentAnalysis;
     if (!c || !window.askrindoDB) return null;
+
+    if (!c.hasData) {
+      window.askrindoApp.showToast('Laporan keuangan masih kosong. Silakan lengkapi angka laporan keuangan terlebih dahulu sebelum menyimpan.', 'warning');
+      return null;
+    }
 
     const payload = {
       companyName,
@@ -3585,6 +3752,11 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
     this.calculateRatios();
     const c = this.currentAnalysis;
     if (!c) return;
+
+    if (!c.hasData) {
+      window.askrindoApp.showToast('Belum ada data laporan keuangan yang dimasukkan untuk dicetak.', 'warning');
+      return;
+    }
 
     const modal = document.getElementById('pelaku-modal-container');
     if (!modal) return;
