@@ -1696,12 +1696,29 @@ window.PelakuModule = {
     // Parameter 19: Tambahan Sumber Pembiayaan Bank/LKNB
     scores.finSource = (finSource === 'tidak_ada') ? 40 : 100;
 
-    // Parameter 20: Tren Kondisi Laporan Keuangan 2 Tahun Terakhir
-    let trendScore = 50;
+    // Parameter 20: Tren Kondisi Laporan Keuangan 2 Tahun Terakhir (Auto-computed dari data Y1 vs Y2)
+    let trendScore = 50; // default: belum ada data Y1 → positif stabil
     if (hasData1 && hasData2) {
-      if (salesGrowth > 3 && eat2 >= eat1 && eat2 > 0) trendScore = 100;
-      else if (salesGrowth < 0 && eat2 < eat1) trendScore = 0;
-      else trendScore = 50;
+      // Hitung arah tiap indikator kunci (positif = naik/membaik, negatif = turun/memburuk)
+      const indikators = [
+        // 1. Pertumbuhan Penjualan (bobot 2x)
+        rev1 > 0 ? (rev2 > rev1 ? 2 : (rev2 === rev1 ? 0 : -2)) : 0,
+        // 2. Pertumbuhan Laba Bersih (bobot 2x)
+        (eat1 !== 0) ? (eat2 > eat1 && eat2 > 0 ? 2 : (eat2 === eat1 ? 0 : -2)) : (eat2 > 0 ? 2 : 0),
+        // 3. Pertumbuhan Total Aset
+        ta1 > 0 ? (ta2 > ta1 ? 1 : (ta2 === ta1 ? 0 : -1)) : 0,
+        // 4. Pertumbuhan Net Working Capital
+        (ca1 - cl1) !== 0 ? ((ca2 - cl2) > (ca1 - cl1) ? 1 : ((ca2 - cl2) === (ca1 - cl1) ? 0 : -1)) : 0,
+        // 5. Pertumbuhan Ekuitas
+        eq1 > 0 ? (eq2 > eq1 ? 1 : (eq2 === eq1 ? 0 : -1)) : 0
+      ];
+      const trendSum = indikators.reduce((a, b) => a + b, 0); // range: -7 to +7
+      // A: Tren positif naik (skor 100) → mayoritas indikator membaik
+      // B: Positif stabil (skor 50) → seimbang
+      // C: Negatif (skor 0) → mayoritas indikator memburuk
+      if (trendSum >= 3) trendScore = 100;       // ≥ 3 poin positif → Tren positif naik
+      else if (trendSum >= 0) trendScore = 50;   // 0–2 → Positif stabil
+      else trendScore = 0;                        // negatif → Tren negatif
     }
     scores.trend = trendScore;
 
