@@ -705,10 +705,7 @@ window.PelakuModule = {
                     <!-- 1. Current Ratio% x -->
                     <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
-                        <div class="flex items-center gap-1">
-                          <span class="font-semibold text-slate-700">Current Ratio % x</span>
-                          <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-100 text-purple-700 border border-purple-200 uppercase">Utama</span>
-                        </div>
+                        <span class="font-semibold text-slate-700">Current Ratio % x</span>
                         <span class="block text-[10px] text-slate-400">Standar RAC: &ge; 100% &bull; <span id="badge_rac_pass_status" class="font-bold text-slate-400">-</span></span>
                       </div>
                       <span id="ratio-cr" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
@@ -1760,7 +1757,6 @@ window.PelakuModule = {
         {
           no: 1,
           name: 'Current Ratio (CR)',
-          badge: 'Rasio Utama',
           formula: 'Aset Lancar / Liab. Lancar',
           rac: '&ge; 100,00%',
           v1: hasData1 ? (totals1.cl === 0 ? 'N/A (Bebas Utang)' : `${this.fmtNum((totals1.ca / totals1.cl) * 100, 2)}%`) : '-',
@@ -1771,7 +1767,7 @@ window.PelakuModule = {
       ];
     }
 
-    // Rasio Utama: Current Ratio (CR) - Standar Tunggal RAC Likuiditas Askrindo (>= 100,00%)
+    // Current Ratio (CR) - Standar Tunggal RAC Likuiditas Askrindo (>= 100,00%)
     const isNoDebt1 = hasData1 && (!totals1.cl || totals1.cl === 0);
     const isNoDebt2 = !totals2.cl || totals2.cl === 0;
     const cr1 = !hasData1 ? null : (isNoDebt1 ? null : (totals1.ca / totals1.cl) * 100);
@@ -1782,7 +1778,6 @@ window.PelakuModule = {
       {
         no: 1,
         name: 'Current Ratio (CR)',
-        badge: 'Rasio Utama',
         formula: 'Aset Lancar / Liab. Lancar',
         rac: '&ge; 100,00%',
         v1: !hasData1 ? '-' : (isNoDebt1 ? 'N/A (Bebas Utang)' : `${this.fmtNum(cr1, 2)}%`),
@@ -3818,18 +3813,18 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
             </p>
           </div>
 
-          <!-- Matriks Kepatuhan Standar Risk Acceptance Criteria (RAC) Askrindo - Rasio Utama -->
+          <!-- Matriks Kepatuhan Standar Risk Acceptance Criteria (RAC) Askrindo -->
           <div>
             <div class="flex items-center justify-between mb-2">
-              <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Kepatuhan Standar Risk Acceptance Criteria (RAC) &bull; Rasio Utama</h4>
+              <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Kepatuhan Standar Risk Acceptance Criteria (RAC)</h4>
               <span class="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded">
-                ${c.passRacCount} RAC LULUS &bull; Indikator Utama: Current Ratio (&ge; 100%)
+                ${c.passRacCount} RAC LULUS &bull; Current Ratio (&ge; 100%)
               </span>
             </div>
             <table class="w-full text-xs border border-slate-200">
               <tr class="bg-slate-100 font-bold">
                 <th class="p-2 text-center w-7">No</th>
-                <th class="p-2 text-left">Indikator Rasio Utama</th>
+                <th class="p-2 text-left">Indikator Rasio</th>
                 <th class="p-2 text-left">Rumus Perhitungan</th>
                 <th class="p-2 text-center">Standar RAC</th>
                 <th class="p-2 text-center">Tahun ${c.year1}</th>
