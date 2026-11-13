@@ -1861,21 +1861,6 @@ window.PelakuModule = {
       passRacCount,
       failRacCount
     };
-      der: derX,
-      dar: darVal,
-      npm: npmVal,
-      roe: roeVal,
-      roa: roaVal,
-      salesGrowth,
-      netProfitGrowth,
-      d1,
-      d2,
-      totals1,
-      totals2,
-      racList,
-      passRacCount,
-      failRacCount
-    };
 
     this.syncWorkspaceFromDom();
     this.updateCompanyIdBadgeAndBanner();
