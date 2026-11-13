@@ -154,10 +154,10 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
 INSERT INTO public.users (id, nip, name, email, password, role, division, branch, avatar, allowed_apps, status)
 VALUES
 ('USR-001', '19850101', 'Ahmad Faisal, S.E., M.M.', 'admin.satu@askrindo.co.id', 'password123', 'Super Administrator', 'Divisi Teknologi Informasi & Digitalisasi', 'Kantor Pusat - Jakarta', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80', ARRAY['kabar', 'ttk', 'bus', 'pelaku', 'cepat', 'admin'], 'active'),
-('USR-002', '19900315', 'Budi Santoso, AAIJ', 'budi.santoso@askrindo.co.id', 'password123', 'Senior Underwriter', 'Divisi Underwriting & Penjaminan Non-Bank', 'Kantor Cabang Utama Jakarta Gambir', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80', ARRAY['kabar', 'bus', 'pelaku', 'cepat'], 'active'),
-('USR-003', '19940722', 'Siti Rahmawati, S.E.', 'siti.rahma@askrindo.co.id', 'password123', 'Account Officer KUR & UMKM', 'Divisi Penjaminan Perbankan & Program KUR', 'Kantor Cabang Surabaya', 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=256&q=80', ARRAY['ttk', 'pelaku'], 'active'),
-('USR-004', '19971105', 'Dian Permana, S.Kom.', 'dian.permana@askrindo.co.id', 'password123', 'Marketing & Relationship Officer', 'Divisi Pemasaran Korporasi & Broker', 'Kantor Cabang Medan', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&q=80', ARRAY['kabar', 'bus', 'cepat'], 'active'),
-('USR-005', '20010910', 'Rizky Pratama', 'rizky.pratama@askrindo.co.id', 'password123', 'Staff Operasional (Junior)', 'Divisi Pelayanan & Operasional Cabang', 'Kantor Cabang Bandung', 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=256&q=80', ARRAY['kabar'], 'active')
+('USR-002', '19900315', 'Budi Santoso, AAIJ', 'budi.santoso@askrindo.co.id', 'password123', 'Underwriter', 'Divisi Underwriting & Penjaminan Non-Bank', 'Kantor Cabang Utama Jakarta Gambir', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80', ARRAY['kabar', 'bus', 'pelaku', 'cepat'], 'active'),
+('USR-003', '19940722', 'Siti Rahmawati, S.E.', 'siti.rahma@askrindo.co.id', 'password123', 'Relationship Manager', 'Divisi Penjaminan Perbankan & Program KUR', 'Kantor Cabang Surabaya', 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=256&q=80', ARRAY['ttk', 'pelaku'], 'active'),
+('USR-004', '19971105', 'Dian Permana, S.Kom.', 'dian.permana@askrindo.co.id', 'password123', 'Business Head', 'Divisi Pemasaran Korporasi & Broker', 'Kantor Cabang Medan', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&q=80', ARRAY['kabar', 'bus', 'cepat'], 'active'),
+('USR-005', '20010910', 'Rizky Pratama', 'rizky.pratama@askrindo.co.id', 'password123', 'Branch Support', 'Divisi Pelayanan & Operasional Cabang', 'Kantor Cabang Bandung', 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=256&q=80', ARRAY['kabar'], 'active')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.sppa_records (id, date, insured_name, insured_type, nik_npwp, phone, email, address, product_type, period_start, period_end, risk_location, total_tsi, estimated_premium, status, registered_by, branch)
@@ -170,8 +170,8 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.audit_logs (id, timestamp, user_name, role, sub_app, action, details)
 VALUES
 ('LOG-1001', '2026-11-12 09:35:10+00', 'Ahmad Faisal, S.E., M.M.', 'Super Administrator', 'ADMIN', 'Konfigurasi Hak Akses', 'Memperbarui hak akses aplikasi untuk user Rizky Pratama (NIP 20010910)'),
-('LOG-1002', '2026-11-12 09:12:44+00', 'Budi Santoso, AAIJ', 'Senior Underwriter', 'KABAR', 'Simulasi Premi Kebakaran', 'Melakukan kalkulasi tarif kebakaran okupasi Industri Garmen TSI Rp 12.000.000.000'),
-('LOG-1003', '2026-11-12 08:45:20+00', 'Siti Rahmawati, S.E.', 'Account Officer KUR', 'TTK', 'Simulasi Angsuran KUR', 'Simulasi KUR Mikro Rp 50.000.000 tenor 36 bulan suku bunga subsidi 6%')
+('LOG-1002', '2026-11-12 09:12:44+00', 'Budi Santoso, AAIJ', 'Underwriter', 'KABAR', 'Simulasi Premi Kebakaran', 'Melakukan kalkulasi tarif kebakaran okupasi Industri Garmen TSI Rp 12.000.000.000'),
+('LOG-1003', '2026-11-12 08:45:20+00', 'Siti Rahmawati, S.E.', 'Relationship Manager', 'TTK', 'Simulasi Angsuran KUR', 'Simulasi KUR Mikro Rp 50.000.000 tenor 36 bulan suku bunga subsidi 6%')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.system_settings (id, app_name, company_name, member_of, maintenance_mode, notification_banner)

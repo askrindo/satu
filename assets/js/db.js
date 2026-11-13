@@ -44,7 +44,7 @@ const INITIAL_USERS = [
     name: 'Budi Santoso, AAIJ',
     email: 'budi.santoso@askrindo.co.id',
     password: 'password123',
-    role: 'Senior Underwriter',
+    role: 'Underwriter',
     division: 'Divisi Underwriting & Penjaminan Non-Bank',
     branch: 'Kantor Cabang Utama Jakarta Gambir',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80',
@@ -59,7 +59,7 @@ const INITIAL_USERS = [
     name: 'Siti Rahmawati, S.E.',
     email: 'siti.rahma@askrindo.co.id',
     password: 'password123',
-    role: 'Account Officer KUR & UMKM',
+    role: 'Relationship Manager',
     division: 'Divisi Penjaminan Perbankan & Program KUR',
     branch: 'Kantor Cabang Surabaya',
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=256&q=80',
@@ -74,7 +74,7 @@ const INITIAL_USERS = [
     name: 'Dian Permana, S.Kom.',
     email: 'dian.permana@askrindo.co.id',
     password: 'password123',
-    role: 'Marketing & Relationship Officer',
+    role: 'Business Head',
     division: 'Divisi Pemasaran Korporasi & Broker',
     branch: 'Kantor Cabang Medan',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&q=80',
@@ -89,7 +89,7 @@ const INITIAL_USERS = [
     name: 'Rizky Pratama',
     email: 'rizky.pratama@askrindo.co.id',
     password: 'password123',
-    role: 'Staff Operasional (Junior)',
+    role: 'Branch Support',
     division: 'Divisi Pelayanan & Operasional Cabang',
     branch: 'Kantor Cabang Bandung',
     avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=256&q=80',
@@ -234,7 +234,7 @@ const INITIAL_AUDIT = [
     id: 'LOG-1002',
     timestamp: '2026-11-12T09:12:44Z',
     user: 'Budi Santoso, AAIJ',
-    role: 'Senior Underwriter',
+    role: 'Underwriter',
     subApp: 'KABAR',
     action: 'Simulasi Premi Kebakaran',
     details: 'Melakukan kalkulasi tarif kebakaran okupasi Industri Garmen TSI Rp 12.000.000.000'
@@ -243,7 +243,7 @@ const INITIAL_AUDIT = [
     id: 'LOG-1003',
     timestamp: '2026-11-12T08:45:20Z',
     user: 'Siti Rahmawati, S.E.',
-    role: 'Account Officer KUR',
+    role: 'Relationship Manager',
     subApp: 'TTK',
     action: 'Simulasi Angsuran KUR',
     details: 'Simulasi KUR Mikro Rp 50.000.000 tenor 36 bulan suku bunga subsidi 6%'
@@ -370,26 +370,51 @@ class AskrindoDB {
     this.init();
   }
 
+  normalizeLegacyRole(role) {
+    const legacyMap = {
+      'Senior Underwriter': 'Underwriter',
+      'Account Officer KUR & UMKM': 'Relationship Manager',
+      'Account Officer KUR': 'Relationship Manager',
+      'Marketing & Relationship Officer': 'Business Head',
+      'Marketing Officer': 'Relationship Manager',
+      'Staff Operasional (Junior)': 'Branch Support',
+      'Staff Operasional': 'Branch Support'
+    };
+    return legacyMap[role] || role;
+  }
+
   init() {
     // 1. Inisialisasi Cache Lokal jika kosong
     if (!localStorage.getItem(DB_KEYS.USERS)) {
       localStorage.setItem(DB_KEYS.USERS, JSON.stringify(INITIAL_USERS));
     } else {
-      // Auto-migrate: Pastikan modul 'cepat' tersedia bagi admin/underwriter
+      // Auto-migrate: Pastikan modul 'cepat' tersedia & role diperbarui ke struktur baru
       try {
         const users = JSON.parse(localStorage.getItem(DB_KEYS.USERS)) || [];
         users.forEach(u => {
           if ((u.id === 'USR-001' || u.id === 'USR-002' || u.id === 'USR-004' || u.role === 'Super Administrator') && !u.allowedApps.includes('cepat')) {
             u.allowedApps.push('cepat');
           }
+          if (u.role) {
+            u.role = this.normalizeLegacyRole(u.role);
+          }
         });
         localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
 
         // Update active session if logged in
         const sess = this.getCurrentSession();
-        if (sess && (sess.id === 'USR-001' || sess.id === 'USR-002' || sess.id === 'USR-004' || sess.role === 'Super Administrator') && !sess.allowedApps.includes('cepat')) {
-          sess.allowedApps.push('cepat');
-          this.setSession(sess);
+        if (sess) {
+          let sessUpdated = false;
+          if ((sess.id === 'USR-001' || sess.id === 'USR-002' || sess.id === 'USR-004' || sess.role === 'Super Administrator') && !sess.allowedApps.includes('cepat')) {
+            sess.allowedApps.push('cepat');
+            sessUpdated = true;
+          }
+          const normalizedSessRole = this.normalizeLegacyRole(sess.role);
+          if (normalizedSessRole !== sess.role) {
+            sess.role = normalizedSessRole;
+            sessUpdated = true;
+          }
+          if (sessUpdated) this.setSession(sess);
         }
       } catch (e) {}
     }
@@ -470,7 +495,7 @@ class AskrindoDB {
           name: u.name,
           email: u.email,
           password: u.password,
-          role: u.role,
+          role: this.normalizeLegacyRole(u.role),
           division: u.division,
           branch: u.branch,
           avatar: u.avatar,
@@ -523,7 +548,7 @@ class AskrindoDB {
           id: l.id,
           timestamp: l.timestamp,
           user: l.user_name,
-          role: l.role,
+          role: this.normalizeLegacyRole(l.role),
           subApp: l.sub_app,
           action: l.action,
           details: l.details

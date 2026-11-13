@@ -8,6 +8,25 @@ window.AdminModule = {
   searchQuery: '',
   roleFilter: 'all',
 
+  STANDARD_ROLES: [
+    'Super Administrator',
+    'Division Head',
+    'Dept Head',
+    'Unit Head',
+    'Officer',
+    'Regional Head',
+    'Regional Operation Head',
+    'Regional Business Head',
+    'Branch Manager',
+    'Technical Head',
+    'Business Head',
+    'Underwriter',
+    'Claims',
+    'Relationship Manager',
+    'Subrogation Analyst',
+    'Branch Support'
+  ],
+
   render() {
     const user = window.authService.getCurrentUser();
     if (!user || !window.authService.canAccessAdmin()) {
@@ -30,7 +49,7 @@ window.AdminModule = {
       return matchSearch && matchRole;
     });
 
-    const uniqueRoles = Array.from(new Set(users.map(u => u.role)));
+    const uniqueRoles = Array.from(new Set([...this.STANDARD_ROLES, ...users.map(u => u.role)]));
 
     return `
       <div class="space-y-6 animate-fadeIn">
@@ -548,6 +567,12 @@ window.AdminModule = {
     if (!container) return;
 
     const allowedApps = user ? user.allowedApps : ['kabar'];
+    const normalizedRole = user
+      ? (window.askrindoDB?.normalizeLegacyRole ? window.askrindoDB.normalizeLegacyRole(user.role) : user.role)
+      : '';
+    const resolvedRole = user
+      ? (this.STANDARD_ROLES.includes(normalizedRole) ? normalizedRole : 'Officer')
+      : 'Officer';
 
     container.innerHTML = `
       <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
@@ -616,11 +641,7 @@ window.AdminModule = {
             <div>
               <label class="block font-semibold text-slate-700 mb-1">Jabatan / Role</label>
               <select id="modal-role" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500 bg-white">
-                <option value="Super Administrator" ${user && user.role === 'Super Administrator' ? 'selected' : ''}>Super Administrator</option>
-                <option value="Senior Underwriter" ${user && user.role === 'Senior Underwriter' ? 'selected' : ''}>Senior Underwriter</option>
-                <option value="Account Officer KUR & UMKM" ${user && user.role.includes('Account Officer') ? 'selected' : ''}>Account Officer KUR & UMKM</option>
-                <option value="Marketing & Relationship Officer" ${user && user.role.includes('Marketing') ? 'selected' : ''}>Marketing Officer</option>
-                <option value="Staff Operasional (Junior)" ${user && user.role.includes('Staff Operasional') ? 'selected' : ''}>Staff Operasional</option>
+                ${this.STANDARD_ROLES.map(r => `<option value="${r}" ${resolvedRole === r ? 'selected' : ''}>${r}</option>`).join('')}
               </select>
             </div>
 
