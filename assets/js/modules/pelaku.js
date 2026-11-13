@@ -643,31 +643,8 @@ window.PelakuModule = {
               </div>
             </div>
 
-            <!-- Kolom Kanan: Kepatuhan Standar RAC & Scoring Evaluasi Underwriting Askrindo (4 cols) -->
+            <!-- Kolom Kanan: Scoring & Evaluasi Underwriting Askrindo (4 cols, Sticky) -->
             <div class="lg:col-span-4 space-y-6">
-              <!-- Card Kepatuhan Standar RAC (Rasio Utama) -->
-              <div id="pelaku-rac-card" class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3">
-                <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
-                  <div>
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Standar RAC Likuiditas</span>
-                    <h3 class="text-sm font-black text-slate-800 flex items-center gap-1.5 mt-0.5">
-                      <i data-lucide="shield-check" class="w-4 h-4 text-purple-600 shrink-0"></i>
-                      <span>Indikator Rasio Utama (RAC)</span>
-                    </h3>
-                  </div>
-                  <div class="flex items-center gap-1.5 shrink-0">
-                    <span id="badge_rac_pass_count" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                      1 RAC LULUS
-                    </span>
-                    <span id="badge_rac_fail_count" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                      0 TIDAK LULUS
-                    </span>
-                  </div>
-                </div>
-
-                <div id="racTableBody" class="space-y-3 text-xs"></div>
-              </div>
-
               <div class="sticky top-20 bg-white rounded-3xl p-6 border-2 border-purple-500/20 shadow-xl space-y-5">
                 
                 <!-- Header Score -->
@@ -695,20 +672,43 @@ window.PelakuModule = {
                   </p>
                 </div>
 
-                <!-- Ratio Breakdown -->
+                <!-- Indikator Rasio Utama (RAC Askrindo) Highlight Box -->
+                <div id="pelaku-rac-highlight-box" class="rounded-2xl border border-purple-200 bg-purple-50/40 p-3.5 space-y-2.5">
+                  <div class="flex items-start justify-between gap-2">
+                    <div>
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="font-extrabold text-slate-900 text-xs">Current Ratio (CR)</span>
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-purple-100 text-purple-800 border border-purple-200 uppercase tracking-wider">Rasio Utama</span>
+                      </div>
+                      <p class="text-[10px] text-slate-500 mt-0.5">Aset Lancar / Liab. Lancar &bull; Standar RAC: <strong class="text-slate-700">&ge; 100,00%</strong></p>
+                    </div>
+                    <span id="badge_rac_pass_status" class="inline-block px-2.5 py-1 rounded-md font-bold text-[10px] shrink-0 bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      LULUS RAC
+                    </span>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-2 text-center text-xs">
+                    <div class="bg-white rounded-xl border border-slate-200 py-2 px-2">
+                      <span class="block text-[10px] text-slate-400 font-semibold">Tahun <span id="thRacYear1">${this.escapeHtml(ws.year1)}</span></span>
+                      <span id="rac-cr-val1" class="font-mono font-bold text-slate-700 text-xs">151.42%</span>
+                    </div>
+                    <div class="bg-emerald-50 rounded-xl border border-emerald-200 py-2 px-2">
+                      <span class="block text-[10px] text-emerald-800 font-semibold">Tahun <span id="thRacYear2">${this.escapeHtml(ws.year2)}</span> (Eval)</span>
+                      <span id="ratio-cr" class="font-mono font-bold text-xs text-emerald-700">166.13%</span>
+                    </div>
+                  </div>
+
+                  <p id="rac-cr-desc" class="text-[11px] leading-relaxed text-slate-700 bg-white rounded-xl border border-slate-200/80 p-2.5">
+                    Current Ratio memenuhi standar RAC (&ge; 100,00%). Debitur memiliki likuiditas lancar memadai untuk melunasi kewajiban jangka pendek.
+                  </p>
+                </div>
+
+                <!-- Ratio Breakdown Lainnya -->
                 <div class="space-y-3 text-xs">
                   <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px] flex items-center justify-between">
-                    <span>Indikator Rasio Utama (Th <span id="lbl_ratio_eval_yr">${this.escapeHtml(ws.year2)}</span>)</span>
+                    <span>Rasio Finansial Lainnya (Th <span id="lbl_ratio_eval_yr">${this.escapeHtml(ws.year2)}</span>)</span>
                     <span class="text-[10px] font-normal text-slate-400">Standar Askrindo</span>
                   </h4>
-
-                  <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
-                    <div>
-                      <span class="font-semibold text-slate-700">Current Ratio (Likuiditas)</span>
-                      <span class="block text-[10px] text-slate-400">Standar: &ge; 120%</span>
-                    </div>
-                    <span id="ratio-cr" class="font-mono font-bold text-emerald-600 text-sm">166.13%</span>
-                  </div>
 
                   <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
                     <div>
@@ -1224,44 +1224,20 @@ window.PelakuModule = {
     const passRacCount = racList.filter(r => r.pass).length;
     const failRacCount = racList.length - passRacCount;
 
-    const racBody = document.getElementById('racTableBody');
+    const racItem = racList[0] || {};
     const thRac1 = document.getElementById('thRacYear1');
     const thRac2 = document.getElementById('thRacYear2');
+    const crVal1 = document.getElementById('rac-cr-val1');
+    const crDesc = document.getElementById('rac-cr-desc');
+    const bStatus = document.getElementById('badge_rac_pass_status');
+
     if (thRac1) thRac1.textContent = y1;
     if (thRac2) thRac2.textContent = y2;
-
-    if (racBody) {
-      racBody.innerHTML = racList.map(r => `
-        <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-2.5">
-          <div class="flex items-start justify-between gap-2">
-            <div>
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="font-bold text-slate-800 text-xs">${r.name}</span>
-                ${r.badge ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 border border-purple-200">${r.badge}</span>` : ''}
-              </div>
-              <p class="text-[11px] font-mono text-slate-500 mt-0.5">${r.formula} &bull; Standar: <strong class="text-slate-700">${r.rac}</strong></p>
-            </div>
-            <span class="inline-block px-2.5 py-1 rounded-md font-bold text-[10px] shrink-0 ${r.pass ? 'bg-emerald-50 text-emerald-700 border border-emerald-300' : 'bg-rose-50 text-rose-700 border border-rose-300'}">
-              ${r.pass ? 'LULUS' : 'TIDAK LULUS'}
-            </span>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2 text-center">
-            <div class="bg-white rounded-xl border border-slate-200 py-2 px-2.5">
-              <span class="block text-[10px] text-slate-400 font-semibold">Tahun <span id="thRacYear1">${this.escapeHtml(y1)}</span></span>
-              <span class="font-mono font-bold text-slate-700 text-xs">${r.v1}</span>
-            </div>
-            <div class="bg-emerald-50/70 rounded-xl border border-emerald-200 py-2 px-2.5">
-              <span class="block text-[10px] text-emerald-800 font-semibold">Tahun <span id="thRacYear2">${this.escapeHtml(y2)}</span> (Eval)</span>
-              <span class="font-mono font-bold text-xs ${r.pass ? 'text-emerald-700' : 'text-rose-700'}">${r.v2}</span>
-            </div>
-          </div>
-
-          <p class="text-[11px] leading-relaxed text-slate-600 bg-white rounded-xl border border-slate-200/80 p-2.5">
-            ${r.ket}
-          </p>
-        </div>
-      `).join('');
+    if (crVal1) crVal1.textContent = racItem.v1 || '-';
+    if (crDesc) crDesc.textContent = racItem.ket || '-';
+    if (bStatus) {
+      bStatus.textContent = racItem.pass ? 'LULUS RAC' : 'TIDAK LULUS RAC';
+      bStatus.className = `inline-block px-2.5 py-1 rounded-md font-bold text-[10px] shrink-0 ${racItem.pass ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300'}`;
     }
 
     const bPass = document.getElementById('badge_rac_pass_count');
