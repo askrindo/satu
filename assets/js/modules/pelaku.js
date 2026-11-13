@@ -179,16 +179,15 @@ window.PelakuModule = {
   },
 
   buildBlankState() {
-    const curYr = new Date().getFullYear();
     const blankAcc = {};
     FIN_ACCOUNT_KEYS.forEach(k => { blankAcc[k] = ''; });
     return {
       companyName: '',
       sector: 'konstruksi',
-      year1: String(curYr - 1),
-      year2: String(curYr),
-      auditStatus: 'audited',
-      opinion: 'Wajar Tanpa Pengecualian (WTP)',
+      year1: '',
+      year2: '',
+      auditStatus: '',
+      opinion: '',
       projectVal: '',
       kapName: '',
       d1: { ...blankAcc },
@@ -203,8 +202,16 @@ window.PelakuModule = {
       if (rawDraft) {
         const parsed = JSON.parse(rawDraft);
         if (parsed && parsed.workspaceState) {
-          this.workspaceState = parsed.workspaceState;
-          this.formSourceMode = parsed.formSourceMode || 'sample';
+          const ws = parsed.workspaceState;
+          const hasD1 = ws.d1 && Object.values(ws.d1).some(v => Math.abs(Number(v) || 0) > 0);
+          const hasD2 = ws.d2 && Object.values(ws.d2).some(v => Math.abs(Number(v) || 0) > 0);
+          if (!hasD1 && !hasD2 && (parsed.formSourceMode === 'blank' || !ws.companyName)) {
+            ws.year1 = '';
+            ws.year2 = '';
+            ws.auditStatus = '';
+          }
+          this.workspaceState = ws;
+          this.formSourceMode = parsed.formSourceMode || 'blank';
           this.loadedCompanyId = parsed.loadedCompanyId || null;
           if (this.loadedCompanyId) {
             const match = window.askrindoDB?.getPelakuAnalysis(this.loadedCompanyId);
@@ -217,8 +224,8 @@ window.PelakuModule = {
         }
       }
     } catch (e) {}
-    this.workspaceState = this.buildSampleState();
-    this.formSourceMode = 'sample';
+    this.workspaceState = this.buildBlankState();
+    this.formSourceMode = 'blank';
     this.loadedCompanyId = null;
   },
 
@@ -252,9 +259,9 @@ window.PelakuModule = {
     return {
       companyName: compEl.value || '',
       sector: document.getElementById('pelaku-sector')?.value || 'konstruksi',
-      year1: document.getElementById('inp_year1')?.value || '2024',
-      year2: document.getElementById('inp_year2')?.value || '2025',
-      auditStatus: document.getElementById('pelaku-audit-status')?.value || 'audited',
+      year1: document.getElementById('inp_year1')?.value || '',
+      year2: document.getElementById('inp_year2')?.value || '',
+      auditStatus: document.getElementById('pelaku-audit-status')?.value || '',
       opinion: document.getElementById('pelaku-opinion')?.value || '',
       projectVal: projRaw === '' ? '' : this.parseFormattedNumber(projRaw),
       kapName: document.getElementById('pelaku-kap-name')?.value || '',
@@ -507,14 +514,14 @@ window.PelakuModule = {
           <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-[#002B49] text-white p-4 rounded-2xl shadow-md border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-4 flex-wrap">
               <div class="flex items-center gap-2">
-                <span class="text-xs text-slate-300 font-semibold">Status Neraca Th <span id="lbl_balance_yr1" class="font-bold text-amber-300">${this.escapeHtml(ws.year1)}</span>:</span>
+                <span class="text-xs text-slate-300 font-semibold">Status Neraca <span id="lbl_balance_yr1" class="font-bold text-amber-300">${ws.year1 ? `Th ${this.escapeHtml(ws.year1)}` : 'Th 1'}</span>:</span>
                 <span id="badge_balance_yr1" class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-500/20 text-slate-300 border border-slate-500/40">
                   MENUNGGU DATA
                 </span>
               </div>
               <div class="h-4 w-px bg-slate-700 hidden sm:block"></div>
               <div class="flex items-center gap-2">
-                <span class="text-xs text-slate-300 font-semibold">Status Neraca Th <span id="lbl_balance_yr2" class="font-bold text-amber-300">${this.escapeHtml(ws.year2)}</span>:</span>
+                <span class="text-xs text-slate-300 font-semibold">Status Neraca <span id="lbl_balance_yr2" class="font-bold text-amber-300">${ws.year2 ? `Th ${this.escapeHtml(ws.year2)}` : 'Th 2'}</span>:</span>
                 <span id="badge_balance_yr2" class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-500/20 text-slate-300 border border-slate-500/40">
                   MENUNGGU DATA
                 </span>
@@ -584,15 +591,16 @@ window.PelakuModule = {
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                   <div>
                     <label class="block font-semibold text-slate-700 mb-1">Tahun 1 (Sebelumnya)</label>
-                    <input type="number" id="inp_year1" value="${this.escapeHtml(ws.year1)}" oninput="window.PelakuModule.updateYearLabels(); window.PelakuModule.onMetaFieldChanged();" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-center font-bold font-mono focus:border-purple-500 focus:outline-none bg-white" />
+                    <input type="number" id="inp_year1" value="${this.escapeHtml(ws.year1 || '')}" placeholder="Contoh: 2024" oninput="window.PelakuModule.updateYearLabels(); window.PelakuModule.onMetaFieldChanged();" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-center font-bold font-mono focus:border-purple-500 focus:outline-none bg-white" />
                   </div>
                   <div>
                     <label class="block font-semibold text-slate-700 mb-1">Tahun 2 (Terakhir)</label>
-                    <input type="number" id="inp_year2" value="${this.escapeHtml(ws.year2)}" oninput="window.PelakuModule.updateYearLabels(); window.PelakuModule.onMetaFieldChanged();" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-center font-bold font-mono focus:border-purple-500 focus:outline-none bg-white" />
+                    <input type="number" id="inp_year2" value="${this.escapeHtml(ws.year2 || '')}" placeholder="Contoh: 2025" oninput="window.PelakuModule.updateYearLabels(); window.PelakuModule.onMetaFieldChanged();" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-center font-bold font-mono focus:border-purple-500 focus:outline-none bg-white" />
                   </div>
                   <div>
                     <label class="block font-semibold text-slate-700 mb-1">Status Audit</label>
                     <select id="pelaku-audit-status" onchange="window.PelakuModule.onMetaFieldChanged()" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium focus:border-purple-500 focus:outline-none">
+                      <option value="" ${!ws.auditStatus ? 'selected' : ''}>-- Pilih Status Audit --</option>
                       <option value="audited" ${ws.auditStatus === 'audited' ? 'selected' : ''}>Audited KAP</option>
                       <option value="unaudited" ${ws.auditStatus === 'unaudited' ? 'selected' : ''}>In-House / Unaudited</option>
                     </select>
@@ -628,9 +636,9 @@ window.PelakuModule = {
                       <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
                         <th class="p-2.5 w-[35%]">Uraian Neraca &amp; Laba Rugi</th>
                         <th class="p-2.5 w-[7%] text-center">Kode</th>
-                        <th class="p-2.5 w-[20%] text-right">Tahun <span id="thLabelYear1" class="font-bold">${this.escapeHtml(ws.year1)}</span> (Rp)</th>
+                        <th class="p-2.5 w-[20%] text-right"><span id="thLabelYear1" class="font-bold">${ws.year1 ? `Tahun ${this.escapeHtml(ws.year1)}` : 'Tahun 1'}</span> (Rp)</th>
                         <th class="p-2.5 w-[7%] text-right">%</th>
-                        <th class="p-2.5 w-[20%] text-right">Tahun <span id="thLabelYear2" class="font-bold">${this.escapeHtml(ws.year2)}</span> (Rp)</th>
+                        <th class="p-2.5 w-[20%] text-right"><span id="thLabelYear2" class="font-bold">${ws.year2 ? `Tahun ${this.escapeHtml(ws.year2)}` : 'Tahun 2'}</span> (Rp)</th>
                         <th class="p-2.5 w-[7%] text-right">%</th>
                         <th class="p-2.5 w-[9%] text-right">Growth (%)</th>
                       </tr>
@@ -677,7 +685,7 @@ window.PelakuModule = {
                   <div class="flex items-center justify-between">
                     <div>
                       <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">
-                        Indikator Rasio (Th <span id="lbl_ratio_eval_yr">${this.escapeHtml(ws.year2)}</span>)
+                        Indikator Rasio<span id="lbl_ratio_eval_yr">${ws.year2 ? ` (Th ${this.escapeHtml(ws.year2)})` : ''}</span>
                       </h4>
                       <span class="text-[10px] text-slate-400">27 Parameter Rasio Finansial</span>
                     </div>
@@ -1097,8 +1105,8 @@ window.PelakuModule = {
   },
 
   updateYearLabels() {
-    const y1 = document.getElementById('inp_year1')?.value || '2024';
-    const y2 = document.getElementById('inp_year2')?.value || '2025';
+    const y1 = document.getElementById('inp_year1')?.value || '';
+    const y2 = document.getElementById('inp_year2')?.value || '';
 
     const th1 = document.getElementById('thLabelYear1');
     const th2 = document.getElementById('thLabelYear2');
@@ -1106,11 +1114,11 @@ window.PelakuModule = {
     const b2 = document.getElementById('lbl_balance_yr2');
     const rEval = document.getElementById('lbl_ratio_eval_yr');
 
-    if (th1) th1.textContent = y1;
-    if (th2) th2.textContent = y2;
-    if (b1) b1.textContent = y1;
-    if (b2) b2.textContent = y2;
-    if (rEval) rEval.textContent = y2;
+    if (th1) th1.textContent = y1 ? `Tahun ${y1}` : 'Tahun 1';
+    if (th2) th2.textContent = y2 ? `Tahun ${y2}` : 'Tahun 2';
+    if (b1) b1.textContent = y1 ? `Th ${y1}` : 'Th 1';
+    if (b2) b2.textContent = y2 ? `Th ${y2}` : 'Th 2';
+    if (rEval) rEval.textContent = y2 ? ` (Th ${y2})` : '';
   },
 
   calculateRatios() {
@@ -1121,8 +1129,8 @@ window.PelakuModule = {
 
     const getVal = (k, yr) => this.parseFormattedNumber(document.getElementById(`inp_${k}_${yr}`)?.value) || 0;
 
-    const y1 = document.getElementById('inp_year1')?.value || '2024';
-    const y2 = document.getElementById('inp_year2')?.value || '2025';
+    const y1 = document.getElementById('inp_year1')?.value || '';
+    const y2 = document.getElementById('inp_year2')?.value || '';
 
     // 1. Hitung Subtotal Neraca & Laba Rugi untuk Kedua Tahun
     const d1 = {};
@@ -1361,7 +1369,7 @@ window.PelakuModule = {
 
       const companyRaw = document.getElementById('pelaku-company')?.value.trim() || '';
       const companyId = window.askrindoDB ? window.askrindoDB.normalizeCompanyId(companyRaw) : '';
-      const auditStatus = document.getElementById('pelaku-audit-status')?.value || 'audited';
+      const auditStatus = document.getElementById('pelaku-audit-status')?.value || '';
       const projectVal = this.parseFormattedNumber(document.getElementById('inp_projectValue')?.value) || 0;
 
       const emptyRac = this.computeRacMatrix(
@@ -1576,11 +1584,12 @@ window.PelakuModule = {
     updateText('ratio-nwc', this.fmtRp(nwcVal), nwcVal >= 0 ? 'text-indigo-700' : 'text-rose-600');
 
     // 5. Composite Scoring & Grade Askrindo
-    const auditStatus = document.getElementById('pelaku-audit-status')?.value || 'audited';
+    const auditStatus = document.getElementById('pelaku-audit-status')?.value || '';
     const isAudited = auditStatus === 'audited';
 
     let score = 40;
-    if (isAudited) score += 15; else score += 5;
+    if (isAudited) score += 15;
+    else if (auditStatus === 'unaudited') score += 5;
     if (crVal >= 150) score += 15; else if (crVal >= 120) score += 10; else if (crVal >= 100) score += 5;
     if (qrVal >= 100) score += 10; else if (qrVal >= 80) score += 5;
     if (derX < 1.5) score += 15; else if (derX <= 2.5) score += 10; else score -= 10;
@@ -1853,12 +1862,25 @@ window.PelakuModule = {
     });
     const y1Inp = document.getElementById('inp_year1');
     const y2Inp = document.getElementById('inp_year2');
-    if (y1Inp && !y1Inp.value) y1Inp.value = curYr - 1;
-    if (y2Inp && !y2Inp.value) y2Inp.value = curYr;
+    if (y1Inp) y1Inp.value = '';
+    if (y2Inp) y2Inp.value = '';
+
+    const auditSel = document.getElementById('pelaku-audit-status');
+    if (auditSel) auditSel.value = '';
+
+    const kapInp = document.getElementById('pelaku-kap-name');
+    if (kapInp) kapInp.value = '';
+    const opInp = document.getElementById('pelaku-opinion');
+    if (opInp) opInp.value = '';
+    const projInp = document.getElementById('inp_projectValue');
+    if (projInp) projInp.value = '';
+
+    this.workspaceState = this.buildBlankState();
+    this.saveWorkspaceDraft();
 
     this.updateYearLabels();
     this.calculateRatios();
-    window.askrindoApp.showToast('Angka Laporan Keuangan berhasil dikosongkan.', 'info');
+    window.askrindoApp.showToast('Form Laporan Keuangan berhasil dikosongkan.', 'info');
   },
 
   startNewAnalysis() {
@@ -1943,10 +1965,10 @@ window.PelakuModule = {
     if (sec) sec.value = state.sector || 'konstruksi';
     const y1Inp = document.getElementById('inp_year1');
     const y2Inp = document.getElementById('inp_year2');
-    if (y1Inp) y1Inp.value = state.year1 || '2024';
-    if (y2Inp) y2Inp.value = state.year2 || '2025';
+    if (y1Inp) y1Inp.value = state.year1 || '';
+    if (y2Inp) y2Inp.value = state.year2 || '';
     const auditSel = document.getElementById('pelaku-audit-status');
-    if (auditSel) auditSel.value = state.auditStatus || 'audited';
+    if (auditSel) auditSel.value = state.auditStatus || '';
     const kapInp = document.getElementById('pelaku-kap-name');
     if (kapInp) kapInp.value = state.kapName || '';
     const opInp = document.getElementById('pelaku-opinion');
@@ -2463,7 +2485,7 @@ window.PelakuModule = {
     const payload = {
       companyName,
       sector: c.sector,
-      auditStatus: document.getElementById('pelaku-audit-status')?.value || 'audited',
+      auditStatus: document.getElementById('pelaku-audit-status')?.value || '',
       kapName: c.kapName,
       opinion: c.opinion,
       year1: c.year1,
