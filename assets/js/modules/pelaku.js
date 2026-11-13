@@ -643,9 +643,9 @@ window.PelakuModule = {
               </div>
             </div>
 
-            <!-- Kolom Kanan: Scoring & Evaluasi Underwriting Askrindo (4 cols, Sticky) -->
+            <!-- Kolom Kanan: Scoring & Evaluasi Underwriting Askrindo (4 cols) -->
             <div class="lg:col-span-4 space-y-6">
-              <div class="sticky top-20 bg-white rounded-3xl p-6 border-2 border-purple-500/20 shadow-xl space-y-5 max-h-[calc(100vh-5rem)] overflow-y-auto">
+              <div class="bg-white rounded-3xl p-6 border-2 border-purple-500/20 shadow-xl space-y-5">
                 
                 <!-- Header Score -->
                 <div class="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -692,8 +692,8 @@ window.PelakuModule = {
                     <i data-lucide="search" class="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400"></i>
                   </div>
 
-                  <!-- 27 Ratio Rows Container -->
-                  <div id="pelaku-ratio-list-container" class="space-y-1 max-h-[460px] overflow-y-auto pr-1">
+                  <!-- 27 Ratio Rows Container (Menjalar ke bawah tanpa scroll internal) -->
+                  <div id="pelaku-ratio-list-container" class="space-y-1">
                     <!-- 1. Current Ratio% x -->
                     <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
