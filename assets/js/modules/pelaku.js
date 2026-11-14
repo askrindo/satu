@@ -94,6 +94,7 @@ const PELAKU_DRAFT_KEY = 'askrindo_satu_pelaku_draft_v1';
 
 window.PelakuModule = {
   currentTab: 'archive', // 'archive' | 'workspace' - Default landing page is project list
+  archiveScope: 'mine', // 'mine' (default: user's projects) | 'all' (all projects in organization)
   archiveSearch: '',
   archiveFilter: 'all', // 'all' | 'rac_pass' | 'rac_fail'
   workspaceState: null,
@@ -618,8 +619,11 @@ window.PelakuModule = {
     this.initWorkspaceState();
     this.bindGlobalDropdownClose();
 
-    const savedList = window.askrindoDB ? window.askrindoDB.getPelakuAnalyses() : [];
-    const savedCount = savedList.length;
+    const currentUser = user || (window.authService ? window.authService.getCurrentUser() : null) || (window.askrindoDB ? window.askrindoDB.getCurrentSession() : null);
+    const allSavedList = window.askrindoDB ? window.askrindoDB.getPelakuAnalyses() : [];
+    const userSavedList = window.askrindoDB ? window.askrindoDB.getUserPelakuAnalyses(currentUser) : [];
+    const displayList = this.archiveScope === 'all' ? allSavedList : userSavedList;
+    const savedCount = this.archiveScope === 'all' ? allSavedList.length : userSavedList.length;
     const ws = this.workspaceState;
     const activeYearsList = this.getActiveYears();
     const projFormatted = (ws.projectVal === '' || ws.projectVal === null || ws.projectVal === undefined)
@@ -696,7 +700,7 @@ window.PelakuModule = {
           </div>
         </div>
 
-        ${this.currentTab === 'archive' ? this.renderArchiveView(savedList) : `
+        ${this.currentTab === 'archive' ? this.renderArchiveView(displayList, userSavedList, allSavedList, currentUser) : `
           <!-- Banner Keseimbangan Neraca (Real-Time Balance Bar) -->
           <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-[#002B49] text-white p-4 rounded-2xl shadow-md border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-4 flex-wrap">
@@ -2928,11 +2932,18 @@ window.PelakuModule = {
     if (existing && alertEl && alertText) {
       alertEl.classList.remove('hidden');
       const yrs = existing.years ? existing.years.join(', ') : `${existing.year1}-${existing.year2}`;
-      alertText.textContent = `Perusahaan "${existing.companyName}" sudah ada di Arsip (Tahun tersimpan: ${yrs}). Data tahun baru akan otomatis digabungkan!`;
+      const creator = existing.createdBy ? ` • Pembuat: ${existing.createdBy}` : '';
+      alertText.textContent = `✨ Ditemukan data tersimpan untuk "${existing.companyName}" (${yrs}${creator}). Data finansial sebelumnya otomatis dimuat!`;
       const secEl = document.getElementById('modal_new_sector');
       if (secEl && existing.sector) secEl.value = existing.sector;
       const auditEl = document.getElementById('modal_new_auditStatus');
       if (auditEl && existing.auditStatus) auditEl.value = existing.auditStatus;
+      const kapEl = document.getElementById('modal_new_kapName');
+      if (kapEl && existing.kapName && kapEl.value.trim() === '') kapEl.value = existing.kapName;
+      const opEl = document.getElementById('modal_new_opinion');
+      if (opEl && existing.opinion && opEl.value.trim() === '') opEl.value = existing.opinion;
+      const projEl = document.getElementById('modal_new_projectVal');
+      if (projEl && existing.projectVal && projEl.value.trim() === '') projEl.value = this.formatNumberWithDots(existing.projectVal, false);
     } else if (alertEl) {
       alertEl.classList.add('hidden');
     }
@@ -3016,21 +3027,29 @@ window.PelakuModule = {
       return;
     }
 
-    const sector = document.getElementById('modal_new_sector')?.value || 'konstruksi';
-    const y1 = document.getElementById('modal_new_year1')?.value.trim() || '2024';
-    const y2 = document.getElementById('modal_new_year2')?.value.trim() || '2025';
-    const audit = document.getElementById('modal_new_auditStatus')?.value || 'audited';
-    const kap = (document.getElementById('modal_new_kapName')?.value || '').trim();
-    const opinion = (document.getElementById('modal_new_opinion')?.value || '').trim();
-    const projVal = this.parseFormattedNumber(document.getElementById('modal_new_projectVal')?.value) || 0;
-
     const normId = window.askrindoDB ? window.askrindoDB.normalizeCompanyId(compName) : '';
     const existing = normId && window.askrindoDB ? window.askrindoDB.getPelakuAnalysis(normId) : null;
+
+    const sectorInput = document.getElementById('modal_new_sector')?.value;
+    const sector = existing?.sector && (!sectorInput || sectorInput === 'konstruksi') ? existing.sector : (sectorInput || 'konstruksi');
+    const y1 = document.getElementById('modal_new_year1')?.value.trim() || '2024';
+    const y2 = document.getElementById('modal_new_year2')?.value.trim() || '2025';
+    const auditInput = document.getElementById('modal_new_auditStatus')?.value;
+    const audit = existing?.auditStatus && (!auditInput || auditInput === 'audited') ? existing.auditStatus : (auditInput || 'audited');
+    const kap = (document.getElementById('modal_new_kapName')?.value || '').trim() || existing?.kapName || '-';
+    const opinion = (document.getElementById('modal_new_opinion')?.value || '').trim() || existing?.opinion || (audit === 'audited' ? 'Wajar Tanpa Pengecualian (WTP)' : '-');
+    const projValInput = this.parseFormattedNumber(document.getElementById('modal_new_projectVal')?.value);
+    const projVal = (projValInput !== null && projValInput !== undefined && projValInput > 0) ? projValInput : (existing?.projectVal || 0);
+
     const allYears = Array.from(new Set([...(existing?.years || []), y1, y2])).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
 
     const yearlyData = { ...(existing?.yearlyData || {}) };
     if (existing?.data1 && existing?.year1 && !yearlyData[existing.year1]) yearlyData[existing.year1] = { ...existing.data1 };
     if (existing?.data2 && existing?.year2 && !yearlyData[existing.year2]) yearlyData[existing.year2] = { ...existing.data2 };
+
+    const d1Data = yearlyData[y1] || (existing?.year1 === y1 ? existing?.data1 : null) || {};
+    const d2Data = yearlyData[y2] || (existing?.year2 === y2 ? existing?.data2 : null) || {};
+    const hasFinData = Object.keys(d1Data).length > 0 || Object.keys(d2Data).length > 0;
 
     this.workspaceState = {
       companyName: compName,
@@ -3039,15 +3058,15 @@ window.PelakuModule = {
       year1: y1,
       year2: y2,
       auditStatus: audit,
-      opinion: opinion || (audit === 'audited' ? 'Wajar Tanpa Pengecualian (WTP)' : '-'),
+      opinion,
       projectVal: projVal,
-      kapName: kap || '-',
+      kapName: kap,
       yearlyData,
-      d1: yearlyData[y1] || {},
-      d2: yearlyData[y2] || {}
+      d1: d1Data,
+      d2: d2Data
     };
 
-    this.formSourceMode = 'blank';
+    this.formSourceMode = hasFinData ? 'saved' : 'blank';
     this.loadedCompanyId = existing?.id || normId || null;
     this.preAutoMatchState = null;
     this.autoLoadedCompanyId = null;
@@ -3060,7 +3079,11 @@ window.PelakuModule = {
     this.currentTab = 'workspace';
     this.closeNewAnalysisModal();
     window.askrindoApp.renderCurrentRoute();
-    window.askrindoApp.showToast(`Lembar analisa "${compName}" siap digunakan!`, 'success');
+    if (existing && hasFinData) {
+      window.askrindoApp.showToast(`✨ Ditemukan data tersimpan untuk "${compName}". Data finansial sebelumnya otomatis dimuat!`, 'success');
+    } else {
+      window.askrindoApp.showToast(`Lembar analisa "${compName}" siap digunakan!`, 'success');
+    }
   },
 
   submitNewAnalysisAiOcr() {
@@ -3102,9 +3125,9 @@ window.PelakuModule = {
   },
 
   handleDbSynced() {
-    const savedList = window.askrindoDB ? window.askrindoDB.getPelakuAnalyses() : [];
+    const list = this.getActiveArchiveList();
     const badge = document.getElementById('pelaku-archive-count-badge');
-    if (badge) badge.textContent = savedList.length;
+    if (badge) badge.textContent = list.length;
 
     if (this.currentTab === 'archive') {
       const container = document.getElementById('pelaku-archive-root');
@@ -3279,7 +3302,7 @@ window.PelakuModule = {
               <span>&bull;</span>
               <span>Proyek ${this.fmtRp(rec.projectVal || 0, true)}</span>
               <span>&bull;</span>
-              <span>Disimpan ${this.formatDateTimeId(rec.updatedAt)}</span>
+              <span>Pembuat: <strong class="text-slate-700">${this.escapeHtml(rec.createdBy || 'Analis')}</strong></span>
             </div>
           </div>
           <div class="text-right shrink-0">
@@ -3654,8 +3677,8 @@ window.PelakuModule = {
     const stripTxt = document.getElementById('pelaku-save-status-text');
     const archiveBadge = document.getElementById('pelaku-archive-count-badge');
 
-    if (archiveBadge && window.askrindoDB) {
-      archiveBadge.textContent = window.askrindoDB.getPelakuAnalyses().length;
+    if (archiveBadge) {
+      archiveBadge.textContent = this.getActiveArchiveList().length;
     }
 
     if (existing && this.formSourceMode === 'saved' && this.loadedCompanyId === existing.id) {
@@ -3964,19 +3987,19 @@ window.PelakuModule = {
   },
 
   exportArchiveJson() {
-    const list = window.askrindoDB ? window.askrindoDB.getPelakuAnalyses() : [];
+    const list = this.getActiveArchiveList();
     if (list.length === 0) {
       window.askrindoApp.showToast('Belum ada data perusahaan tersimpan untuk diekspor.', 'warning');
       return;
     }
-    const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), app: 'Askrindo SATU PELAKU', records: list }, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), app: 'Askrindo SATU PELAKU', scope: this.archiveScope, records: list }, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `PELAKU_Arsip_Perusahaan_${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `PELAKU_Arsip_Perusahaan_${this.archiveScope}_${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    window.askrindoApp.showToast(`${list.length} arsip perusahaan berhasil diekspor ke JSON!`, 'success');
+    window.askrindoApp.showToast(`${list.length} arsip perusahaan (${this.archiveScope === 'mine' ? 'Proyek Saya' : 'Semua Proyek'}) berhasil diekspor ke JSON!`, 'success');
   },
 
   handleImportArchiveFile(input) {
@@ -4055,6 +4078,23 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
   // =========================================================================
   // TAB 2: ARSIP ANALISA PERUSAHAAN TERSIMPAN
   // =========================================================================
+  getActiveArchiveList() {
+    const currentUser = window.authService?.getCurrentUser() || (window.askrindoDB ? window.askrindoDB.getCurrentSession() : null);
+    if (this.archiveScope === 'all') {
+      return window.askrindoDB ? window.askrindoDB.getPelakuAnalyses() : [];
+    }
+    return window.askrindoDB ? window.askrindoDB.getUserPelakuAnalyses(currentUser) : [];
+  },
+
+  setArchiveScope(scope) {
+    this.archiveScope = scope;
+    const badge = document.getElementById('pelaku-archive-count-badge');
+    if (badge) {
+      badge.textContent = this.getActiveArchiveList().length;
+    }
+    window.askrindoApp.renderCurrentRoute();
+  },
+
   getFilteredArchiveList(list) {
     const q = (this.archiveSearch || '').trim().toLowerCase();
     const qNorm = window.askrindoDB ? window.askrindoDB.normalizeCompanyId(this.archiveSearch).toLowerCase() : '';
@@ -4065,6 +4105,8 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
         (qNorm && (item.id || '').toLowerCase().includes(qNorm)) ||
         (item.kapName || '').toLowerCase().includes(q) ||
         (item.sector || '').toLowerCase().includes(q) ||
+        (item.createdBy || '').toLowerCase().includes(q) ||
+        (item.updatedBy || '').toLowerCase().includes(q) ||
         String(item.year1 || '').includes(q) ||
         String(item.year2 || '').includes(q);
       const matchFilter = this.archiveFilter === 'all' ||
@@ -4078,7 +4120,7 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
     this.archiveSearch = val;
     const tbody = document.getElementById('pelaku-archive-tbody');
     if (tbody && window.askrindoDB) {
-      const list = window.askrindoDB.getPelakuAnalyses();
+      const list = this.getActiveArchiveList();
       tbody.innerHTML = this.renderArchiveRowsHtml(this.getFilteredArchiveList(list));
       if (window.lucide) window.lucide.createIcons();
     }
@@ -4095,8 +4137,12 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
         <tr>
           <td colspan="6" class="py-12 text-center text-slate-400">
             <i data-lucide="folder-open" class="w-10 h-10 mx-auto text-slate-300 mb-2"></i>
-            <p class="font-semibold text-slate-600">Belum ada arsip analisa proyek yang tersimpan.</p>
-            <p class="text-[11px] text-slate-400 mt-1 max-w-md mx-auto">Gunakan tombol <strong>+ Buat Analisa Baru</strong> di atas untuk memasukkan profil calon debitur dan mengunggah berkas laporan keuangan.</p>
+            <p class="font-semibold text-slate-700">${this.archiveScope === 'mine' ? 'Belum ada arsip analisa proyek milik akun Anda.' : 'Belum ada arsip analisa proyek yang tersimpan.'}</p>
+            <p class="text-[11px] text-slate-400 mt-1 max-w-md mx-auto">
+              ${this.archiveScope === 'mine'
+                ? 'Klik tombol <strong>+ Buat Analisa Baru</strong> di atas untuk membuat analisa baru, atau ketik nama perusahaan yang pernah ada untuk memuat dan melanjutkan datanya.'
+                : 'Gunakan tombol <strong>+ Buat Analisa Baru</strong> di atas untuk memasukkan profil calon debitur dan mengunggah berkas laporan keuangan.'}
+            </p>
           </td>
         </tr>
       `;
@@ -4144,7 +4190,10 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
           </td>
           <td class="py-3.5 px-4 text-[11px] text-slate-600">
             <span class="font-medium block">${this.formatDateTimeId(item.updatedAt)}</span>
-            <span class="text-[10px] text-slate-400">Oleh: ${this.escapeHtml(item.updatedBy || '-')}</span>
+            <span class="text-[10px] text-slate-500 block mt-0.5">Pembuat: <strong class="text-slate-700 font-semibold">${this.escapeHtml(item.createdBy || '-')}</strong></span>
+            ${item.updatedBy && item.updatedBy !== item.createdBy ? `
+              <span class="text-[10px] text-purple-600 block">Diedit: ${this.escapeHtml(item.updatedBy)}</span>
+            ` : ''}
           </td>
           <td class="py-3.5 px-4 text-right">
             <div class="flex items-center justify-end gap-1.5">
@@ -4165,7 +4214,9 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
     }).join('');
   },
 
-  renderArchiveView(list) {
+  renderArchiveView(list, userList = [], allList = [], currentUser = null) {
+    const safeUserList = Array.isArray(userList) ? userList : list;
+    const safeAllList = Array.isArray(allList) ? allList : (window.askrindoDB ? window.askrindoDB.getPelakuAnalyses() : list);
     const filtered = this.getFilteredArchiveList(list);
     const totalPassAll = list.filter(i => Number(i.racFailCount) === 0).length;
     const totalProjVal = list.reduce((acc, c) => acc + (Number(c.projectVal) || 0), 0);
@@ -4177,12 +4228,12 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
             <div>
-              <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Perusahaan Tersimpan</p>
+              <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">${this.archiveScope === 'mine' ? 'Proyek Saya' : 'Perusahaan Tersimpan'}</p>
               <h4 class="text-2xl font-black text-slate-800">${list.length} <span class="text-xs font-normal text-slate-400">entitas</span></h4>
-              <p class="text-[11px] text-purple-600 font-medium">Terindeks otomatis by ID Perusahaan</p>
+              <p class="text-[11px] text-purple-600 font-medium">${this.archiveScope === 'mine' ? 'Analisa yang Anda buat / kontribusikan' : 'Terindeks otomatis by ID Perusahaan'}</p>
             </div>
             <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
-              <i data-lucide="building-2" class="w-6 h-6"></i>
+              <i data-lucide="${this.archiveScope === 'mine' ? 'folder-check' : 'building-2'}" class="w-6 h-6"></i>
             </div>
           </div>
 
@@ -4211,16 +4262,40 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
 
         <!-- Search, Filter & Backup Toolbar -->
         <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs">
-          <div class="relative w-full lg:w-80">
-            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5"></i>
-            <input
-              type="text"
-              id="pelaku-archive-search"
-              placeholder="Cari Nama Perusahaan, ID, KAP, atau Tahun..."
-              value="${this.escapeHtml(this.archiveSearch)}"
-              oninput="window.PelakuModule.setArchiveSearch(this.value)"
-              class="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 text-xs"
-            />
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
+            <!-- Scope Switcher: Proyek Saya vs Semua Proyek -->
+            <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80 shrink-0">
+              <button
+                type="button"
+                onclick="window.PelakuModule.setArchiveScope('mine')"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${this.archiveScope === 'mine' ? 'bg-purple-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
+                title="Tampilkan hanya arsip analisa proyek yang dibuat/disimpan oleh Anda"
+              >
+                <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                <span>Proyek Saya (${safeUserList.length})</span>
+              </button>
+              <button
+                type="button"
+                onclick="window.PelakuModule.setArchiveScope('all')"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${this.archiveScope === 'all' ? 'bg-purple-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
+                title="Tampilkan seluruh arsip analisa proyek dari semua pengguna"
+              >
+                <i data-lucide="globe" class="w-3.5 h-3.5"></i>
+                <span>Semua Proyek (${safeAllList.length})</span>
+              </button>
+            </div>
+
+            <div class="relative w-full sm:w-64">
+              <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5"></i>
+              <input
+                type="text"
+                id="pelaku-archive-search"
+                placeholder="Cari Perusahaan, ID, KAP..."
+                value="${this.escapeHtml(this.archiveSearch)}"
+                oninput="window.PelakuModule.setArchiveSearch(this.value)"
+                class="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 text-xs"
+              />
+            </div>
           </div>
 
           <div class="flex items-center gap-2 flex-wrap">
@@ -4236,7 +4311,7 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
 
             <div class="h-4 w-px bg-slate-200 hidden sm:block mx-1"></div>
 
-            <button onclick="window.PelakuModule.exportArchiveJson()" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1" title="Unduh backup JSON semua perusahaan">
+            <button onclick="window.PelakuModule.exportArchiveJson()" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1" title="Unduh backup JSON proyek yang ditampilkan">
               <i data-lucide="download" class="w-3.5 h-3.5"></i>
               <span>Ekspor JSON</span>
             </button>

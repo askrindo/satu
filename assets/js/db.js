@@ -959,6 +959,44 @@ class AskrindoDB {
     }
   }
 
+  isPelakuRecordOwnedByUser(record, user) {
+    if (!record || !user) return false;
+    const uid = user.id ? String(user.id).trim().toLowerCase() : '';
+    const nip = user.nip ? String(user.nip).trim().toLowerCase() : '';
+    const name = user.name ? String(user.name).trim().toLowerCase() : '';
+
+    const check = (val) => {
+      if (!val) return false;
+      const s = String(val).trim().toLowerCase();
+      return (uid && s === uid) || (nip && s === nip) || (name && s === name);
+    };
+
+    if (check(record.createdById) || check(record.createdByNip) || check(record.createdBy)) return true;
+    if (check(record.updatedById) || check(record.updatedByNip) || check(record.updatedBy)) return true;
+
+    if (Array.isArray(record.contributorIds) && record.contributorIds.some(check)) return true;
+    if (Array.isArray(record.contributors)) {
+      if (record.contributors.some(c => typeof c === 'object' ? (check(c.id) || check(c.nip) || check(c.name)) : check(c))) {
+        return true;
+      }
+    }
+
+    if (Array.isArray(record.snapshots)) {
+      if (record.snapshots.some(snap => check(snap.savedById) || check(snap.savedByNip) || check(snap.savedBy))) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  getUserPelakuAnalyses(user) {
+    const currentUser = user || this.getCurrentSession();
+    const list = this.getPelakuAnalyses();
+    if (!currentUser) return list;
+    return list.filter(item => this.isPelakuRecordOwnedByUser(item, currentUser));
+  }
+
   getPelakuAnalysis(companyNameOrId) {
     if (!companyNameOrId) return null;
     const rawId = String(companyNameOrId).trim();
@@ -1005,6 +1043,21 @@ class AskrindoDB {
     const existingIdx = list.findIndex(item => item.id === companyId);
     const existing = existingIdx !== -1 ? list[existingIdx] : null;
 
+    const uId = session ? session.id : (analysisData.savedById || analysisData.createdById || null);
+    const uNip = session ? session.nip : (analysisData.savedByNip || analysisData.createdByNip || null);
+    const uName = session ? session.name : (analysisData.updatedBy || analysisData.savedBy || analysisData.createdBy || 'Analis');
+    const uBranch = session ? session.branch : (analysisData.branch || '-');
+
+    const createdById = existing?.createdById || uId;
+    const createdByNip = existing?.createdByNip || uNip;
+    const createdBy = existing?.createdBy || uName;
+
+    // Kumpulkan seluruh kontributor unik (pembuat awal + analis yang pernah mengedit & menyimpan)
+    const existingContributorIds = Array.isArray(existing?.contributorIds) ? existing.contributorIds : [];
+    const existingContributors = Array.isArray(existing?.contributors) ? existing.contributors : [];
+    const contributorIds = Array.from(new Set([...existingContributorIds, createdById, createdByNip, uId, uNip].filter(Boolean)));
+    const contributors = Array.from(new Set([...existingContributors, createdBy, uName].filter(Boolean)));
+
     // Gabungkan riwayat multi-tahun (yearlyData) agar tahun-tahun sebelumnya tidak pernah tertimpa
     const prevYearly = existing?.yearlyData ? { ...existing.yearlyData } : {};
     if (existing?.year1 && existing?.data1 && !prevYearly[existing.year1]) {
@@ -1039,8 +1092,10 @@ class AskrindoDB {
     const snapshot = {
       snapshotId: 'SNAP-' + nowIso.replace(/[-:T.Z]/g, '').slice(0, 14),
       savedAt: nowIso,
-      savedBy: session ? session.name : (analysisData.updatedBy || 'Analis'),
-      branch: session ? session.branch : (analysisData.branch || '-'),
+      savedBy: uName,
+      savedById: uId,
+      savedByNip: uNip,
+      branch: uBranch,
       years: allYears,
       year1: activeYr1,
       year2: activeYr2,
@@ -1098,9 +1153,15 @@ class AskrindoDB {
       snapshots,
       createdAt: existing?.createdAt || nowIso,
       updatedAt: nowIso,
-      createdBy: existing?.createdBy || snapshot.savedBy,
-      updatedBy: snapshot.savedBy,
-      branch: snapshot.branch
+      createdById,
+      createdByNip,
+      createdBy,
+      updatedById: uId,
+      updatedByNip: uNip,
+      updatedBy: uName,
+      contributorIds,
+      contributors,
+      branch: uBranch
     };
 
     if (existingIdx !== -1) {
