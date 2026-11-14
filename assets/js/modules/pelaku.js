@@ -587,27 +587,27 @@ window.PelakuModule = {
                 <!-- Dynamic Inline Banner when Existing Company ID is Detected -->
                 <div id="pelaku-company-history-banner" class="hidden"></div>
 
-                <!-- Baris 2: Periode Finansial, Status Audit & Nilai Proyek -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                  <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Tahun 1 (Sebelumnya)</label>
-                    <input type="number" id="inp_year1" value="${this.escapeHtml(ws.year1 || '')}" placeholder="Contoh: 2024" oninput="window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios(); window.PelakuModule.onMetaFieldChanged();" onchange="window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios(); window.PelakuModule.onMetaFieldChanged();" onblur="window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios();" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-center font-bold font-mono focus:border-purple-500 focus:outline-none bg-white" />
+                <!-- Baris 2: Periode Finansial, Status Audit & Nilai Proyek (Sejajar & Rapi) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs items-end">
+                  <div class="flex flex-col justify-end">
+                    <label class="block font-semibold text-slate-700 mb-1.5 leading-tight min-h-[28px] flex items-end">Tahun 1 (Sebelumnya)</label>
+                    <input type="text" inputmode="numeric" maxlength="4" id="inp_year1" value="${this.escapeHtml(ws.year1 || '')}" placeholder="Contoh: 2024" oninput="this.value=this.value.replace(/[^0-9]/g,''); window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios(); window.PelakuModule.onMetaFieldChanged();" onchange="window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios(); window.PelakuModule.onMetaFieldChanged();" onblur="window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios();" class="w-full h-10 px-3 rounded-xl border border-slate-200 text-center font-bold font-mono focus:border-purple-500 focus:outline-none bg-white transition" />
                   </div>
-                  <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Tahun 2 (Terakhir)</label>
-                    <input type="number" id="inp_year2" value="${this.escapeHtml(ws.year2 || '')}" placeholder="Contoh: 2025" oninput="window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios(); window.PelakuModule.onMetaFieldChanged();" onchange="window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios(); window.PelakuModule.onMetaFieldChanged();" onblur="window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios();" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-center font-bold font-mono focus:border-purple-500 focus:outline-none bg-white" />
+                  <div class="flex flex-col justify-end">
+                    <label class="block font-semibold text-slate-700 mb-1.5 leading-tight min-h-[28px] flex items-end">Tahun 2 (Terakhir)</label>
+                    <input type="text" inputmode="numeric" maxlength="4" id="inp_year2" value="${this.escapeHtml(ws.year2 || '')}" placeholder="Contoh: 2025" oninput="this.value=this.value.replace(/[^0-9]/g,''); window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios(); window.PelakuModule.onMetaFieldChanged();" onchange="window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios(); window.PelakuModule.onMetaFieldChanged();" onblur="window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios();" class="w-full h-10 px-3 rounded-xl border border-slate-200 text-center font-bold font-mono focus:border-purple-500 focus:outline-none bg-white transition" />
                   </div>
-                  <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Status Audit</label>
-                    <select id="pelaku-audit-status" onchange="window.PelakuModule.onMetaFieldChanged()" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium focus:border-purple-500 focus:outline-none">
-                      <option value="" ${!ws.auditStatus ? 'selected' : ''}>-- Pilih Status Audit --</option>
+                  <div class="flex flex-col justify-end">
+                    <label class="block font-semibold text-slate-700 mb-1.5 leading-tight min-h-[28px] flex items-end">Status Audit</label>
+                    <select id="pelaku-audit-status" onchange="window.PelakuModule.onMetaFieldChanged()" class="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white font-medium focus:border-purple-500 focus:outline-none text-xs transition">
+                      <option value="" ${!ws.auditStatus ? 'selected' : ''}>-- Status Audit --</option>
                       <option value="audited" ${ws.auditStatus === 'audited' ? 'selected' : ''}>Audited KAP</option>
                       <option value="unaudited" ${ws.auditStatus === 'unaudited' ? 'selected' : ''}>In-House / Unaudited</option>
                     </select>
                   </div>
-                  <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Nilai Proyek yang Dijamin (Rp)</label>
-                    <input type="text" id="inp_projectValue" value="${projFormatted}" oninput="window.PelakuModule.handleDotInput(this); window.PelakuModule.onMetaFieldChanged();" onblur="window.PelakuModule.handleDotBlur(this); window.PelakuModule.calculateRatios();" class="w-full px-3 py-2 rounded-xl border border-purple-200 font-bold font-mono focus:border-purple-500 focus:outline-none bg-white" placeholder="Contoh: 15.000.000.000" />
+                  <div class="flex flex-col justify-end">
+                    <label class="block font-semibold text-slate-700 mb-1.5 leading-tight min-h-[28px] flex items-end">Nilai Proyek yang Dijamin (Rp)</label>
+                    <input type="text" id="inp_projectValue" value="${projFormatted}" oninput="window.PelakuModule.handleDotInput(this); window.PelakuModule.onMetaFieldChanged();" onblur="window.PelakuModule.handleDotBlur(this); window.PelakuModule.calculateRatios();" class="w-full h-10 px-3 rounded-xl border border-purple-200 font-bold font-mono focus:border-purple-500 focus:outline-none bg-white transition" placeholder="Contoh: 15.000.000.000" />
                   </div>
                 </div>
               </div>
