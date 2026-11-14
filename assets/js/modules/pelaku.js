@@ -2680,10 +2680,6 @@ window.PelakuModule = {
     this.selectedAiFinFiles = [];
     this.modalPreEnteredData = null;
 
-    const curYr = new Date().getFullYear();
-    const defaultY1 = curYr - 1;
-    const defaultY2 = curYr;
-
     container.innerHTML = `
       <div id="newAnalysisModalBackdrop" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
         <div class="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6 max-h-[92vh] overflow-y-auto">
@@ -2735,19 +2731,8 @@ window.PelakuModule = {
               </div>
             </div>
 
-            <!-- Grid Sektor & Periode Tahun -->
+            <!-- Grid Periode Tahun & Nilai Proyek (Tahun 1 & 2 Kosong Dulu saat Buat Baru) -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-              <div>
-                <label for="modal_new_sector" class="block font-semibold text-slate-700 mb-1">Sektor Usaha</label>
-                <select id="modal_new_sector" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:outline-none focus:border-purple-500">
-                  <option value="konstruksi">Konstruksi &amp; Infrastruktur</option>
-                  <option value="pengadaan">Pengadaan Barang / Jasa</option>
-                  <option value="manufaktur">Manufaktur &amp; Industri</option>
-                  <option value="perdagangan">Perdagangan &amp; Distribusi</option>
-                  <option value="jasa">Jasa &amp; Konsultansi</option>
-                  <option value="lainnya">Sektor Lainnya</option>
-                </select>
-              </div>
               <div>
                 <label for="modal_new_year1" class="block font-semibold text-slate-700 mb-1">Tahun 1 (Sebelumnya)</label>
                 <input
@@ -2755,10 +2740,10 @@ window.PelakuModule = {
                   inputmode="numeric"
                   maxlength="4"
                   id="modal_new_year1"
-                  value="${defaultY1}"
-                  placeholder="2024"
+                  value=""
+                  placeholder="Contoh: 2024"
                   oninput="this.value=this.value.replace(/[^0-9]/g,'')"
-                  class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold font-mono text-center focus:outline-none focus:border-purple-500"
+                  class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold font-mono text-center placeholder-slate-300 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
                 />
               </div>
               <div>
@@ -2768,40 +2753,21 @@ window.PelakuModule = {
                   inputmode="numeric"
                   maxlength="4"
                   id="modal_new_year2"
-                  value="${defaultY2}"
-                  placeholder="2025"
+                  value=""
+                  placeholder="Contoh: 2025"
                   oninput="this.value=this.value.replace(/[^0-9]/g,'')"
-                  class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold font-mono text-center focus:outline-none focus:border-purple-500"
-                />
-              </div>
-            </div>
-
-            <!-- Status Audit, KAP & Nilai Proyek -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-              <div>
-                <label for="modal_new_auditStatus" class="block font-semibold text-slate-700 mb-1">Status Audit</label>
-                <select id="modal_new_auditStatus" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:outline-none focus:border-purple-500">
-                  <option value="audited">Audited KAP</option>
-                  <option value="unaudited">In-House / Unaudited</option>
-                </select>
-              </div>
-              <div>
-                <label for="modal_new_kapName" class="block font-semibold text-slate-700 mb-1">Nama KAP &amp; Opini</label>
-                <input
-                  type="text"
-                  id="modal_new_kapName"
-                  placeholder="KAP Paul Hadiwinata / WTP..."
-                  class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:outline-none focus:border-purple-500"
+                  class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold font-mono text-center placeholder-slate-300 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
                 />
               </div>
               <div>
-                <label for="modal_new_projectVal" class="block font-semibold text-slate-700 mb-1">Nilai Proyek Dijamin (Rp)</label>
+                <label for="modal_new_projectVal" class="block font-semibold text-slate-700 mb-1">Nilai Proyek yang Dijamin (Rp)</label>
                 <input
                   type="text"
                   id="modal_new_projectVal"
+                  value=""
                   placeholder="Contoh: 15.000.000.000"
                   oninput="window.PelakuModule.handleDotInput(this)"
-                  class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold font-mono focus:outline-none focus:border-purple-500"
+                  class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold font-mono placeholder-slate-300 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
                 />
               </div>
             </div>
@@ -2934,14 +2900,6 @@ window.PelakuModule = {
       const yrs = existing.years ? existing.years.join(', ') : `${existing.year1}-${existing.year2}`;
       const creator = existing.createdBy ? ` • Pembuat: ${existing.createdBy}` : '';
       alertText.textContent = `✨ Ditemukan data tersimpan untuk "${existing.companyName}" (${yrs}${creator}). Data finansial sebelumnya otomatis dimuat!`;
-      const secEl = document.getElementById('modal_new_sector');
-      if (secEl && existing.sector) secEl.value = existing.sector;
-      const auditEl = document.getElementById('modal_new_auditStatus');
-      if (auditEl && existing.auditStatus) auditEl.value = existing.auditStatus;
-      const kapEl = document.getElementById('modal_new_kapName');
-      if (kapEl && existing.kapName && kapEl.value.trim() === '') kapEl.value = existing.kapName;
-      const opEl = document.getElementById('modal_new_opinion');
-      if (opEl && existing.opinion && opEl.value.trim() === '') opEl.value = existing.opinion;
       const projEl = document.getElementById('modal_new_projectVal');
       if (projEl && existing.projectVal && projEl.value.trim() === '') projEl.value = this.formatNumberWithDots(existing.projectVal, false);
     } else if (alertEl) {
@@ -3030,31 +2988,46 @@ window.PelakuModule = {
     const normId = window.askrindoDB ? window.askrindoDB.normalizeCompanyId(compName) : '';
     const existing = normId && window.askrindoDB ? window.askrindoDB.getPelakuAnalysis(normId) : null;
 
-    const sectorInput = document.getElementById('modal_new_sector')?.value;
-    const sector = existing?.sector && (!sectorInput || sectorInput === 'konstruksi') ? existing.sector : (sectorInput || 'konstruksi');
-    const y1 = document.getElementById('modal_new_year1')?.value.trim() || '2024';
-    const y2 = document.getElementById('modal_new_year2')?.value.trim() || '2025';
-    const auditInput = document.getElementById('modal_new_auditStatus')?.value;
-    const audit = existing?.auditStatus && (!auditInput || auditInput === 'audited') ? existing.auditStatus : (auditInput || 'audited');
-    const kap = (document.getElementById('modal_new_kapName')?.value || '').trim() || existing?.kapName || '-';
-    const opinion = (document.getElementById('modal_new_opinion')?.value || '').trim() || existing?.opinion || (audit === 'audited' ? 'Wajar Tanpa Pengecualian (WTP)' : '-');
+    let y1 = (document.getElementById('modal_new_year1')?.value || '').trim();
+    let y2 = (document.getElementById('modal_new_year2')?.value || '').trim();
+
+    // Jika tahun dikosongkan saat buat baru:
+    // Bila ada data existing, gunakan tahun dari existing. Jika perusahaan baru, biarkan kosong agar diisi analis
+    if (!y1 && !y2 && existing) {
+      y1 = String(existing.year1 || '');
+      y2 = String(existing.year2 || '');
+    } else if (y1 && !y2) {
+      y2 = String(parseInt(y1, 10) + 1);
+    } else if (!y1 && y2) {
+      y1 = String(parseInt(y2, 10) - 1);
+    }
+
+    const sector = existing?.sector || 'konstruksi';
+    const audit = existing?.auditStatus || 'audited';
+    const kap = existing?.kapName || '-';
+    const opinion = existing?.opinion || (audit === 'audited' ? 'Wajar Tanpa Pengecualian (WTP)' : '-');
     const projValInput = this.parseFormattedNumber(document.getElementById('modal_new_projectVal')?.value);
     const projVal = (projValInput !== null && projValInput !== undefined && projValInput > 0) ? projValInput : (existing?.projectVal || 0);
 
-    const allYears = Array.from(new Set([...(existing?.years || []), y1, y2])).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+    const yearList = [y1, y2].filter(Boolean);
+    let allYears = Array.from(new Set([...(existing?.years || []), ...yearList])).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+    if (allYears.length < 2) {
+      if (allYears.length === 0) allYears = ['2024', '2025'];
+      else if (allYears.length === 1) allYears = [allYears[0], String(parseInt(allYears[0], 10) + 1)];
+    }
 
     const yearlyData = { ...(existing?.yearlyData || {}) };
     if (existing?.data1 && existing?.year1 && !yearlyData[existing.year1]) yearlyData[existing.year1] = { ...existing.data1 };
     if (existing?.data2 && existing?.year2 && !yearlyData[existing.year2]) yearlyData[existing.year2] = { ...existing.data2 };
 
-    const d1Data = yearlyData[y1] || (existing?.year1 === y1 ? existing?.data1 : null) || {};
-    const d2Data = yearlyData[y2] || (existing?.year2 === y2 ? existing?.data2 : null) || {};
+    const d1Data = (y1 && yearlyData[y1]) ? yearlyData[y1] : (existing?.year1 === y1 ? existing?.data1 : null) || {};
+    const d2Data = (y2 && yearlyData[y2]) ? yearlyData[y2] : (existing?.year2 === y2 ? existing?.data2 : null) || {};
     const hasFinData = Object.keys(d1Data).length > 0 || Object.keys(d2Data).length > 0;
 
     this.workspaceState = {
       companyName: compName,
       sector,
-      years: allYears.length >= 2 ? allYears : [y1, y2],
+      years: allYears,
       year1: y1,
       year2: y2,
       auditStatus: audit,
@@ -3094,22 +3067,15 @@ window.PelakuModule = {
     }
 
     const compName = (document.getElementById('modal_new_companyName')?.value || '').trim();
-    const sector = document.getElementById('modal_new_sector')?.value || 'konstruksi';
-    const y1 = document.getElementById('modal_new_year1')?.value.trim() || '2024';
-    const y2 = document.getElementById('modal_new_year2')?.value.trim() || '2025';
-    const audit = document.getElementById('modal_new_auditStatus')?.value || 'audited';
-    const kap = (document.getElementById('modal_new_kapName')?.value || '').trim();
-    const opinion = (document.getElementById('modal_new_opinion')?.value || '').trim();
+    const y1 = (document.getElementById('modal_new_year1')?.value || '').trim();
+    const y2 = (document.getElementById('modal_new_year2')?.value || '').trim();
     const projVal = this.parseFormattedNumber(document.getElementById('modal_new_projectVal')?.value) || 0;
 
     this.modalPreEnteredData = {
       companyName: compName,
-      sector,
+      sector: 'konstruksi',
       year1: y1,
       year2: y2,
-      auditStatus: audit,
-      kapName: kap,
-      opinion,
       projectVal
     };
 
