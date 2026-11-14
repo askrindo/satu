@@ -78,7 +78,12 @@ class AskrindoApp {
       return;
     }
 
+    const prevRoute = this.currentRoute;
     this.currentRoute = hash;
+    this.previousRoute = prevRoute;
+    if (this.currentRoute.startsWith('#/pelaku') && (!prevRoute || !prevRoute.startsWith('#/pelaku'))) {
+      if (window.PelakuModule) window.PelakuModule.currentTab = 'archive';
+    }
     this.renderAppShell();
     this.renderCurrentRoute();
   }

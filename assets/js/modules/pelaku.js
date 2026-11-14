@@ -93,7 +93,7 @@ const FIN_STATEMENT_STRUCTURE = [
 const PELAKU_DRAFT_KEY = 'askrindo_satu_pelaku_draft_v1';
 
 window.PelakuModule = {
-  currentTab: 'workspace', // 'workspace' | 'archive'
+  currentTab: 'archive', // 'archive' | 'workspace' - Default landing page is project list
   archiveSearch: '',
   archiveFilter: 'all', // 'all' | 'rac_pass' | 'rac_fail'
   workspaceState: null,
@@ -655,19 +655,23 @@ window.PelakuModule = {
             <div class="flex items-center gap-2 flex-wrap">
               <!-- Mode Tabs -->
               <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
+                <button onclick="window.PelakuModule.setTab('archive')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${this.currentTab === 'archive' ? 'bg-purple-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}">
+                  <i data-lucide="folder-archive" class="w-3.5 h-3.5"></i>
+                  <span>Daftar Proyek</span>
+                  <span id="pelaku-archive-count-badge" class="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${this.currentTab === 'archive' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-800'}">${savedCount}</span>
+                </button>
                 <button onclick="window.PelakuModule.setTab('workspace')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${this.currentTab === 'workspace' ? 'bg-purple-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}">
                   <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
                   <span>Lembar Analisa</span>
                 </button>
-                <button onclick="window.PelakuModule.setTab('archive')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${this.currentTab === 'archive' ? 'bg-purple-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}">
-                  <i data-lucide="folder-archive" class="w-3.5 h-3.5"></i>
-                  <span>Arsip Perusahaan</span>
-                  <span id="pelaku-archive-count-badge" class="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${this.currentTab === 'archive' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-800'}">${savedCount}</span>
-                </button>
               </div>
 
               ${this.currentTab === 'workspace' ? `
-                <button onclick="window.PelakuModule.startNewAnalysis()" class="px-3.5 py-2 rounded-xl text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 transition flex items-center gap-1.5" title="Mulai analisa perusahaan baru (form bersih)">
+                <button onclick="window.PelakuModule.setTab('archive')" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 shadow-sm transition flex items-center gap-1.5" title="Kembali ke Daftar Proyek / Arsip">
+                  <i data-lucide="arrow-left" class="w-4 h-4 text-purple-600"></i>
+                  <span>Daftar Proyek</span>
+                </button>
+                <button onclick="window.PelakuModule.openNewAnalysisModal()" class="px-3.5 py-2 rounded-xl text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 transition flex items-center gap-1.5" title="Mulai analisa proyek baru (pop-up & unggah berkas)">
                   <i data-lucide="plus-circle" class="w-4 h-4"></i>
                   <span>Analisa Baru</span>
                 </button>
@@ -675,7 +679,7 @@ window.PelakuModule = {
                   <i data-lucide="save" class="w-4 h-4"></i>
                   <span>Simpan Analisa</span>
                 </button>
-                <button onclick="window.PelakuModule.openAiFinUploadModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-800 hover:from-purple-800 hover:to-indigo-700 shadow-md shadow-purple-500/25 transition flex items-center gap-1.5 group">
+                <button onclick="window.PelakuModule.openAiFinUploadModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-800 hover:from-purple-800 hover:to-indigo-700 shadow-md shadow-purple-500/25 transition flex items-center gap-1.5 group" title="Pindai Laporan Keuangan dengan AI Vision">
                   <i data-lucide="scan-line" class="w-4 h-4 text-amber-300 group-hover:scale-110 transition-transform"></i>
                   <span>Pindai AI OCR Vision</span>
                 </button>
@@ -683,7 +687,7 @@ window.PelakuModule = {
                   Kosongkan
                 </button>
               ` : `
-                <button onclick="window.PelakuModule.startNewAnalysis()" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 shadow-md shadow-purple-500/20 transition flex items-center gap-1.5">
+                <button onclick="window.PelakuModule.openNewAnalysisModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 shadow-md shadow-purple-500/20 transition flex items-center gap-1.5">
                   <i data-lucide="plus-circle" class="w-4 h-4"></i>
                   <span>+ Buat Analisa Baru</span>
                 </button>
@@ -732,6 +736,10 @@ window.PelakuModule = {
                     <i data-lucide="building-2" class="w-4 h-4 text-purple-600"></i>
                     <span>1. Profil Calon Debitur / Rekanan</span>
                   </h3>
+                  <button type="button" onclick="window.PelakuModule.setTab('archive')" class="text-xs text-purple-700 hover:text-purple-900 font-semibold flex items-center gap-1 transition">
+                    <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                    <span>Kembali ke Daftar Proyek</span>
+                  </button>
                 </div>
 
                 <!-- Baris 1: Nama Perusahaan Rekanan (Full Width) -->
@@ -2658,31 +2666,431 @@ window.PelakuModule = {
   },
 
   startNewAnalysis() {
-    this.workspaceState = this.buildBlankState();
+    this.openNewAnalysisModal();
+  },
+
+  openNewAnalysisModal() {
+    const container = document.getElementById('pelaku-modal-container');
+    if (!container) return;
+
+    this.selectedAiFinFiles = [];
+    this.modalPreEnteredData = null;
+
+    const curYr = new Date().getFullYear();
+    const defaultY1 = curYr - 1;
+    const defaultY2 = curYr;
+
+    container.innerHTML = `
+      <div id="newAnalysisModalBackdrop" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+        <div class="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6 max-h-[92vh] overflow-y-auto">
+          
+          <!-- Modal Header -->
+          <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-purple-700 via-indigo-600 to-purple-800 text-white flex items-center justify-center shadow-md shadow-purple-500/25">
+                <i data-lucide="plus-circle" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <h3 class="text-base sm:text-lg font-black text-slate-800">Buat Analisa Laporan Keuangan Baru</h3>
+                <p class="text-xs text-slate-500">Lengkapi profil debitur &amp; nilai proyek atau unggah berkas untuk dipindai otomatis oleh AI OCR Vision.</p>
+              </div>
+            </div>
+            <button onclick="window.PelakuModule.closeNewAnalysisModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition" title="Tutup">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- Section 1: Profil Proyek & Calon Debitur (Isian Field-Field) -->
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                <i data-lucide="building-2" class="w-4 h-4 text-purple-600"></i>
+                <span>1. Profil Calon Debitur &amp; Parameter Proyek</span>
+              </h4>
+              <span class="text-[10px] text-slate-400 font-medium">Bisa diedit kembali nanti</span>
+            </div>
+
+            <!-- Nama Perusahaan & Live Unique ID -->
+            <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                <label for="modal_new_companyName" class="text-xs font-bold text-slate-700">Nama Perusahaan / Rekanan <span class="text-rose-500">*</span></label>
+                <span id="modal_new_companyIdBadge" class="px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-bold bg-white text-purple-700 border border-purple-200 shadow-xs truncate max-w-[260px]">
+                  ID: -
+                </span>
+              </div>
+              <input
+                type="text"
+                id="modal_new_companyName"
+                placeholder="Ketik Nama Perusahaan (Contoh: PT Tri Cipta Karya)..."
+                oninput="window.PelakuModule.handleNewModalCompanyNameChange(this.value)"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white font-semibold text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
+              />
+              <div id="modal_new_companyExistsAlert" class="hidden p-2.5 rounded-xl bg-purple-50 border border-purple-200 text-[11px] text-purple-900 font-medium flex items-center gap-2">
+                <i data-lucide="info" class="w-4 h-4 text-purple-600 shrink-0"></i>
+                <span id="modal_new_companyExistsText">Perusahaan ini sudah ada di Arsip. Analisa baru akan tersambung ke Unique ID tersebut.</span>
+              </div>
+            </div>
+
+            <!-- Grid Sektor & Periode Tahun -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+              <div>
+                <label for="modal_new_sector" class="block font-semibold text-slate-700 mb-1">Sektor Usaha</label>
+                <select id="modal_new_sector" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:outline-none focus:border-purple-500">
+                  <option value="konstruksi">Konstruksi &amp; Infrastruktur</option>
+                  <option value="pengadaan">Pengadaan Barang / Jasa</option>
+                  <option value="manufaktur">Manufaktur &amp; Industri</option>
+                  <option value="perdagangan">Perdagangan &amp; Distribusi</option>
+                  <option value="jasa">Jasa &amp; Konsultansi</option>
+                  <option value="lainnya">Sektor Lainnya</option>
+                </select>
+              </div>
+              <div>
+                <label for="modal_new_year1" class="block font-semibold text-slate-700 mb-1">Tahun 1 (Sebelumnya)</label>
+                <input
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="4"
+                  id="modal_new_year1"
+                  value="${defaultY1}"
+                  placeholder="2024"
+                  oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold font-mono text-center focus:outline-none focus:border-purple-500"
+                />
+              </div>
+              <div>
+                <label for="modal_new_year2" class="block font-semibold text-slate-700 mb-1">Tahun 2 (Terakhir)</label>
+                <input
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="4"
+                  id="modal_new_year2"
+                  value="${defaultY2}"
+                  placeholder="2025"
+                  oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold font-mono text-center focus:outline-none focus:border-purple-500"
+                />
+              </div>
+            </div>
+
+            <!-- Status Audit, KAP & Nilai Proyek -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+              <div>
+                <label for="modal_new_auditStatus" class="block font-semibold text-slate-700 mb-1">Status Audit</label>
+                <select id="modal_new_auditStatus" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:outline-none focus:border-purple-500">
+                  <option value="audited">Audited KAP</option>
+                  <option value="unaudited">In-House / Unaudited</option>
+                </select>
+              </div>
+              <div>
+                <label for="modal_new_kapName" class="block font-semibold text-slate-700 mb-1">Nama KAP &amp; Opini</label>
+                <input
+                  type="text"
+                  id="modal_new_kapName"
+                  placeholder="KAP Paul Hadiwinata / WTP..."
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:outline-none focus:border-purple-500"
+                />
+              </div>
+              <div>
+                <label for="modal_new_projectVal" class="block font-semibold text-slate-700 mb-1">Nilai Proyek Dijamin (Rp)</label>
+                <input
+                  type="text"
+                  id="modal_new_projectVal"
+                  placeholder="Contoh: 15.000.000.000"
+                  oninput="window.PelakuModule.handleDotInput(this)"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold font-mono focus:outline-none focus:border-purple-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Fitur Upload Laporan Keuangan (AI OCR Vision) -->
+          <div class="space-y-3 pt-3 border-t border-slate-100">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                <i data-lucide="sparkles" class="w-4 h-4 text-amber-500"></i>
+                <span>2. Fitur Upload Laporan Keuangan (AI OCR Vision)</span>
+              </h4>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                Pindai Otomatis
+              </span>
+            </div>
+            <p class="text-xs text-slate-500">
+              Unggah berkas PDF atau gambar Neraca &amp; Laba Rugi. Gemini Vision AI akan membaca dan mengekstrak 27 pos ASCA secara otomatis.
+            </p>
+
+            <!-- Drop Zone Area -->
+            <div
+              id="modal_new_dropzone"
+              ondragover="event.preventDefault(); this.classList.add('border-purple-500', 'bg-purple-50/40');"
+              ondragleave="this.classList.remove('border-purple-500', 'bg-purple-50/40');"
+              ondrop="event.preventDefault(); this.classList.remove('border-purple-500', 'bg-purple-50/40'); window.PelakuModule.handleDropNewAnalysisFiles(event);"
+              onclick="document.getElementById('modal_new_fileInput').click()"
+              class="border-2 border-dashed border-slate-300 rounded-2xl p-5 text-center space-y-2 cursor-pointer hover:border-purple-500 hover:bg-purple-50/20 transition group"
+            >
+              <input
+                type="file"
+                id="modal_new_fileInput"
+                multiple
+                accept=".pdf,image/png,image/jpeg,image/webp"
+                class="hidden"
+                onchange="window.PelakuModule.handleSelectNewAnalysisFiles(this)"
+              />
+              <div class="w-12 h-12 mx-auto rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform shadow-inner">
+                <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-slate-700">Tarik &amp; Lepaskan berkas Laporan Keuangan ke sini</p>
+                <p class="text-[11px] text-slate-500 mt-0.5">atau <span class="text-purple-600 font-semibold underline">pilih berkas dari perangkat Anda</span></p>
+              </div>
+              <div class="flex items-center justify-center gap-2 pt-1 text-[10px] text-slate-400">
+                <span class="px-2 py-0.5 rounded bg-slate-100 font-mono">PDF</span>
+                <span class="px-2 py-0.5 rounded bg-slate-100 font-mono">JPG / PNG / WEBP</span>
+                <span>&bull; Maks 25MB per berkas</span>
+              </div>
+            </div>
+
+            <!-- File List Container -->
+            <div id="modal_new_fileList" class="space-y-2 text-xs"></div>
+
+            <!-- Progress Box (Hidden initially) -->
+            <div id="modal_new_progressBox" class="hidden p-4 rounded-2xl bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 space-y-3">
+              <div class="flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2 text-purple-900 font-bold">
+                  <span class="w-2.5 h-2.5 rounded-full bg-purple-600 animate-ping"></span>
+                  <span id="modal_new_progressText">AI Vision sedang memindai dokumen laporan keuangan...</span>
+                </div>
+                <span id="modal_new_progressPct" class="font-mono font-extrabold text-purple-700">30%</span>
+              </div>
+              <div class="w-full h-2 bg-purple-200/60 rounded-full overflow-hidden">
+                <div id="modal_new_progressBar" class="h-full bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full transition-all duration-300" style="width: 30%;"></div>
+              </div>
+              <p class="text-[11px] text-slate-500">Mengekstrak 27 akun keuangan Neraca &amp; Laba Rugi untuk periode tahun yang dipilih...</p>
+            </div>
+          </div>
+
+          <!-- Modal Action Buttons Footer -->
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              onclick="window.PelakuModule.closeNewAnalysisModal()"
+              class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition order-3 sm:order-1"
+            >
+              Batal
+            </button>
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end order-1 sm:order-2">
+              <button
+                type="button"
+                id="btn_submit_manual"
+                onclick="window.PelakuModule.submitNewAnalysisManual()"
+                class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition flex items-center justify-center gap-1.5"
+                title="Buka form lembar kerja analisa untuk input angka secara langsung"
+              >
+                <i data-lucide="file-spreadsheet" class="w-4 h-4 text-purple-600"></i>
+                <span>Lanjut ke Lembar Kerja (Input Manual)</span>
+              </button>
+              <button
+                type="button"
+                id="btn_submit_ai_ocr"
+                onclick="window.PelakuModule.submitNewAnalysisAiOcr()"
+                class="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-800 hover:from-purple-800 hover:to-indigo-700 shadow-md shadow-purple-600/30 transition flex items-center justify-center gap-2 group"
+                title="Pindai dokumen yang diunggah dengan AI Vision"
+              >
+                <i data-lucide="sparkles" class="w-4 h-4 text-amber-300 group-hover:scale-110 transition-transform"></i>
+                <span id="btn_submit_ai_ocr_text">Pindai AI OCR Vision</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    `;
+
+    if (window.lucide) window.lucide.createIcons();
+    setTimeout(() => {
+      document.getElementById('modal_new_companyName')?.focus();
+    }, 80);
+  },
+
+  closeNewAnalysisModal() {
+    const container = document.getElementById('pelaku-modal-container');
+    if (container) container.innerHTML = '';
+  },
+
+  handleNewModalCompanyNameChange(val) {
+    const normId = val && window.askrindoDB ? window.askrindoDB.normalizeCompanyId(val) : '';
+    const badge = document.getElementById('modal_new_companyIdBadge');
+    if (badge) badge.textContent = 'ID: ' + (normId || '-');
+
+    const alertEl = document.getElementById('modal_new_companyExistsAlert');
+    const alertText = document.getElementById('modal_new_companyExistsText');
+    const existing = normId && window.askrindoDB ? window.askrindoDB.getPelakuAnalysis(normId) : null;
+
+    if (existing && alertEl && alertText) {
+      alertEl.classList.remove('hidden');
+      const yrs = existing.years ? existing.years.join(', ') : `${existing.year1}-${existing.year2}`;
+      alertText.textContent = `Perusahaan "${existing.companyName}" sudah ada di Arsip (Tahun tersimpan: ${yrs}). Data tahun baru akan otomatis digabungkan!`;
+      const secEl = document.getElementById('modal_new_sector');
+      if (secEl && existing.sector) secEl.value = existing.sector;
+      const auditEl = document.getElementById('modal_new_auditStatus');
+      if (auditEl && existing.auditStatus) auditEl.value = existing.auditStatus;
+    } else if (alertEl) {
+      alertEl.classList.add('hidden');
+    }
+  },
+
+  handleSelectNewAnalysisFiles(input) {
+    if (!input || !input.files) return;
+    const files = Array.from(input.files);
+    files.forEach(f => {
+      if (f.size > 25 * 1024 * 1024) {
+        window.askrindoApp.showToast(`Berkas ${f.name} melebihi batas 25MB!`, 'error');
+        return;
+      }
+      this.selectedAiFinFiles.push(f);
+    });
+    this.renderNewAnalysisFileList();
+  },
+
+  handleDropNewAnalysisFiles(e) {
+    if (!e.dataTransfer || !e.dataTransfer.files) return;
+    const files = Array.from(e.dataTransfer.files);
+    files.forEach(f => {
+      if (f.size > 25 * 1024 * 1024) {
+        window.askrindoApp.showToast(`Berkas ${f.name} melebihi batas 25MB!`, 'error');
+        return;
+      }
+      this.selectedAiFinFiles.push(f);
+    });
+    this.renderNewAnalysisFileList();
+  },
+
+  removeNewAnalysisFile(idx) {
+    this.selectedAiFinFiles.splice(idx, 1);
+    this.renderNewAnalysisFileList();
+  },
+
+  renderNewAnalysisFileList() {
+    const list = document.getElementById('modal_new_fileList');
+    const btnText = document.getElementById('btn_submit_ai_ocr_text');
+    if (!list) return;
+
+    if (this.selectedAiFinFiles.length === 0) {
+      list.innerHTML = '';
+      if (btnText) btnText.textContent = 'Pindai AI OCR Vision';
+      return;
+    }
+
+    if (btnText) btnText.textContent = `Pindai ${this.selectedAiFinFiles.length} Berkas (AI OCR)`;
+
+    list.innerHTML = `
+      <div class="p-3 bg-purple-50/50 rounded-2xl border border-purple-200/80 space-y-2">
+        <div class="flex items-center justify-between text-slate-700 font-bold">
+          <span>Berkas Terlampir (${this.selectedAiFinFiles.length}):</span>
+          <span class="text-purple-700 font-mono text-[10px]">Total: ${(this.selectedAiFinFiles.reduce((acc, f) => acc + f.size, 0) / (1024 * 1024)).toFixed(2)} MB</span>
+        </div>
+        <div class="space-y-1.5 max-h-32 overflow-y-auto">
+          ${this.selectedAiFinFiles.map((f, i) => `
+            <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-purple-100 text-xs shadow-xs">
+              <div class="flex items-center gap-2 truncate">
+                <i data-lucide="${f.type.includes('pdf') ? 'file-text' : 'image'}" class="w-4 h-4 text-purple-600 shrink-0"></i>
+                <span class="truncate font-medium text-slate-800">${this.escapeHtml(f.name)}</span>
+                <span class="text-[10px] text-slate-400 shrink-0 font-mono">(${(f.size / 1024).toFixed(1)} KB)</span>
+              </div>
+              <button type="button" onclick="window.PelakuModule.removeNewAnalysisFile(${i})" class="text-slate-400 hover:text-rose-600 p-1 transition" title="Hapus berkas">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+
+    if (window.lucide) window.lucide.createIcons();
+  },
+
+  submitNewAnalysisManual() {
+    const compName = (document.getElementById('modal_new_companyName')?.value || '').trim();
+    if (!compName) {
+      window.askrindoApp.showToast('Silakan isi Nama Perusahaan terlebih dahulu.', 'warning');
+      document.getElementById('modal_new_companyName')?.focus();
+      return;
+    }
+
+    const sector = document.getElementById('modal_new_sector')?.value || 'konstruksi';
+    const y1 = document.getElementById('modal_new_year1')?.value.trim() || '2024';
+    const y2 = document.getElementById('modal_new_year2')?.value.trim() || '2025';
+    const audit = document.getElementById('modal_new_auditStatus')?.value || 'audited';
+    const kap = (document.getElementById('modal_new_kapName')?.value || '').trim();
+    const opinion = (document.getElementById('modal_new_opinion')?.value || '').trim();
+    const projVal = this.parseFormattedNumber(document.getElementById('modal_new_projectVal')?.value) || 0;
+
+    const normId = window.askrindoDB ? window.askrindoDB.normalizeCompanyId(compName) : '';
+    const existing = normId && window.askrindoDB ? window.askrindoDB.getPelakuAnalysis(normId) : null;
+    const allYears = Array.from(new Set([...(existing?.years || []), y1, y2])).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+
+    const yearlyData = { ...(existing?.yearlyData || {}) };
+    if (existing?.data1 && existing?.year1 && !yearlyData[existing.year1]) yearlyData[existing.year1] = { ...existing.data1 };
+    if (existing?.data2 && existing?.year2 && !yearlyData[existing.year2]) yearlyData[existing.year2] = { ...existing.data2 };
+
+    this.workspaceState = {
+      companyName: compName,
+      sector,
+      years: allYears.length >= 2 ? allYears : [y1, y2],
+      year1: y1,
+      year2: y2,
+      auditStatus: audit,
+      opinion: opinion || (audit === 'audited' ? 'Wajar Tanpa Pengecualian (WTP)' : '-'),
+      projectVal: projVal,
+      kapName: kap || '-',
+      yearlyData,
+      d1: yearlyData[y1] || {},
+      d2: yearlyData[y2] || {}
+    };
+
     this.formSourceMode = 'blank';
-    this.loadedCompanyId = null;
+    this.loadedCompanyId = existing?.id || normId || null;
     this.preAutoMatchState = null;
     this.autoLoadedCompanyId = null;
-    this.historyBannerMatch = null;
-    this.historyBannerAutoLoaded = false;
+    this.historyBannerMatch = existing || null;
+    this.historyBannerAutoLoaded = !!existing;
     this.dismissedBannerForId = null;
     this.lastToastMatchId = null;
+
     this.saveWorkspaceDraft();
-
-    if (this.currentTab !== 'workspace') {
-      this.currentTab = 'workspace';
-    }
+    this.currentTab = 'workspace';
+    this.closeNewAnalysisModal();
     window.askrindoApp.renderCurrentRoute();
+    window.askrindoApp.showToast(`Lembar analisa "${compName}" siap digunakan!`, 'success');
+  },
 
-    setTimeout(() => {
-      const compEl = document.getElementById('pelaku-company');
-      if (compEl) {
-        compEl.focus();
-        this.openCompanyAutocomplete();
-      }
-    }, 60);
+  submitNewAnalysisAiOcr() {
+    if (this.selectedAiFinFiles.length === 0) {
+      window.askrindoApp.showToast('Silakan pilih berkas Laporan Keuangan (PDF / Foto) terlebih dahulu.', 'warning');
+      document.getElementById('modal_new_fileInput')?.click();
+      return;
+    }
 
-    window.askrindoApp.showToast('Siap membuat analisa baru. Masukkan Nama Perusahaan (otomatis menjadi ID).', 'info');
+    const compName = (document.getElementById('modal_new_companyName')?.value || '').trim();
+    const sector = document.getElementById('modal_new_sector')?.value || 'konstruksi';
+    const y1 = document.getElementById('modal_new_year1')?.value.trim() || '2024';
+    const y2 = document.getElementById('modal_new_year2')?.value.trim() || '2025';
+    const audit = document.getElementById('modal_new_auditStatus')?.value || 'audited';
+    const kap = (document.getElementById('modal_new_kapName')?.value || '').trim();
+    const opinion = (document.getElementById('modal_new_opinion')?.value || '').trim();
+    const projVal = this.parseFormattedNumber(document.getElementById('modal_new_projectVal')?.value) || 0;
+
+    this.modalPreEnteredData = {
+      companyName: compName,
+      sector,
+      year1: y1,
+      year2: y2,
+      auditStatus: audit,
+      kapName: kap,
+      opinion,
+      projectVal
+    };
+
+    this.runGeminiFinExtraction();
   },
 
   setTab(tab) {
@@ -3687,8 +4095,12 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
         <tr>
           <td colspan="6" class="py-12 text-center text-slate-400">
             <i data-lucide="folder-open" class="w-10 h-10 mx-auto text-slate-300 mb-2"></i>
-            <p class="font-semibold text-slate-600">Belum ada arsip analisa perusahaan yang cocok.</p>
-            <p class="text-[11px] text-slate-400 mt-1">Gunakan tombol <strong>+ Buat Analisa Baru</strong> lalu klik <strong>Simpan Analisa</strong> agar tersimpan permanen per Nama Perusahaan (ID).</p>
+            <p class="font-semibold text-slate-600">Belum ada arsip analisa proyek yang tersimpan.</p>
+            <p class="text-[11px] text-slate-400 mt-1 max-w-md mx-auto">Klik tombol <strong>+ Buat Analisa Baru</strong> di bawah untuk memasukkan profil calon debitur dan mengunggah berkas laporan keuangan.</p>
+            <button type="button" onclick="window.PelakuModule.openNewAnalysisModal()" class="mt-4 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 shadow-md shadow-purple-500/20 transition inline-flex items-center gap-2">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i>
+              <span>+ Buat Analisa Baru</span>
+            </button>
           </td>
         </tr>
       `;
@@ -4092,17 +4504,19 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
       return;
     }
 
-    const y1 = parseInt(document.getElementById('aiFinTargetYear1')?.value) || 2024;
-    const y2 = parseInt(document.getElementById('aiFinTargetYear2')?.value) || 2025;
+    const y1 = parseInt(document.getElementById('modal_new_year1')?.value || document.getElementById('aiFinTargetYear1')?.value) || 2024;
+    const y2 = parseInt(document.getElementById('modal_new_year2')?.value || document.getElementById('aiFinTargetYear2')?.value) || 2025;
 
-    const pBox = document.getElementById('aiFinProgressBox');
-    const pBar = document.getElementById('aiFinProgressBar');
-    const pPct = document.getElementById('aiFinProgressPct');
-    const pTxt = document.getElementById('aiFinProgressText');
-    const btn = document.getElementById('btnStartAiFinExtraction');
+    const pBox = document.getElementById('modal_new_progressBox') || document.getElementById('aiFinProgressBox');
+    const pBar = document.getElementById('modal_new_progressBar') || document.getElementById('aiFinProgressBar');
+    const pPct = document.getElementById('modal_new_progressPct') || document.getElementById('aiFinProgressPct');
+    const pTxt = document.getElementById('modal_new_progressText') || document.getElementById('aiFinProgressText');
+    const btn = document.getElementById('btn_submit_ai_ocr') || document.getElementById('btnStartAiFinExtraction');
+    const btnManual = document.getElementById('btn_submit_manual');
 
     if (pBox) pBox.classList.remove('hidden');
     if (btn) btn.disabled = true;
+    if (btnManual) btnManual.disabled = true;
 
     const setProgress = (pct, msg) => {
       if (pBar) pBar.style.width = `${pct}%`;
@@ -4241,6 +4655,7 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
       console.error(err);
       if (pBox) pBox.classList.add('hidden');
       if (btn) btn.disabled = false;
+      if (btnManual) btnManual.disabled = false;
       window.askrindoApp.showToast(`Ekstraksi gagal: ${err.message}`, 'error');
     }
   },
@@ -4597,7 +5012,12 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
     const scanY2 = String(this.currentExtractedFinData.year2 || 2025);
     const autoSaveArchive = document.getElementById('chkAiAutoSaveArchive')?.checked ?? true;
 
-    const companyName = (this.currentExtractedFinData.company_name || document.getElementById('pelaku-company')?.value || '').trim();
+    const modalComp = this.modalPreEnteredData?.companyName;
+    const modalSector = this.modalPreEnteredData?.sector;
+    const modalProjVal = this.modalPreEnteredData?.projectVal;
+
+    const detectedComp = (this.currentExtractedFinData.company_name || '').trim();
+    const companyName = modalComp || (detectedComp && detectedComp !== 'Rekanan Terdeteksi' ? detectedComp : '') || (document.getElementById('pelaku-company')?.value || '').trim() || 'PT Debitur Baru';
     const normId = companyName && window.askrindoDB ? window.askrindoDB.normalizeCompanyId(companyName) : '';
     const existingBeforeSave = normId && window.askrindoDB ? window.askrindoDB.getPelakuAnalysis(normId) : null;
 
@@ -4620,18 +5040,21 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
 
     this.workspaceState = {
       companyName,
-      sector: this.workspaceState?.sector || 'konstruksi',
+      sector: modalSector || this.workspaceState?.sector || 'konstruksi',
       years: allYears,
       year1: scanY1,
       year2: scanY2,
       auditStatus: this.currentExtractedFinData.audit_status === 'audited' ? 'audited' : 'unaudited',
       opinion: this.currentExtractedFinData.auditor_opinion || '-',
-      projectVal: this.workspaceState?.projectVal || '',
+      projectVal: modalProjVal !== undefined && modalProjVal !== '' ? modalProjVal : (this.workspaceState?.projectVal || ''),
       kapName: this.currentExtractedFinData.auditor_kap_name || '-',
       yearlyData: mergedYearlyData,
       d1: mergedYearlyData[scanY1],
       d2: mergedYearlyData[scanY2]
     };
+
+    this.currentTab = 'workspace';
+    this.modalPreEnteredData = null;
 
     this.formSourceMode = 'ocr';
     this.loadedCompanyId = existingBeforeSave?.id || normId || null;
