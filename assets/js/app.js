@@ -6,7 +6,7 @@
 class AskrindoApp {
   constructor() {
     this.currentRoute = '#/dashboard';
-    this.sidebarCollapsed = false;
+    this.sidebarCollapsed = window.innerWidth < 1024;
     this.init();
   }
 
@@ -142,8 +142,8 @@ class AskrindoApp {
                 <!-- Section 1: Utama -->
                 <div class="space-y-1">
                   <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">Portal Utama</p>
-                  <a href="#/dashboard" id="nav-dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-slate-900 hover:bg-slate-100">
-                    <i data-lucide="layout-dashboard" class="w-4 h-4 text-slate-500"></i>
+                  <a href="#/dashboard" id="nav-dashboard" title="Beranda Terpadu" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-slate-900 hover:bg-slate-100">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4 text-slate-500 shrink-0"></i>
                     <span class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">Beranda Terpadu</span>
                   </a>
                 </div>
@@ -153,63 +153,63 @@ class AskrindoApp {
                   <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">Aplikasi-Aplikasi Terpadu</p>
                   
                   <!-- KABAR -->
-                  <a href="#/kabar" id="nav-kabar" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-orange-600 hover:bg-orange-50">
+                  <a href="#/kabar" id="nav-kabar" title="KABAR (Kalkulator Asuransi Kebakaran)" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-orange-600 hover:bg-orange-50">
                     <div class="flex items-center gap-3">
-                      <i data-lucide="flame" class="w-4 h-4 text-orange-500"></i>
+                      <i data-lucide="flame" class="w-4 h-4 text-orange-500 shrink-0"></i>
                       <div class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">KABAR</span>
                         <span class="text-[10px] block font-normal text-slate-400">Kalkulator Asuransi Kebakaran</span>
                       </div>
                     </div>
-                    <span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
+                    <span class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
                   </a>
 
                   <!-- TTK -->
-                  <a href="#/ttk" id="nav-ttk" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-blue-600 hover:bg-blue-50">
+                  <a href="#/ttk" id="nav-ttk" title="TTK (Tanya-Tanya KUR)" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-blue-600 hover:bg-blue-50">
                     <div class="flex items-center gap-3">
-                      <i data-lucide="help-circle" class="w-4 h-4 text-blue-500"></i>
+                      <i data-lucide="help-circle" class="w-4 h-4 text-blue-500 shrink-0"></i>
                       <div class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">TTK</span>
                         <span class="text-[10px] block font-normal text-slate-400">Tanya-Tanya KUR</span>
                       </div>
                     </div>
-                    <span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
+                    <span class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
                   </a>
 
                   <!-- BUSET -->
-                  <a href="#/buset" id="nav-bus" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-emerald-600 hover:bg-emerald-50">
+                  <a href="#/buset" id="nav-bus" title="BUSET (Buat SPPA Elektronik)" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-emerald-600 hover:bg-emerald-50">
                     <div class="flex items-center gap-3">
-                      <i data-lucide="file-text" class="w-4 h-4 text-emerald-500"></i>
+                      <i data-lucide="file-text" class="w-4 h-4 text-emerald-500 shrink-0"></i>
                       <div class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">BUSET</span>
                         <span class="text-[10px] block font-normal text-slate-400">Buat SPPA Elektronik</span>
                       </div>
                     </div>
-                    <span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
+                    <span class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
                   </a>
 
                   <!-- CEPAT -->
-                  <a href="#/cepat" id="nav-cepat" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-cyan-600 hover:bg-cyan-50">
+                  <a href="#/cepat" id="nav-cepat" title="CEPAT (Cover Note Pertanggungan Asuransi)" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-cyan-600 hover:bg-cyan-50">
                     <div class="flex items-center gap-3">
-                      <i data-lucide="file-check-2" class="w-4 h-4 text-cyan-500"></i>
+                      <i data-lucide="file-check-2" class="w-4 h-4 text-cyan-500 shrink-0"></i>
                       <div class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">CEPAT</span>
                         <span class="text-[10px] block font-normal text-slate-400">Cover Note Pertanggungan Asuransi</span>
                       </div>
                     </div>
-                    <span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
+                    <span class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
                   </a>
 
                   <!-- PELAKU -->
-                  <a href="#/pelaku" id="nav-pelaku" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-purple-600 hover:bg-purple-50">
+                  <a href="#/pelaku" id="nav-pelaku" title="PELAKU (Perhitungan Laporan Keuangan)" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-purple-600 hover:bg-purple-50">
                     <div class="flex items-center gap-3">
-                      <i data-lucide="calculator" class="w-4 h-4 text-purple-500"></i>
+                      <i data-lucide="calculator" class="w-4 h-4 text-purple-500 shrink-0"></i>
                       <div class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">PELAKU</span>
                         <span class="text-[10px] block font-normal text-slate-400">Laporan Keuangan</span>
                       </div>
                     </div>
-                    <span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase">Aktif</span>
+                    <span class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase">Aktif</span>
                   </a>
                 </div>
 
@@ -217,8 +217,8 @@ class AskrindoApp {
                 ${canAdmin ? `
                   <div class="space-y-1">
                     <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">Administrasi & User</p>
-                    <a href="#/admin" id="nav-admin" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-amber-700 hover:bg-amber-50">
-                      <i data-lucide="shield-check" class="w-4 h-4 text-amber-500"></i>
+                    <a href="#/admin" id="nav-admin" title="Web Admin Portal" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-amber-700 hover:bg-amber-50">
+                      <i data-lucide="shield-check" class="w-4 h-4 text-amber-500 shrink-0"></i>
                       <span class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">Web Admin Portal</span>
                     </a>
                   </div>
@@ -668,7 +668,44 @@ class AskrindoApp {
 
   toggleSidebar() {
     this.sidebarCollapsed = !this.sidebarCollapsed;
-    this.renderAppShell();
+    this.updateSidebarDom();
+  }
+
+  updateSidebarDom() {
+    const sidebar = document.getElementById('app-sidebar');
+    if (!sidebar) return;
+
+    const isCollapsed = !!this.sidebarCollapsed;
+
+    if (isCollapsed) {
+      sidebar.classList.add('-ml-64', 'lg:ml-0', 'lg:w-20');
+      sidebar.classList.remove('w-64');
+      document.querySelectorAll('.sidebar-text').forEach(el => {
+        el.classList.add('lg:hidden');
+      });
+    } else {
+      sidebar.classList.remove('-ml-64', 'lg:ml-0', 'lg:w-20');
+      sidebar.classList.add('w-64');
+      document.querySelectorAll('.sidebar-text').forEach(el => {
+        el.classList.remove('lg:hidden');
+      });
+    }
+
+    // Mobile backdrop management
+    let backdrop = document.getElementById('sidebar-backdrop');
+    if (!isCollapsed && window.innerWidth < 1024) {
+      if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.id = 'sidebar-backdrop';
+        backdrop.className = 'fixed inset-0 bg-slate-900/50 z-20 backdrop-blur-xs lg:hidden transition-opacity';
+        backdrop.onclick = () => this.toggleSidebar();
+        sidebar.parentNode.insertBefore(backdrop, sidebar);
+      }
+    } else if (backdrop) {
+      backdrop.remove();
+    }
+
+    if (window.lucide) window.lucide.createIcons();
   }
 
   // --- Modals & Global Triggers ---
