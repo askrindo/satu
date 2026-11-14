@@ -4096,11 +4096,7 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
           <td colspan="6" class="py-12 text-center text-slate-400">
             <i data-lucide="folder-open" class="w-10 h-10 mx-auto text-slate-300 mb-2"></i>
             <p class="font-semibold text-slate-600">Belum ada arsip analisa proyek yang tersimpan.</p>
-            <p class="text-[11px] text-slate-400 mt-1 max-w-md mx-auto">Klik tombol <strong>+ Buat Analisa Baru</strong> di bawah untuk memasukkan profil calon debitur dan mengunggah berkas laporan keuangan.</p>
-            <button type="button" onclick="window.PelakuModule.openNewAnalysisModal()" class="mt-4 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 shadow-md shadow-purple-500/20 transition inline-flex items-center gap-2">
-              <i data-lucide="plus-circle" class="w-4 h-4"></i>
-              <span>+ Buat Analisa Baru</span>
-            </button>
+            <p class="text-[11px] text-slate-400 mt-1 max-w-md mx-auto">Gunakan tombol <strong>+ Buat Analisa Baru</strong> di atas untuk memasukkan profil calon debitur dan mengunggah berkas laporan keuangan.</p>
           </td>
         </tr>
       `;
