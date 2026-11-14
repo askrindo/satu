@@ -619,33 +619,6 @@ window.PelakuModule = {
                     <input type="text" id="inp_projectValue" value="${projFormatted}" oninput="window.PelakuModule.handleDotInput(this); window.PelakuModule.onMetaFieldChanged();" onblur="window.PelakuModule.handleDotBlur(this); window.PelakuModule.calculateRatios();" class="w-full px-3 py-2 rounded-xl border border-purple-200 font-bold font-mono focus:border-purple-500 focus:outline-none bg-white" placeholder="Contoh: 15.000.000.000" />
                   </div>
                 </div>
-
-                <!-- Baris 3: Parameter Underwriting Capacity (Standar Askrindo) -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-3 border-t border-slate-100">
-                  <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Kepemilikan Proyek (No. 22)</label>
-                    <select id="pelaku-project-owner" onchange="window.PelakuModule.onMetaFieldChanged()" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium focus:border-purple-500 focus:outline-none">
-                      <option value="apbn" ${ws.projectOwner === 'apbn' || !ws.projectOwner ? 'selected' : ''}>APBN (Skor 100)</option>
-                      <option value="apbd" ${ws.projectOwner === 'apbd' ? 'selected' : ''}>APBD (Skor 75)</option>
-                      <option value="bumn" ${ws.projectOwner === 'bumn' ? 'selected' : ''}>BUMN / BUMD (Skor 50)</option>
-                      <option value="swasta" ${ws.projectOwner === 'swasta' ? 'selected' : ''}>Perusahaan Swasta (Skor 25)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Spesifikasi &amp; Time Schedule (No. 21)</label>
-                    <select id="pelaku-project-spec" onchange="window.PelakuModule.onMetaFieldChanged()" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium focus:border-purple-500 focus:outline-none">
-                      <option value="lengkap" ${ws.projectSpec === 'lengkap' || !ws.projectSpec ? 'selected' : ''}>Dokumen Lengkap (Skor 100)</option>
-                      <option value="tidak_lengkap" ${ws.projectSpec === 'tidak_lengkap' ? 'selected' : ''}>Tidak Dijelaskan Lengkap (Skor 40)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Sumber Pembiayaan / Modal Kerja (No. 19)</label>
-                    <select id="pelaku-financing-source" onchange="window.PelakuModule.onMetaFieldChanged()" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-medium focus:border-purple-500 focus:outline-none">
-                      <option value="ada" ${ws.financingSource === 'ada' || !ws.financingSource ? 'selected' : ''}>Ada, Dokumen Pendukung Bank/LKNB (Skor 100)</option>
-                      <option value="tidak_ada" ${ws.financingSource === 'tidak_ada' ? 'selected' : ''}>Tidak Ada (Skor 40)</option>
-                    </select>
-                  </div>
-                </div>
               </div>
 
               <!-- Card 2: Tabel Pos-Pos Laporan Keuangan Lengkap 27 Akun (Persis ASCA) -->
