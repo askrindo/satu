@@ -422,6 +422,7 @@ class AskrindoApp {
       main.innerHTML = window.CepatModule.render();
     } else if (route.startsWith('#/pelaku')) {
       main.innerHTML = window.PelakuModule.render();
+      window.PelakuModule.updateYearLabels();
       window.PelakuModule.calculateRatios();
     } else if (route.startsWith('#/admin')) {
       main.innerHTML = window.AdminModule.render();

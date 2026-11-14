@@ -172,9 +172,6 @@ window.PelakuModule = {
       auditStatus: 'audited',
       opinion: 'Wajar Tanpa Pengecualian (WTP)',
       projectVal: 15000000000,
-      projectOwner: 'apbn',
-      projectSpec: 'lengkap',
-      financingSource: 'ada',
       kapName: 'KAP Tanubrata Sutanto Fahmi Bambang & Rekan (BDO Indonesia)',
       d1: { ...this.defaultData1 },
       d2: { ...this.defaultData2 }
@@ -192,9 +189,6 @@ window.PelakuModule = {
       auditStatus: '',
       opinion: '',
       projectVal: '',
-      projectOwner: 'apbn',
-      projectSpec: 'lengkap',
-      financingSource: 'ada',
       kapName: '',
       d1: { ...blankAcc },
       d2: { ...blankAcc }
@@ -270,9 +264,6 @@ window.PelakuModule = {
       auditStatus: document.getElementById('pelaku-audit-status')?.value || '',
       opinion: document.getElementById('pelaku-opinion')?.value || '',
       projectVal: projRaw === '' ? '' : this.parseFormattedNumber(projRaw),
-      projectOwner: document.getElementById('pelaku-project-owner')?.value || 'apbn',
-      projectSpec: document.getElementById('pelaku-project-spec')?.value || 'lengkap',
-      financingSource: document.getElementById('pelaku-financing-source')?.value || 'ada',
       kapName: document.getElementById('pelaku-kap-name')?.value || '',
       d1: readAcc(1),
       d2: readAcc(2)
@@ -600,11 +591,11 @@ window.PelakuModule = {
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                   <div>
                     <label class="block font-semibold text-slate-700 mb-1">Tahun 1 (Sebelumnya)</label>
-                    <input type="number" id="inp_year1" value="${this.escapeHtml(ws.year1 || '')}" placeholder="Contoh: 2024" oninput="window.PelakuModule.updateYearLabels(); window.PelakuModule.onMetaFieldChanged();" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-center font-bold font-mono focus:border-purple-500 focus:outline-none bg-white" />
+                    <input type="number" id="inp_year1" value="${this.escapeHtml(ws.year1 || '')}" placeholder="Contoh: 2024" oninput="window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios(); window.PelakuModule.onMetaFieldChanged();" onchange="window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios(); window.PelakuModule.onMetaFieldChanged();" onblur="window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios();" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-center font-bold font-mono focus:border-purple-500 focus:outline-none bg-white" />
                   </div>
                   <div>
                     <label class="block font-semibold text-slate-700 mb-1">Tahun 2 (Terakhir)</label>
-                    <input type="number" id="inp_year2" value="${this.escapeHtml(ws.year2 || '')}" placeholder="Contoh: 2025" oninput="window.PelakuModule.updateYearLabels(); window.PelakuModule.onMetaFieldChanged();" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-center font-bold font-mono focus:border-purple-500 focus:outline-none bg-white" />
+                    <input type="number" id="inp_year2" value="${this.escapeHtml(ws.year2 || '')}" placeholder="Contoh: 2025" oninput="window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios(); window.PelakuModule.onMetaFieldChanged();" onchange="window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios(); window.PelakuModule.onMetaFieldChanged();" onblur="window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios();" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-center font-bold font-mono focus:border-purple-500 focus:outline-none bg-white" />
                   </div>
                   <div>
                     <label class="block font-semibold text-slate-700 mb-1">Status Audit</label>
@@ -1229,8 +1220,8 @@ window.PelakuModule = {
   },
 
   updateYearLabels() {
-    const y1 = document.getElementById('inp_year1')?.value || '';
-    const y2 = document.getElementById('inp_year2')?.value || '';
+    const y1 = document.getElementById('inp_year1')?.value?.trim() || '';
+    const y2 = document.getElementById('inp_year2')?.value?.trim() || '';
 
     const th1 = document.getElementById('thLabelYear1');
     const th2 = document.getElementById('thLabelYear2');
@@ -1240,13 +1231,26 @@ window.PelakuModule = {
     const colY1 = document.getElementById('col_ratio_yr1');
     const colY2 = document.getElementById('col_ratio_yr2');
 
+    const lblY1 = y1 ? `Th ${y1}` : 'Th 1';
+    const lblY2 = y2 ? `Th ${y2}` : 'Th 2';
+
     if (th1) th1.textContent = y1 ? `Tahun ${y1}` : 'Tahun 1';
     if (th2) th2.textContent = y2 ? `Tahun ${y2}` : 'Tahun 2';
-    if (b1) b1.textContent = y1 ? `Th ${y1}` : 'Th 1';
-    if (b2) b2.textContent = y2 ? `Th ${y2}` : 'Th 2';
+    if (b1) b1.textContent = lblY1;
+    if (b2) b2.textContent = lblY2;
     if (rEval) rEval.textContent = (y1 && y2) ? ` (Th ${y1} & ${y2})` : (y2 ? ` (Th ${y2})` : '');
-    if (colY1) colY1.textContent = y1 ? `Th ${y1}` : 'Th 1';
-    if (colY2) colY2.textContent = y2 ? `Th ${y2}` : 'Th 2';
+    if (colY1) colY1.textContent = lblY1;
+    if (colY2) colY2.textContent = lblY2;
+
+    const yr1Title = y1 ? `Tahun ${y1}` : 'Tahun 1';
+    const yr2Title = y2 ? `Tahun ${y2}` : 'Tahun 2';
+    document.querySelectorAll('[id$="-1"]').forEach(el => {
+      if (el.id.startsWith('ratio-')) el.title = yr1Title;
+    });
+    document.querySelectorAll('.pelaku-ratio-row').forEach(row => {
+      const el2 = row.querySelector('.font-bold[id^="ratio-"]');
+      if (el2) el2.title = yr2Title;
+    });
   },
 
   calculateRatios() {
@@ -1254,6 +1258,8 @@ window.PelakuModule = {
     if (!document.getElementById('pelaku-company') || !document.getElementById('finStatementInputTable')) {
       return;
     }
+
+    this.updateYearLabels();
 
     const getVal = (k, yr) => this.parseFormattedNumber(document.getElementById(`inp_${k}_${yr}`)?.value) || 0;
 
@@ -1519,9 +1525,6 @@ window.PelakuModule = {
         year2: y2,
         auditStatus,
         projectVal,
-        projectOwner: document.getElementById('pelaku-project-owner')?.value || 'apbn',
-        projectSpec: document.getElementById('pelaku-project-spec')?.value || 'lengkap',
-        financingSource: document.getElementById('pelaku-financing-source')?.value || 'ada',
         score: 0,
         grade: 'BELUM DIANALISIS',
         summaryText: 'Belum ada data laporan keuangan yang dimasukkan untuk dianalisis.',
@@ -1884,12 +1887,9 @@ window.PelakuModule = {
     updateText('ratio-nwc', `${this.fmtRp(nwcVal)}${projectVal > 0 ? ` (${nwcToProject.toFixed(1)}%)` : ''}`, (nwcToProject > 40 || (projectVal === 0 && nwcVal >= 0)) ? 'text-emerald-600' : (nwcToProject > 10 ? 'text-amber-600' : 'text-rose-600'));
     updateText1('ratio-nwc', nwcTxt1, (nwcToProject1 > 40 || (projectVal === 0 && nwcVal1 >= 0)) ? 'text-emerald-600' : (nwcToProject1 > 10 ? 'text-amber-600' : 'text-rose-600'));
 
-    // 5. Composite Scoring & Grade Askrindo (Standar Resmi 13 Parameter: Capital & Capacity)
+    // 5. Composite Scoring & Grade Askrindo (Berdasarkan Parameter Rasio Finansial Penuh)
     const auditStatus = document.getElementById('pelaku-audit-status')?.value || '';
     const isAudited = auditStatus === 'audited';
-    const projectOwner = document.getElementById('pelaku-project-owner')?.value || 'apbn';
-    const projectSpec = document.getElementById('pelaku-project-spec')?.value || 'lengkap';
-    const finSource = document.getElementById('pelaku-financing-source')?.value || 'ada';
 
     const scores = {};
 
@@ -1955,10 +1955,7 @@ window.PelakuModule = {
     else if (selfFinVal >= 5) scores.selfFin = 40;
     else scores.selfFin = 20;
 
-    // Parameter 19: Tambahan Sumber Pembiayaan Bank/LKNB
-    scores.finSource = (finSource === 'tidak_ada') ? 40 : 100;
-
-    // Parameter 20: Tren Kondisi Laporan Keuangan 2 Tahun Terakhir (Auto-computed dari data Y1 vs Y2)
+    // Parameter Tren Kondisi Laporan Keuangan 2 Tahun Terakhir (Auto-computed dari data Y1 vs Y2)
     let trendScore = 50; // default: belum ada data Y1 → positif stabil
     if (hasData1 && hasData2) {
       // Hitung arah tiap indikator kunci (positif = naik/membaik, negatif = turun/memburuk)
@@ -1983,15 +1980,6 @@ window.PelakuModule = {
       else trendScore = 0;                        // negatif → Tren negatif
     }
     scores.trend = trendScore;
-
-    // Parameter 21: Informasi Spesifikasi Proyek yang Dikerjakan
-    scores.projSpec = (projectSpec === 'tidak_lengkap') ? 40 : 100;
-
-    // Parameter 22: Kepemilikan Proyek
-    if (projectOwner === 'apbd') scores.projOwner = 75;
-    else if (projectOwner === 'bumn') scores.projOwner = 50;
-    else if (projectOwner === 'swasta') scores.projOwner = 25;
-    else scores.projOwner = 100; // apbn
 
     const scoreVals = Object.values(scores);
     let avgRawScore = scoreVals.reduce((a, b) => a + b, 0) / scoreVals.length;
@@ -2116,9 +2104,6 @@ window.PelakuModule = {
       year1: y1,
       year2: y2,
       projectVal,
-      projectOwner,
-      projectSpec,
-      financingSource,
       auditStatus: isAudited ? 'Audited KAP' : 'In-House / Unaudited',
       kapName: document.getElementById('pelaku-kap-name')?.value || '-',
       opinion: document.getElementById('pelaku-opinion')?.value || '-',
@@ -2448,13 +2433,6 @@ window.PelakuModule = {
     const projInp = document.getElementById('inp_projectValue');
     if (projInp) projInp.value = '';
 
-    const ownerSel = document.getElementById('pelaku-project-owner');
-    if (ownerSel) ownerSel.value = 'apbn';
-    const specSel = document.getElementById('pelaku-project-spec');
-    if (specSel) specSel.value = 'lengkap';
-    const finSel = document.getElementById('pelaku-financing-source');
-    if (finSel) finSel.value = 'ada';
-
     this.workspaceState = this.buildBlankState();
     this.saveWorkspaceDraft();
 
@@ -2559,13 +2537,6 @@ window.PelakuModule = {
         ? ''
         : this.formatNumberWithDots(state.projectVal, false);
     }
-
-    const ownerSel = document.getElementById('pelaku-project-owner');
-    if (ownerSel) ownerSel.value = state.projectOwner || 'apbn';
-    const specSel = document.getElementById('pelaku-project-spec');
-    if (specSel) specSel.value = state.projectSpec || 'lengkap';
-    const finSel = document.getElementById('pelaku-financing-source');
-    if (finSel) finSel.value = state.financingSource || 'ada';
 
     FIN_ACCOUNT_KEYS.forEach(k => {
       const el1 = document.getElementById(`inp_${k}_1`);
@@ -2807,9 +2778,6 @@ window.PelakuModule = {
       opinion: src.opinion || rec.opinion || '-',
       projectVal: src.projectVal !== undefined ? src.projectVal : (rec.projectVal || 0),
       kapName: src.kapName || rec.kapName || '-',
-      projectOwner: src.projectOwner || rec.projectOwner || 'apbn',
-      projectSpec: src.projectSpec || rec.projectSpec || 'lengkap',
-      financingSource: src.financingSource || rec.financingSource || 'ada',
       d1: { ...(src.data1 || {}) },
       d2: { ...(src.data2 || {}) }
     };
@@ -3081,9 +3049,6 @@ window.PelakuModule = {
       year1: c.year1,
       year2: c.year2,
       projectVal: c.projectVal,
-      projectOwner: c.projectOwner || 'apbn',
-      projectSpec: c.projectSpec || 'lengkap',
-      financingSource: c.financingSource || 'ada',
       score: c.score,
       grade: c.grade,
       racPassCount: c.passRacCount,
