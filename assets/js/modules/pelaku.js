@@ -1772,6 +1772,7 @@ window.PelakuModule = {
     }
 
     // 4. Perhitungan Rasio Finansial Komprehensif 2 Tahun (Tahun 1 & Tahun 2)
+    const projectVal = this.parseFormattedNumber(document.getElementById('inp_projectValue')?.value) || 0;
     const curCl = cl2 > 0 ? cl2 : 1;
     const curEq = eq2 > 0 ? eq2 : 1;
     const curTa = ta2 > 0 ? ta2 : 1;
@@ -2225,7 +2226,6 @@ window.PelakuModule = {
     if (elNarr) elNarr.textContent = narrative;
 
     // 6. Matriks Kepatuhan Risk Acceptance Criteria (RAC) Askrindo
-    const projectVal = this.parseFormattedNumber(document.getElementById('inp_projectValue')?.value) || 0;
     const totals1 = { ca: ca1, nca: nca1, ta: ta1, cl: cl1, tl: tl1, eq: eq1, pass: pass1, rev: rev1, gp: gp1, ebit: ebit1, ebt: ebt1, eat: eat1 };
     const totals2 = { ca: ca2, nca: nca2, ta: ta2, cl: cl2, tl: tl2, eq: eq2, pass: pass2, rev: rev2, gp: gp2, ebit: ebit2, ebt: ebt2, eat: eat2 };
 
