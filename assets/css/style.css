@@ -60,6 +60,40 @@ body {
   background: linear-gradient(135deg, #002B49 0%, #0A3D62 100%);
 }
 
+/* Sidebar Responsive Collapsed State (Desktop Mini Icon Bar & Mobile Offcanvas) */
+#app-sidebar {
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#app-sidebar.sidebar-collapsed {
+  margin-left: -16rem !important; /* Slide out on mobile (<1024px) */
+}
+
+@media (min-width: 1024px) {
+  #app-sidebar.sidebar-collapsed {
+    margin-left: 0 !important;
+    width: 5rem !important; /* Slim 80px mini-sidebar on desktop */
+  }
+  #app-sidebar.sidebar-collapsed .sidebar-text,
+  #app-sidebar.sidebar-collapsed .sidebar-badge {
+    display: none !important;
+  }
+  #app-sidebar.sidebar-collapsed .px-2,
+  #app-sidebar.sidebar-collapsed .p-4 {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+  #app-sidebar.sidebar-collapsed a {
+    justify-content: center !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+  #app-sidebar.sidebar-collapsed .p-2.5 {
+    justify-content: center !important;
+    padding: 0.5rem !important;
+  }
+}
+
 .gradient-askrindo-orange {
   background: linear-gradient(135deg, #F37021 0%, #FF8C38 100%);
 }

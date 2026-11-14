@@ -121,7 +121,7 @@ class AskrindoApp {
 
         <div class="flex flex-1 overflow-hidden">
           <!-- Left Sidebar -->
-          <aside id="app-sidebar" class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 transition-all duration-300 z-30 no-print ${this.sidebarCollapsed ? '-ml-64 lg:ml-0 lg:w-20' : ''}">
+          <aside id="app-sidebar" class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 transition-all duration-300 z-30 no-print ${this.sidebarCollapsed ? 'sidebar-collapsed' : ''}">
             <div class="p-4 space-y-6">
               <!-- Sidebar Brand Header -->
               <div class="flex items-center justify-between px-2">
@@ -675,25 +675,11 @@ class AskrindoApp {
     const sidebar = document.getElementById('app-sidebar');
     if (!sidebar) return;
 
-    const isCollapsed = !!this.sidebarCollapsed;
+    sidebar.classList.toggle('sidebar-collapsed', !!this.sidebarCollapsed);
 
-    if (isCollapsed) {
-      sidebar.classList.add('-ml-64', 'lg:ml-0', 'lg:w-20');
-      sidebar.classList.remove('w-64');
-      document.querySelectorAll('.sidebar-text').forEach(el => {
-        el.classList.add('lg:hidden');
-      });
-    } else {
-      sidebar.classList.remove('-ml-64', 'lg:ml-0', 'lg:w-20');
-      sidebar.classList.add('w-64');
-      document.querySelectorAll('.sidebar-text').forEach(el => {
-        el.classList.remove('lg:hidden');
-      });
-    }
-
-    // Mobile backdrop management
+    // Mobile backdrop management (< 1024px)
     let backdrop = document.getElementById('sidebar-backdrop');
-    if (!isCollapsed && window.innerWidth < 1024) {
+    if (!this.sidebarCollapsed && window.innerWidth < 1024) {
       if (!backdrop) {
         backdrop = document.createElement('div');
         backdrop.id = 'sidebar-backdrop';
