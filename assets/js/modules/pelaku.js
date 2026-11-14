@@ -493,9 +493,6 @@ window.PelakuModule = {
                   <i data-lucide="scan-line" class="w-4 h-4 text-amber-300 group-hover:scale-110 transition-transform"></i>
                   <span>Pindai AI OCR Vision</span>
                 </button>
-                <button onclick="window.PelakuModule.loadSampleData()" class="px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition" title="Muat Data Contoh Konstruksi 27 Pos">
-                  Contoh
-                </button>
                 <button onclick="window.PelakuModule.resetForm()" class="px-3 py-2 rounded-xl text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 transition" title="Kosongkan angka pada form">
                   Kosongkan
                 </button>
