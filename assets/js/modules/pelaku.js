@@ -646,7 +646,7 @@ window.PelakuModule = {
                   </span>
                 </div>
                 <p class="text-xs text-slate-500 mt-0.5">
-                  Model Finansial 27 Pos Komparatif (ASCA) &amp; Matriks RAC Askrindo &bull; Arsip otomatis terindeks per Nama Perusahaan.
+                  Aplikasi Perhitungan Laporan Keuangan berbasis AI OCR dengan analisis rasio keuangan secara otomatis
                 </p>
               </div>
             </div>
