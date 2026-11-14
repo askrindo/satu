@@ -2785,7 +2785,7 @@ window.PelakuModule = {
               </span>
             </div>
             <p class="text-xs text-slate-500">
-              Unggah berkas PDF atau gambar Neraca &amp; Laba Rugi. Gemini Vision AI akan membaca dan mengekstrak 27 pos ASCA secara otomatis.
+              Unggah berkas PDF atau gambar Neraca &amp; Laba Rugi. Gemini Vision AI akan membaca dan mengekstrak secara otomatis.
             </p>
 
             <!-- Drop Zone Area -->
