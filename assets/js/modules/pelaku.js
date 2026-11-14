@@ -1646,8 +1646,8 @@ window.PelakuModule = {
     const d2 = yearlyAccountData[y2] || {};
     const ca1 = m1.ca || 0, nca1 = m1.nca || 0, ta1 = m1.ta || 0, cl1 = m1.cl || 0, lt1 = m1.lt || 0, tl1 = m1.tl || 0, eq1 = m1.eq || 0, pass1 = m1.pass || 0;
     const ca2 = m2.ca || 0, nca2 = m2.nca || 0, ta2 = m2.ta || 0, cl2 = m2.cl || 0, lt2 = m2.lt || 0, tl2 = m2.tl || 0, eq2 = m2.eq || 0, pass2 = m2.pass || 0;
-    const rev1 = m1.rev || 0, ebit1 = m1.ebit || 0, eat1 = m1.eat || 0;
-    const rev2 = m2.rev || 0, ebit2 = m2.ebit || 0, eat2 = m2.eat || 0;
+    const rev1 = m1.rev || 0, gp1 = m1.gp || 0, opBruto1 = m1.opBruto || 0, ebit1 = m1.ebit || 0, ebt1 = m1.ebt || 0, eat1 = m1.eat || 0;
+    const rev2 = m2.rev || 0, gp2 = m2.gp || 0, opBruto2 = m2.opBruto || 0, ebit2 = m2.ebit || 0, ebt2 = m2.ebt || 0, eat2 = m2.eat || 0;
 
     // JIKA DATA EVALUASI KOSONG / BELUM DIISI:
     // Reset seluruh 27 indikator rasio, status RAC, dan scoring komposit ke state 'BELUM DIANALISIS' / '-'
