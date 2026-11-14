@@ -736,6 +736,16 @@ window.PelakuModule = {
                     <i data-lucide="search" class="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400"></i>
                   </div>
 
+                  <!-- Header 2 Tahun Komparasi -->
+                  <div class="flex items-center justify-between px-2.5 py-1.5 bg-slate-100/90 rounded-xl text-[10px] font-extrabold text-slate-600 border border-slate-200">
+                    <span class="uppercase tracking-wider">Indikator Rasio</span>
+                    <div class="flex items-center gap-1.5 shrink-0 font-mono">
+                      <span id="col_ratio_yr1" class="w-[72px] text-right text-slate-600 truncate">${ws.year1 ? `Th ${this.escapeHtml(ws.year1)}` : 'Th 1'}</span>
+                      <span class="text-slate-300 text-[10px]">|</span>
+                      <span id="col_ratio_yr2" class="w-[72px] text-right text-purple-700 font-black truncate">${ws.year2 ? `Th ${this.escapeHtml(ws.year2)}` : 'Th 2'}</span>
+                    </div>
+                  </div>
+
                   <!-- 27 Ratio Rows Container (Menjalar ke bawah tanpa scroll internal) -->
                   <div id="pelaku-ratio-list-container" class="space-y-1">
                     <!-- 1. Current Ratio% x -->
@@ -744,7 +754,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Current Ratio % x</span>
                         <span class="block text-[10px] text-slate-400">Standar: &ge; 100%</span>
                       </div>
-                      <span id="ratio-cr" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-cr-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-cr" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 2. Quick Ratio % x -->
@@ -753,7 +767,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Quick Ratio % x</span>
                         <span class="block text-[10px] text-slate-400">Acid Test &bull; Standar: &gt; 100%</span>
                       </div>
-                      <span id="ratio-qr" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-qr-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-qr" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 3. Working Capital To Total Asset% -->
@@ -762,7 +780,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Working Capital To Total Asset%</span>
                         <span class="block text-[10px] text-slate-400">Modal Kerja Bersih / Total Aktiva &bull; Standar: &gt; 0%</span>
                       </div>
-                      <span id="ratio-wcta" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-wcta-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-wcta" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 4. DER% x -->
@@ -771,7 +793,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">DER% x</span>
                         <span class="block text-[10px] text-slate-400">Debt to Equity &bull; Standar: &lt; 200%</span>
                       </div>
-                      <span id="ratio-der" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-der-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-der" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 5. DAR% x -->
@@ -780,7 +806,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">DAR% x</span>
                         <span class="block text-[10px] text-slate-400">Debt to Asset &bull; Batas Toleransi: &lt; 70%</span>
                       </div>
-                      <span id="ratio-dar" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-dar-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-dar" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 6. Long Term Debt to Equity% -->
@@ -789,7 +819,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Long Term Debt to Equity%</span>
                         <span class="block text-[10px] text-slate-400">Hutang Jk. Panjang / Modal Sendiri &bull; Standar: &lt; 100%</span>
                       </div>
-                      <span id="ratio-ltde" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-ltde-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-ltde" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 7. Total Asset Turnover x -->
@@ -798,7 +832,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Total Asset Turnover x</span>
                         <span class="block text-[10px] text-slate-400">Penjualan / Total Aset &bull; Standar: &ge; 1.0x</span>
                       </div>
-                      <span id="ratio-tato" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-tato-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-tato" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 8. Working Capital Turnover x -->
@@ -807,7 +845,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Working Capital Turnover x</span>
                         <span class="block text-[10px] text-slate-400">Penjualan / Modal Kerja Bersih (NWC)</span>
                       </div>
-                      <span id="ratio-wcto" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-wcto-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-wcto" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 9. Receivable Turnover x -->
@@ -816,7 +858,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Receivable Turnover x</span>
                         <span class="block text-[10px] text-slate-400">Penjualan / Piutang Usaha &bull; Standar: &ge; 4.0x</span>
                       </div>
-                      <span id="ratio-rto" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-rto-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-rto" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 10. Day account Recieveable /Average Collection Period(hari) -->
@@ -825,7 +871,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Day account Recieveable /Average Collection Period(hari)</span>
                         <span class="block text-[10px] text-slate-400">Rata-rata Waktu Penagihan Piutang &bull; Batas: &le; 90 hari</span>
                       </div>
-                      <span id="ratio-acp" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-acp-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-acp" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 11. Inventory Turnover Ratio X -->
@@ -834,7 +884,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Inventory Turnover Ratio X</span>
                         <span class="block text-[10px] text-slate-400">HPP / Persediaan Barang &bull; Standar: &ge; 4.0x</span>
                       </div>
-                      <span id="ratio-ito" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-ito-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-ito" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 12. Day Inventory (hari) -->
@@ -843,7 +897,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Day Inventory (hari)</span>
                         <span class="block text-[10px] text-slate-400">Rata-rata Hari Persediaan Tersimpan &bull; Batas: &le; 90 hari</span>
                       </div>
-                      <span id="ratio-dio" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-dio-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-dio" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 13. Day account payable (hari) -->
@@ -852,7 +910,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Day account payable (hari)</span>
                         <span class="block text-[10px] text-slate-400">Rata-rata Pembayaran Utang Usaha</span>
                       </div>
-                      <span id="ratio-dpo" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-dpo-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-dpo" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 14. ROA % x -->
@@ -861,7 +923,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">ROA % x</span>
                         <span class="block text-[10px] text-slate-400">Return on Asset &bull; Standar: &ge; 1,0%</span>
                       </div>
-                      <span id="ratio-roa" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-roa-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-roa" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 15. ROE % x -->
@@ -870,7 +936,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">ROE % x</span>
                         <span class="block text-[10px] text-slate-400">Return on Equity &bull; Standar: &ge; 5,0%</span>
                       </div>
-                      <span id="ratio-roe" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-roe-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-roe" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 16. ROI % -->
@@ -879,7 +949,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">ROI %</span>
                         <span class="block text-[10px] text-slate-400">Return on Investment (EBIT / Aktiva) &bull; Standar: &gt; 0%</span>
                       </div>
-                      <span id="ratio-roi" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-roi-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-roi" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 17. Gross Profit Margin % -->
@@ -888,7 +962,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Gross Profit Margin %</span>
                         <span class="block text-[10px] text-slate-400">Laba Kotor / Penjualan &bull; Standar: &gt; 0%</span>
                       </div>
-                      <span id="ratio-gpm" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-gpm-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-gpm" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 18. Net Profit Margin % x -->
@@ -897,7 +975,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Net Profit Margin % x</span>
                         <span class="block text-[10px] text-slate-400">Laba Bersih / Penjualan &bull; Standar: &gt; 10%</span>
                       </div>
-                      <span id="ratio-npm" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-npm-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-npm" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 19. Operating Income Ratio % -->
@@ -906,7 +988,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Operating Income Ratio %</span>
                         <span class="block text-[10px] text-slate-400">EBIT / Penjualan (Net Operating Margin)</span>
                       </div>
-                      <span id="ratio-oir" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-oir-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-oir" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 20. Operating Ratio % -->
@@ -915,7 +1001,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Operating Ratio %</span>
                         <span class="block text-[10px] text-slate-400">(HPP + Beban Usaha) / Penjualan &bull; Batas: &le; 95%</span>
                       </div>
-                      <span id="ratio-opr" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-opr-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-opr" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 21. Cash Ratio % x -->
@@ -924,7 +1014,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Cash Ratio % x</span>
                         <span class="block text-[10px] text-slate-400">Kas &amp; Bank / Hutang Lancar &bull; Standar: &gt; 40%</span>
                       </div>
-                      <span id="ratio-cash" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-cash-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-cash" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 22. Sales Growth % -->
@@ -933,7 +1027,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Sales Growth %</span>
                         <span class="block text-[10px] text-slate-400">Tren Kondisi Keuangan (YoY) &bull; Standar: Positif</span>
                       </div>
-                      <span id="ratio-sales-growth" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-sales-growth-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-sales-growth" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 23. Operating Profit Margin % -->
@@ -942,7 +1040,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Operating Profit Margin %</span>
                         <span class="block text-[10px] text-slate-400">Laba Bruto Operasi / Penjualan</span>
                       </div>
-                      <span id="ratio-opm" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-opm-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-opm" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 24. Ebitda -->
@@ -951,7 +1053,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Ebitda</span>
                         <span class="block text-[10px] text-slate-400">Laba Usaha (EBIT) + Akum. Penyusutan</span>
                       </div>
-                      <span id="ratio-ebitda" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-ebitda-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-ebitda" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 25. Ebitda to interest % -->
@@ -960,7 +1066,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Ebitda to interest %</span>
                         <span class="block text-[10px] text-slate-400">Interest Coverage (EBITDA / Bunga) &bull; Standar: &ge; 2.0x</span>
                       </div>
-                      <span id="ratio-ebitda-int" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-ebitda-int-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-ebitda-int" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 26. Ebitda to debt % -->
@@ -969,7 +1079,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Ebitda to debt %</span>
                         <span class="block text-[10px] text-slate-400">EBITDA / Total Hutang &bull; Standar: &ge; 20%</span>
                       </div>
-                      <span id="ratio-ebitda-debt" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-ebitda-debt-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-ebitda-debt" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
 
                     <!-- 27. Net Working Capital -->
@@ -978,7 +1092,11 @@ window.PelakuModule = {
                         <span class="font-semibold text-slate-700">Net Working Capital</span>
                         <span class="block text-[10px] text-slate-400">Modal Kerja Bersih &bull; Standar: &gt; 40% Nilai Proyek</span>
                       </div>
-                      <span id="ratio-nwc" class="font-mono font-bold text-slate-400 text-xs shrink-0 text-right">-</span>
+                      <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
+                        <span id="ratio-nwc-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
+                        <span class="text-slate-200 text-[10px]">|</span>
+                        <span id="ratio-nwc" class="w-[72px] font-bold text-slate-400 text-right truncate" title="Tahun 2">-</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1146,12 +1264,16 @@ window.PelakuModule = {
     const b1 = document.getElementById('lbl_balance_yr1');
     const b2 = document.getElementById('lbl_balance_yr2');
     const rEval = document.getElementById('lbl_ratio_eval_yr');
+    const colY1 = document.getElementById('col_ratio_yr1');
+    const colY2 = document.getElementById('col_ratio_yr2');
 
     if (th1) th1.textContent = y1 ? `Tahun ${y1}` : 'Tahun 1';
     if (th2) th2.textContent = y2 ? `Tahun ${y2}` : 'Tahun 2';
     if (b1) b1.textContent = y1 ? `Th ${y1}` : 'Th 1';
     if (b2) b2.textContent = y2 ? `Th ${y2}` : 'Th 2';
-    if (rEval) rEval.textContent = y2 ? ` (Th ${y2})` : '';
+    if (rEval) rEval.textContent = (y1 && y2) ? ` (Th ${y1} & ${y2})` : (y2 ? ` (Th ${y2})` : '');
+    if (colY1) colY1.textContent = y1 ? `Th ${y1}` : 'Th 1';
+    if (colY2) colY2.textContent = y2 ? `Th ${y2}` : 'Th 2';
   },
 
   calculateRatios() {
@@ -1364,7 +1486,12 @@ window.PelakuModule = {
         const el = document.getElementById(id);
         if (el) {
           el.textContent = '-';
-          el.className = 'font-mono font-bold text-xs shrink-0 text-right text-slate-400';
+          el.className = 'w-[72px] font-mono font-bold text-xs shrink-0 text-right text-slate-400 truncate';
+        }
+        const el1 = document.getElementById(`${id}-1`);
+        if (el1) {
+          el1.textContent = '-';
+          el1.className = 'w-[72px] font-mono font-medium text-xs shrink-0 text-right text-slate-400 truncate';
         }
       });
 
@@ -1427,33 +1554,33 @@ window.PelakuModule = {
         summaryText: 'Belum ada data laporan keuangan yang dimasukkan untuk dianalisis.',
         narrative: 'Silakan lengkapi pos-pos Laporan Keuangan pada tabel di sebelah kiri untuk melihat evaluasi finansial dan scoring otomatis.',
         ratios27: [
-          { no: 1, name: 'Current Ratio% x', val: '-', std: 'Standar: ≥ 100,00%', pass: false },
-          { no: 2, name: 'Quick Ratio % x', val: '-', std: 'Standar: > 100,00%', pass: false },
-          { no: 3, name: 'Working Capital To Total Asset%', val: '-', std: 'Modal Kerja Bersih / Total Aktiva (Standar: > 0%)', pass: false },
-          { no: 4, name: 'DER% x', val: '-', std: 'Standar: < 200,00%', pass: false },
-          { no: 5, name: 'DAR% x', val: '-', std: 'Batas Toleransi: < 70,00%', pass: false },
-          { no: 6, name: 'Long Term Debt to Equity%', val: '-', std: 'Hutang Jk. Panjang / Modal Sendiri (Standar: < 100%)', pass: false },
-          { no: 7, name: 'Total Asset Turnover x', val: '-', std: 'Penjualan / Total Aset (Standar: ≥ 1.0x)', pass: false },
-          { no: 8, name: 'Working Capital Turnover x', val: '-', std: 'Penjualan / Modal Kerja Bersih (NWC)', pass: false },
-          { no: 9, name: 'Receivable Turnover x', val: '-', std: 'Penjualan / Piutang Usaha (Standar: ≥ 4.0x)', pass: false },
-          { no: 10, name: 'Day account Recieveable /Average Collection Period(hari)', val: '-', std: 'Rata-rata Waktu Penagihan Piutang (Batas: ≤ 90 hari)', pass: false },
-          { no: 11, name: 'Inventory Turnover Ratio X', val: '-', std: 'HPP / Persediaan Barang (Standar: ≥ 4.0x)', pass: false },
-          { no: 12, name: 'Day Inventory (hari)', val: '-', std: 'Rata-rata Hari Persediaan Tersimpan (Batas: ≤ 90 hari)', pass: false },
-          { no: 13, name: 'Day account payable (hari)', val: '-', std: 'Rata-rata Hari Pembayaran Utang Usaha', pass: false },
-          { no: 14, name: 'ROA % x', val: '-', std: 'Standar: ≥ 1,00%', pass: false },
-          { no: 15, name: 'ROE % x', val: '-', std: 'Standar: ≥ 5,00%', pass: false },
-          { no: 16, name: 'ROI %', val: '-', std: 'Return on Investment (EBIT / Total Aktiva) (Standar: > 0%)', pass: false },
-          { no: 17, name: 'Gross Profit Margin %', val: '-', std: 'Laba Kotor / Penjualan (Standar: > 0%)', pass: false },
-          { no: 18, name: 'Net Profit Margin % x', val: '-', std: 'Standar: > 10,00%', pass: false },
-          { no: 19, name: 'Operating Income Ratio %', val: '-', std: 'EBIT / Penjualan (Net Operating Margin)', pass: false },
-          { no: 20, name: 'Operating Ratio %', val: '-', std: '(HPP + Beban Usaha) / Penjualan (Batas: ≤ 95%)', pass: false },
-          { no: 21, name: 'Cash Ratio % x', val: '-', std: 'Standar: > 40,00%', pass: false },
-          { no: 22, name: 'Sales Growth %', val: '-', std: 'Pertumbuhan Penjualan YoY (Standar: Positif)', pass: false },
-          { no: 23, name: 'Operating Profit Margin %', val: '-', std: 'Laba Bruto Operasional / Penjualan', pass: false },
-          { no: 24, name: 'Ebitda', val: '-', std: 'Laba Usaha (EBIT) + Akum. Penyusutan', pass: false },
-          { no: 25, name: 'Ebitda to interest %', val: '-', std: 'Interest Coverage Ratio (Standar: ≥ 2.0x)', pass: false },
-          { no: 26, name: 'Ebitda to debt %', val: '-', std: 'EBITDA / Total Hutang (Standar: ≥ 20%)', pass: false },
-          { no: 27, name: 'Net Working Capital', val: '-', std: 'Standar: > 40,00% Nilai Proyek', pass: false }
+          { no: 1, name: 'Current Ratio% x', val1: '-', val: '-', std: 'Standar: ≥ 100,00%', pass: false },
+          { no: 2, name: 'Quick Ratio % x', val1: '-', val: '-', std: 'Standar: > 100,00%', pass: false },
+          { no: 3, name: 'Working Capital To Total Asset%', val1: '-', val: '-', std: 'Modal Kerja Bersih / Total Aktiva (Standar: > 0%)', pass: false },
+          { no: 4, name: 'DER% x', val1: '-', val: '-', std: 'Standar: < 200,00%', pass: false },
+          { no: 5, name: 'DAR% x', val1: '-', val: '-', std: 'Batas Toleransi: < 70,00%', pass: false },
+          { no: 6, name: 'Long Term Debt to Equity%', val1: '-', val: '-', std: 'Hutang Jk. Panjang / Modal Sendiri (Standar: < 100%)', pass: false },
+          { no: 7, name: 'Total Asset Turnover x', val1: '-', val: '-', std: 'Penjualan / Total Aset (Standar: ≥ 1.0x)', pass: false },
+          { no: 8, name: 'Working Capital Turnover x', val1: '-', val: '-', std: 'Penjualan / Modal Kerja Bersih (NWC)', pass: false },
+          { no: 9, name: 'Receivable Turnover x', val1: '-', val: '-', std: 'Penjualan / Piutang Usaha (Standar: ≥ 4.0x)', pass: false },
+          { no: 10, name: 'Day account Recieveable /Average Collection Period(hari)', val1: '-', val: '-', std: 'Rata-rata Waktu Penagihan Piutang (Batas: ≤ 90 hari)', pass: false },
+          { no: 11, name: 'Inventory Turnover Ratio X', val1: '-', val: '-', std: 'HPP / Persediaan Barang (Standar: ≥ 4.0x)', pass: false },
+          { no: 12, name: 'Day Inventory (hari)', val1: '-', val: '-', std: 'Rata-rata Hari Persediaan Tersimpan (Batas: ≤ 90 hari)', pass: false },
+          { no: 13, name: 'Day account payable (hari)', val1: '-', val: '-', std: 'Rata-rata Hari Pembayaran Utang Usaha', pass: false },
+          { no: 14, name: 'ROA % x', val1: '-', val: '-', std: 'Standar: ≥ 1,00%', pass: false },
+          { no: 15, name: 'ROE % x', val1: '-', val: '-', std: 'Standar: ≥ 5,00%', pass: false },
+          { no: 16, name: 'ROI %', val1: '-', val: '-', std: 'Return on Investment (EBIT / Total Aktiva) (Standar: > 0%)', pass: false },
+          { no: 17, name: 'Gross Profit Margin %', val1: '-', val: '-', std: 'Laba Kotor / Penjualan (Standar: > 0%)', pass: false },
+          { no: 18, name: 'Net Profit Margin % x', val1: '-', val: '-', std: 'Standar: > 10,00%', pass: false },
+          { no: 19, name: 'Operating Income Ratio %', val1: '-', val: '-', std: 'EBIT / Penjualan (Net Operating Margin)', pass: false },
+          { no: 20, name: 'Operating Ratio %', val1: '-', val: '-', std: '(HPP + Beban Usaha) / Penjualan (Batas: ≤ 95%)', pass: false },
+          { no: 21, name: 'Cash Ratio % x', val1: '-', val: '-', std: 'Standar: > 40,00%', pass: false },
+          { no: 22, name: 'Sales Growth %', val1: '-', val: '-', std: 'Pertumbuhan Penjualan YoY (Standar: Positif)', pass: false },
+          { no: 23, name: 'Operating Profit Margin %', val1: '-', val: '-', std: 'Laba Bruto Operasional / Penjualan', pass: false },
+          { no: 24, name: 'Ebitda', val1: '-', val: '-', std: 'Laba Usaha (EBIT) + Akum. Penyusutan', pass: false },
+          { no: 25, name: 'Ebitda to interest %', val1: '-', val: '-', std: 'Interest Coverage Ratio (Standar: ≥ 2.0x)', pass: false },
+          { no: 26, name: 'Ebitda to debt %', val1: '-', val: '-', std: 'EBITDA / Total Hutang (Standar: ≥ 20%)', pass: false },
+          { no: 27, name: 'Net Working Capital', val1: '-', val: '-', std: 'Standar: > 40,00% Nilai Proyek', pass: false }
         ],
         racList: emptyRac,
         passRacCount: 0,
@@ -1470,7 +1597,7 @@ window.PelakuModule = {
       return;
     }
 
-    // 4. Perhitungan Rasio Finansial Komprehensif (27 Indikator Finansial)
+    // 4. Perhitungan Rasio Finansial Komprehensif 2 Tahun (Tahun 1 & Tahun 2)
     const curCl = cl2 > 0 ? cl2 : 1;
     const curEq = eq2 > 0 ? eq2 : 1;
     const curTa = ta2 > 0 ? ta2 : 1;
@@ -1478,10 +1605,20 @@ window.PelakuModule = {
     const cogs2 = d2.cogs || 0;
     const curCogs = cogs2 > 0 ? cogs2 : curRev;
 
+    // Tahun 1 Helpers
+    const cogs1 = d1.cogs || 0;
+    const curRev1 = rev1 > 0 ? rev1 : 1;
+    const curCogs1 = cogs1 > 0 ? cogs1 : curRev1;
+    const nwcVal1 = ca1 - cl1;
+
     // 1. Current Ratio% x
     const crVal = cl2 > 0 ? (ca2 / cl2) * 100 : (ca2 > 0 ? 999 : 0);
     const crX = cl2 > 0 ? (ca2 / cl2) : (ca2 > 0 ? 99.9 : 0);
     const crTxt = cl2 > 0 ? `${crVal.toFixed(2)}% (${crX.toFixed(2)}x)` : (ca2 > 0 ? 'N/A (Bebas Utang)' : '0.00%');
+
+    const crVal1 = cl1 > 0 ? (ca1 / cl1) * 100 : (ca1 > 0 ? 999 : 0);
+    const crX1 = cl1 > 0 ? (ca1 / cl1) : (ca1 > 0 ? 99.9 : 0);
+    const crTxt1 = cl1 > 0 ? `${crVal1.toFixed(2)}% (${crX1.toFixed(2)}x)` : (ca1 > 0 ? 'N/A (Bebas Utang)' : '0.00%');
 
     // 2. Quick Ratio % x
     const quickAssets = (d2.cash || 0) + (d2.ar || 0) + (d2.otherAr || 0);
@@ -1489,70 +1626,139 @@ window.PelakuModule = {
     const qrX = cl2 > 0 ? (quickAssets / cl2) : (quickAssets > 0 ? 99.9 : 0);
     const qrTxt = cl2 > 0 ? `${qrVal.toFixed(2)}% (${qrX.toFixed(2)}x)` : (quickAssets > 0 ? 'N/A (Bebas Utang)' : '0.00%');
 
+    const quickAssets1 = (d1.cash || 0) + (d1.ar || 0) + (d1.otherAr || 0);
+    const qrVal1 = cl1 > 0 ? (quickAssets1 / cl1) * 100 : (quickAssets1 > 0 ? 999 : 0);
+    const qrX1 = cl1 > 0 ? (quickAssets1 / cl1) : (quickAssets1 > 0 ? 99.9 : 0);
+    const qrTxt1 = cl1 > 0 ? `${qrVal1.toFixed(2)}% (${qrX1.toFixed(2)}x)` : (quickAssets1 > 0 ? 'N/A (Bebas Utang)' : '0.00%');
+
     // 3. Working Capital To Total Asset%
     const nwcVal = ca2 - cl2;
     const wctaVal = ta2 > 0 ? (nwcVal / ta2) * 100 : 0;
+
+    const wctaVal1 = ta1 > 0 ? (nwcVal1 / ta1) * 100 : 0;
+    const wctaTxt1 = `${wctaVal1.toFixed(2)}%`;
 
     // 4. DER% x
     const derVal = eq2 > 0 ? (tl2 / eq2) * 100 : 0;
     const derX = eq2 > 0 ? (tl2 / eq2) : 0;
 
+    const derVal1 = eq1 > 0 ? (tl1 / eq1) * 100 : 0;
+    const derX1 = eq1 > 0 ? (tl1 / eq1) : 0;
+    const derTxt1 = `${derVal1.toFixed(2)}% (${derX1.toFixed(2)}x)`;
+
     // 5. DAR% x
     const darVal = ta2 > 0 ? (tl2 / ta2) * 100 : 0;
     const darX = ta2 > 0 ? (tl2 / ta2) : 0;
+
+    const darVal1 = ta1 > 0 ? (tl1 / ta1) * 100 : 0;
+    const darX1 = ta1 > 0 ? (tl1 / ta1) : 0;
+    const darTxt1 = `${darVal1.toFixed(2)}% (${darX1.toFixed(2)}x)`;
 
     // 6. Long Term Debt to Equity%
     const ltDebtVal = d2.ltDebt || 0;
     const ltdeVal = eq2 > 0 ? (ltDebtVal / eq2) * 100 : 0;
 
+    const ltDebtVal1 = d1.ltDebt || 0;
+    const ltdeVal1 = eq1 > 0 ? (ltDebtVal1 / eq1) * 100 : 0;
+    const ltdeTxt1 = `${ltdeVal1.toFixed(2)}%`;
+
     // 7. Total Asset Turnover x
     const tatoVal = ta2 > 0 ? (rev2 / ta2) : 0;
 
+    const tatoVal1 = ta1 > 0 ? (rev1 / ta1) : 0;
+    const tatoTxt1 = `${tatoVal1.toFixed(2)}x`;
+
     // 8. Working Capital Turnover x
     const wctoVal = nwcVal > 0 ? (rev2 / nwcVal) : 0;
+
+    const wctoVal1 = nwcVal1 > 0 ? (rev1 / nwcVal1) : 0;
+    const wctoTxt1 = nwcVal1 > 0 ? `${wctoVal1.toFixed(2)}x` : 'N/A';
 
     // 9. Receivable Turnover x
     const arVal = d2.ar || 0;
     const rtoVal = arVal > 0 ? (rev2 / arVal) : 0;
 
+    const arVal1 = d1.ar || 0;
+    const rtoVal1 = arVal1 > 0 ? (rev1 / arVal1) : 0;
+    const rtoTxt1 = arVal1 > 0 ? `${rtoVal1.toFixed(2)}x` : 'N/A';
+
     // 10. Day account Recieveable /Average Collection Period(hari)
     const acpVal = rev2 > 0 && arVal > 0 ? ((arVal / rev2) * 365) : 0;
+
+    const acpVal1 = rev1 > 0 && arVal1 > 0 ? ((arVal1 / rev1) * 365) : 0;
+    const acpTxt1 = `${Math.round(acpVal1)} hari`;
 
     // 11. Inventory Turnover Ratio X
     const invVal = d2.inv || 0;
     const itoVal = invVal > 0 ? (curCogs / invVal) : 0;
 
+    const invVal1 = d1.inv || 0;
+    const itoVal1 = invVal1 > 0 ? (curCogs1 / invVal1) : 0;
+    const itoTxt1 = invVal1 > 0 ? `${itoVal1.toFixed(2)}x` : 'N/A';
+
     // 12. Day Inventory (hari)
     const dioVal = curCogs > 0 && invVal > 0 ? ((invVal / curCogs) * 365) : 0;
+
+    const dioVal1 = curCogs1 > 0 && invVal1 > 0 ? ((invVal1 / curCogs1) * 365) : 0;
+    const dioTxt1 = `${Math.round(dioVal1)} hari`;
 
     // 13. Day account payable (hari)
     const apVal = d2.ap || 0;
     const dpoVal = curCogs > 0 && apVal > 0 ? ((apVal / curCogs) * 365) : 0;
 
+    const apVal1 = d1.ap || 0;
+    const dpoVal1 = curCogs1 > 0 && apVal1 > 0 ? ((apVal1 / curCogs1) * 365) : 0;
+    const dpoTxt1 = `${Math.round(dpoVal1)} hari`;
+
     // 14. ROA % x
     const roaVal = ta2 > 0 ? (eat2 / ta2) * 100 : 0;
     const roaX = ta2 > 0 ? (eat2 / ta2) : 0;
+
+    const roaVal1 = ta1 > 0 ? (eat1 / ta1) * 100 : 0;
+    const roaX1 = ta1 > 0 ? (eat1 / ta1) : 0;
+    const roaTxt1 = `${roaVal1.toFixed(2)}% (${roaX1.toFixed(2)}x)`;
 
     // 15. ROE % x
     const roeVal = eq2 > 0 ? (eat2 / eq2) * 100 : 0;
     const roeX = eq2 > 0 ? (eat2 / eq2) : 0;
 
+    const roeVal1 = eq1 > 0 ? (eat1 / eq1) * 100 : 0;
+    const roeX1 = eq1 > 0 ? (eat1 / eq1) : 0;
+    const roeTxt1 = `${roeVal1.toFixed(2)}% (${roeX1.toFixed(2)}x)`;
+
     // 16. ROI %
     const roiVal = ta2 > 0 ? (ebit2 / ta2) * 100 : 0;
 
+    const roiVal1 = ta1 > 0 ? (ebit1 / ta1) * 100 : 0;
+    const roiTxt1 = `${roiVal1.toFixed(2)}%`;
+
     // 17. Gross Profit Margin %
     const gpmVal = rev2 > 0 ? (gp2 / rev2) * 100 : 0;
+
+    const gpmVal1 = rev1 > 0 ? (gp1 / rev1) * 100 : 0;
+    const gpmTxt1 = `${gpmVal1.toFixed(2)}%`;
 
     // 18. Net Profit Margin % x
     const npmVal = rev2 > 0 ? (eat2 / rev2) * 100 : 0;
     const npmX = rev2 > 0 ? (eat2 / rev2) : 0;
 
+    const npmVal1 = rev1 > 0 ? (eat1 / rev1) * 100 : 0;
+    const npmX1 = rev1 > 0 ? (eat1 / rev1) : 0;
+    const npmTxt1 = `${npmVal1.toFixed(2)}% (${npmX1.toFixed(2)}x)`;
+
     // 19. Operating Income Ratio %
     const oirVal = rev2 > 0 ? (ebit2 / rev2) * 100 : 0;
+
+    const oirVal1 = rev1 > 0 ? (ebit1 / rev1) * 100 : 0;
+    const oirTxt1 = `${oirVal1.toFixed(2)}%`;
 
     // 20. Operating Ratio %
     const opexVal = d2.opex || 0;
     const oprVal = rev2 > 0 ? (((cogs2 + opexVal) / rev2) * 100) : 0;
+
+    const opexVal1 = d1.opex || 0;
+    const oprVal1 = rev1 > 0 ? (((cogs1 + opexVal1) / rev1) * 100) : 0;
+    const oprTxt1 = `${oprVal1.toFixed(2)}%`;
 
     // 21. Cash Ratio % x
     const cashVal = d2.cash || 0;
@@ -1560,67 +1766,150 @@ window.PelakuModule = {
     const cashRatioX = cl2 > 0 ? (cashVal / cl2) : (cashVal > 0 ? 99.9 : 0);
     const cashRatioTxt = cl2 > 0 ? `${cashRatioVal.toFixed(2)}% (${cashRatioX.toFixed(2)}x)` : (cashVal > 0 ? 'N/A (Bebas Utang)' : '0.00%');
 
+    const cashVal1 = d1.cash || 0;
+    const cashRatioVal1 = cl1 > 0 ? (cashVal1 / cl1) * 100 : (cashVal1 > 0 ? 999 : 0);
+    const cashRatioX1 = cl1 > 0 ? (cashVal1 / cl1) : (cashVal1 > 0 ? 99.9 : 0);
+    const cashRatioTxt1 = cl1 > 0 ? `${cashRatioVal1.toFixed(2)}% (${cashRatioX1.toFixed(2)}x)` : (cashVal1 > 0 ? 'N/A (Bebas Utang)' : '0.00%');
+
     // 22. Sales Growth %
     const salesGrowth = rev1 > 0 ? ((rev2 - rev1) / rev1) * 100 : 0;
     const netProfitGrowth = eat1 !== 0 ? ((eat2 - eat1) / Math.abs(eat1)) * 100 : 0;
+    const salesGrowthTxt1 = '-';
 
     // 23. Operating Profit Margin %
     const opmVal = rev2 > 0 ? (opBruto2 / rev2) * 100 : 0;
 
+    const opmVal1 = rev1 > 0 ? (opBruto1 / rev1) * 100 : 0;
+    const opmTxt1 = `${opmVal1.toFixed(2)}%`;
+
     // 24. Ebitda
     const deprVal = d2.depr || 0;
     const ebitdaVal = ebit2 + deprVal;
+
+    const deprVal1 = d1.depr || 0;
+    const ebitdaVal1 = ebit1 + deprVal1;
+    const ebitdaTxt1 = this.fmtRp(ebitdaVal1);
 
     // 25. Ebitda to interest %
     const intVal = d2.intExp || 0;
     const ebitdaIntVal = intVal > 0 ? ((ebitdaVal / intVal) * 100) : null;
     const ebitdaIntX = intVal > 0 ? (ebitdaVal / intVal) : null;
 
+    const intVal1 = d1.intExp || 0;
+    const ebitdaIntVal1 = intVal1 > 0 ? ((ebitdaVal1 / intVal1) * 100) : null;
+    const ebitdaIntX1 = intVal1 > 0 ? (ebitdaVal1 / intVal1) : null;
+    const ebitdaIntTxt1 = ebitdaIntVal1 !== null ? `${ebitdaIntVal1.toFixed(2)}% (${ebitdaIntX1.toFixed(2)}x)` : 'N/A (Bebas Bunga)';
+
     // 26. Ebitda to debt %
     const ebitdaDebtVal = tl2 > 0 ? ((ebitdaVal / tl2) * 100) : null;
     const ebitdaDebtX = tl2 > 0 ? (ebitdaVal / tl2) : null;
 
-    // 27. Net Working Capital (nwcVal)
+    const ebitdaDebtVal1 = tl1 > 0 ? ((ebitdaVal1 / tl1) * 100) : null;
+    const ebitdaDebtTxt1 = ebitdaDebtVal1 !== null ? `${ebitdaDebtVal1.toFixed(2)}%` : 'N/A (Bebas Utang)';
 
-    // Update Ratio Badges & Texts
+    // 27. Net Working Capital (nwcVal)
+    const nwcToProject = projectVal > 0 ? (nwcVal / projectVal) * 100 : 0;
+    const selfFinVal = projectVal > 0 ? (eq2 / projectVal) * 100 : (ta2 > 0 ? (eq2 / ta2) * 100 : 0);
+
+    const nwcToProject1 = projectVal > 0 ? (nwcVal1 / projectVal) * 100 : 0;
+    const nwcTxt1 = `${this.fmtRp(nwcVal1)}${projectVal > 0 ? ` (${nwcToProject1.toFixed(1)}%)` : ''}`;
+
+    // Update Ratio Badges & Texts (Tahun 1 & Tahun 2)
     const updateText = (id, txt, colorCls) => {
       const el = document.getElementById(id);
       if (el) {
         el.textContent = txt;
-        if (colorCls) el.className = `font-mono font-bold text-xs shrink-0 text-right ${colorCls}`;
+        if (colorCls) el.className = `w-[72px] font-mono font-bold text-xs shrink-0 text-right ${colorCls} truncate`;
+      }
+    };
+    const updateText1 = (id, txt, colorCls) => {
+      const el = document.getElementById(`${id}-1`);
+      if (el) {
+        el.textContent = hasData1 ? txt : '-';
+        if (colorCls) el.className = `w-[72px] font-mono font-medium text-xs shrink-0 text-right ${hasData1 ? colorCls : 'text-slate-400'} truncate`;
       }
     };
 
-    const nwcToProject = projectVal > 0 ? (nwcVal / projectVal) * 100 : 0;
-    const selfFinVal = projectVal > 0 ? (eq2 / projectVal) * 100 : (ta2 > 0 ? (eq2 / ta2) * 100 : 0);
-
     updateText('ratio-cr', crTxt, (crVal >= 100 || cl2 === 0) ? 'text-emerald-600' : (crVal >= 75 ? 'text-blue-600' : 'text-rose-600'));
+    updateText1('ratio-cr', crTxt1, (crVal1 >= 100 || cl1 === 0) ? 'text-emerald-600' : (crVal1 >= 75 ? 'text-blue-600' : 'text-rose-600'));
+
     updateText('ratio-qr', qrTxt, (qrVal > 100 || cl2 === 0) ? 'text-emerald-600' : (qrVal > 60 ? 'text-amber-600' : 'text-rose-600'));
+    updateText1('ratio-qr', qrTxt1, (qrVal1 > 100 || cl1 === 0) ? 'text-emerald-600' : (qrVal1 > 60 ? 'text-amber-600' : 'text-rose-600'));
+
     updateText('ratio-wcta', `${wctaVal.toFixed(2)}%`, wctaVal > 0 ? 'text-slate-800' : 'text-rose-600');
+    updateText1('ratio-wcta', wctaTxt1, wctaVal1 > 0 ? 'text-slate-700' : 'text-rose-600');
+
     updateText('ratio-der', `${derVal.toFixed(2)}% (${derX.toFixed(2)}x)`, derVal < 200 ? 'text-emerald-600' : (derVal < 300 ? 'text-amber-600' : 'text-rose-600'));
+    updateText1('ratio-der', derTxt1, derVal1 < 200 ? 'text-emerald-600' : (derVal1 < 300 ? 'text-amber-600' : 'text-rose-600'));
+
     updateText('ratio-dar', `${darVal.toFixed(2)}% (${darX.toFixed(2)}x)`, darVal < 70 ? 'text-slate-800' : 'text-rose-600');
+    updateText1('ratio-dar', darTxt1, darVal1 < 70 ? 'text-slate-700' : 'text-rose-600');
+
     updateText('ratio-ltde', `${ltdeVal.toFixed(2)}%`, 'text-slate-800');
+    updateText1('ratio-ltde', ltdeTxt1, 'text-slate-700');
+
     updateText('ratio-tato', `${tatoVal.toFixed(2)}x`, 'text-slate-800');
+    updateText1('ratio-tato', tatoTxt1, 'text-slate-700');
+
     updateText('ratio-wcto', nwcVal > 0 ? `${wctoVal.toFixed(2)}x` : 'N/A', 'text-slate-800');
+    updateText1('ratio-wcto', wctoTxt1, 'text-slate-700');
+
     updateText('ratio-rto', arVal > 0 ? `${rtoVal.toFixed(2)}x` : 'N/A', 'text-slate-800');
+    updateText1('ratio-rto', rtoTxt1, 'text-slate-700');
+
     updateText('ratio-acp', `${Math.round(acpVal)} hari`, acpVal <= 90 ? 'text-slate-800' : 'text-amber-600');
+    updateText1('ratio-acp', acpTxt1, acpVal1 <= 90 ? 'text-slate-700' : 'text-amber-600');
+
     updateText('ratio-ito', invVal > 0 ? `${itoVal.toFixed(2)}x` : 'N/A', 'text-slate-800');
+    updateText1('ratio-ito', itoTxt1, 'text-slate-700');
+
     updateText('ratio-dio', `${Math.round(dioVal)} hari`, 'text-slate-800');
+    updateText1('ratio-dio', dioTxt1, 'text-slate-700');
+
     updateText('ratio-dpo', `${Math.round(dpoVal)} hari`, 'text-slate-800');
+    updateText1('ratio-dpo', dpoTxt1, 'text-slate-700');
+
     updateText('ratio-roa', `${roaVal.toFixed(2)}% (${roaX.toFixed(2)}x)`, roaVal >= 1.0 ? 'text-emerald-600' : (roaVal >= 0.5 ? 'text-amber-600' : 'text-rose-600'));
+    updateText1('ratio-roa', roaTxt1, roaVal1 >= 1.0 ? 'text-emerald-600' : (roaVal1 >= 0.5 ? 'text-amber-600' : 'text-rose-600'));
+
     updateText('ratio-roe', `${roeVal.toFixed(2)}% (${roeX.toFixed(2)}x)`, roeVal >= 5.0 ? 'text-emerald-600' : (roeVal >= 3.0 ? 'text-amber-600' : 'text-rose-600'));
+    updateText1('ratio-roe', roeTxt1, roeVal1 >= 5.0 ? 'text-emerald-600' : (roeVal1 >= 3.0 ? 'text-amber-600' : 'text-rose-600'));
+
     updateText('ratio-roi', `${roiVal.toFixed(2)}%`, roiVal > 0 ? 'text-purple-600' : 'text-rose-600');
+    updateText1('ratio-roi', roiTxt1, roiVal1 > 0 ? 'text-purple-600' : 'text-rose-600');
+
     updateText('ratio-gpm', `${gpmVal.toFixed(2)}%`, gpmVal > 0 ? 'text-blue-600' : 'text-rose-600');
+    updateText1('ratio-gpm', gpmTxt1, gpmVal1 > 0 ? 'text-blue-600' : 'text-rose-600');
+
     updateText('ratio-npm', `${npmVal.toFixed(2)}% (${npmX.toFixed(2)}x)`, npmVal > 10.0 ? 'text-emerald-600' : (npmVal > 2.0 ? 'text-amber-600' : 'text-rose-600'));
+    updateText1('ratio-npm', npmTxt1, npmVal1 > 10.0 ? 'text-emerald-600' : (npmVal1 > 2.0 ? 'text-amber-600' : 'text-rose-600'));
+
     updateText('ratio-oir', `${oirVal.toFixed(2)}%`, oirVal > 0 ? 'text-blue-600' : 'text-rose-600');
+    updateText1('ratio-oir', oirTxt1, oirVal1 > 0 ? 'text-blue-600' : 'text-rose-600');
+
     updateText('ratio-opr', `${oprVal.toFixed(2)}%`, oprVal <= 95 ? 'text-slate-800' : 'text-rose-600');
+    updateText1('ratio-opr', oprTxt1, oprVal1 <= 95 ? 'text-slate-700' : 'text-rose-600');
+
     updateText('ratio-cash', cashRatioTxt, (cashRatioVal > 40 || cl2 === 0) ? 'text-emerald-600' : (cashRatioVal > 20 ? 'text-amber-600' : 'text-rose-600'));
+    updateText1('ratio-cash', cashRatioTxt1, (cashRatioVal1 > 40 || cl1 === 0) ? 'text-emerald-600' : (cashRatioVal1 > 20 ? 'text-amber-600' : 'text-rose-600'));
+
     updateText('ratio-sales-growth', `${salesGrowth >= 0 ? '+' : ''}${salesGrowth.toFixed(2)}%`, salesGrowth >= 0 ? 'text-emerald-600' : 'text-rose-600');
+    updateText1('ratio-sales-growth', salesGrowthTxt1, 'text-slate-400');
+
     updateText('ratio-opm', `${opmVal.toFixed(2)}%`, opmVal > 0 ? 'text-blue-600' : 'text-rose-600');
+    updateText1('ratio-opm', opmTxt1, opmVal1 > 0 ? 'text-blue-600' : 'text-rose-600');
+
     updateText('ratio-ebitda', this.fmtRp(ebitdaVal), ebitdaVal > 0 ? 'text-indigo-700' : 'text-rose-600');
+    updateText1('ratio-ebitda', ebitdaTxt1, ebitdaVal1 > 0 ? 'text-indigo-700' : 'text-rose-600');
+
     updateText('ratio-ebitda-int', ebitdaIntVal !== null ? `${ebitdaIntVal.toFixed(2)}% (${ebitdaIntX.toFixed(2)}x)` : 'N/A (Bebas Bunga)', (ebitdaIntX >= 2.0 || ebitdaIntVal === null) ? 'text-emerald-600' : 'text-rose-600');
+    updateText1('ratio-ebitda-int', ebitdaIntTxt1, (ebitdaIntX1 >= 2.0 || ebitdaIntVal1 === null) ? 'text-emerald-600' : 'text-rose-600');
+
     updateText('ratio-ebitda-debt', ebitdaDebtVal !== null ? `${ebitdaDebtVal.toFixed(2)}%` : 'N/A (Bebas Utang)', 'text-indigo-600');
+    updateText1('ratio-ebitda-debt', ebitdaDebtTxt1, 'text-indigo-600');
+
     updateText('ratio-nwc', `${this.fmtRp(nwcVal)}${projectVal > 0 ? ` (${nwcToProject.toFixed(1)}%)` : ''}`, (nwcToProject > 40 || (projectVal === 0 && nwcVal >= 0)) ? 'text-emerald-600' : (nwcToProject > 10 ? 'text-amber-600' : 'text-rose-600'));
+    updateText1('ratio-nwc', nwcTxt1, (nwcToProject1 > 40 || (projectVal === 0 && nwcVal1 >= 0)) ? 'text-emerald-600' : (nwcToProject1 > 10 ? 'text-amber-600' : 'text-rose-600'));
 
     // 5. Composite Scoring & Grade Askrindo (Standar Resmi 13 Parameter: Capital & Capacity)
     const auditStatus = document.getElementById('pelaku-audit-status')?.value || '';
@@ -1794,7 +2083,12 @@ window.PelakuModule = {
     const crEl = document.getElementById('ratio-cr');
     if (crEl) {
       crEl.textContent = crTxt;
-      crEl.className = `font-mono font-bold text-xs shrink-0 text-right ${racItem.pass ? 'text-emerald-600' : 'text-rose-600'}`;
+      crEl.className = `w-[72px] font-mono font-bold text-xs shrink-0 text-right ${racItem.pass ? 'text-emerald-600' : 'text-rose-600'} truncate`;
+    }
+    const crEl1 = document.getElementById('ratio-cr-1');
+    if (crEl1) {
+      crEl1.textContent = hasData1 ? crTxt1 : '-';
+      crEl1.className = `w-[72px] font-mono font-medium text-xs shrink-0 text-right ${hasData1 ? ((crVal1 >= 100 || cl1 === 0) ? 'text-emerald-600' : (crVal1 >= 75 ? 'text-blue-600' : 'text-rose-600')) : 'text-slate-400'} truncate`;
     }
 
     const bPass = document.getElementById('badge_rac_pass_count');
@@ -1809,33 +2103,33 @@ window.PelakuModule = {
     }
 
     const ratios27 = [
-      { no: 1, name: 'Current Ratio% x', val: crTxt, std: 'Standar: ≥ 100,00%', pass: crVal >= 100 || cl2 === 0 },
-      { no: 2, name: 'Quick Ratio % x', val: qrTxt, std: 'Standar: > 100,00%', pass: qrVal > 100 || cl2 === 0 },
-      { no: 3, name: 'Working Capital To Total Asset%', val: `${wctaVal.toFixed(2)}%`, std: 'Modal Kerja Bersih / Total Aktiva (Standar: > 0%)', pass: wctaVal > 0 },
-      { no: 4, name: 'DER% x', val: `${derVal.toFixed(2)}% (${derX.toFixed(2)}x)`, std: 'Standar: < 200,00%', pass: derVal < 200 },
-      { no: 5, name: 'DAR% x', val: `${darVal.toFixed(2)}% (${darX.toFixed(2)}x)`, std: 'Batas Toleransi: < 70,00%', pass: darVal < 70 },
-      { no: 6, name: 'Long Term Debt to Equity%', val: `${ltdeVal.toFixed(2)}%`, std: 'Hutang Jk. Panjang / Modal Sendiri (Standar: < 100%)', pass: ltdeVal < 100 },
-      { no: 7, name: 'Total Asset Turnover x', val: `${tatoVal.toFixed(2)}x`, std: 'Penjualan / Total Aset (Standar: ≥ 1.0x)', pass: tatoVal >= 1.0 },
-      { no: 8, name: 'Working Capital Turnover x', val: nwcVal > 0 ? `${wctoVal.toFixed(2)}x` : 'N/A', std: 'Penjualan / Modal Kerja Bersih (NWC)', pass: wctoVal > 0 },
-      { no: 9, name: 'Receivable Turnover x', val: arVal > 0 ? `${rtoVal.toFixed(2)}x` : 'N/A', std: 'Penjualan / Piutang Usaha (Standar: ≥ 4.0x)', pass: rtoVal >= 4.0 },
-      { no: 10, name: 'Day account Recieveable /Average Collection Period(hari)', val: `${Math.round(acpVal)} hari`, std: 'Rata-rata Waktu Penagihan Piutang (Batas: ≤ 90 hari)', pass: acpVal <= 90 },
-      { no: 11, name: 'Inventory Turnover Ratio X', val: invVal > 0 ? `${itoVal.toFixed(2)}x` : 'N/A', std: 'HPP / Persediaan Barang (Standar: ≥ 4.0x)', pass: itoVal >= 4.0 },
-      { no: 12, name: 'Day Inventory (hari)', val: `${Math.round(dioVal)} hari`, std: 'Rata-rata Hari Persediaan Tersimpan (Batas: ≤ 90 hari)', pass: dioVal <= 90 },
-      { no: 13, name: 'Day account payable (hari)', val: `${Math.round(dpoVal)} hari`, std: 'Rata-rata Hari Pembayaran Utang Usaha', pass: true },
-      { no: 14, name: 'ROA % x', val: `${roaVal.toFixed(2)}% (${roaX.toFixed(2)}x)`, std: 'Standar: ≥ 1,00%', pass: roaVal >= 1.0 },
-      { no: 15, name: 'ROE % x', val: `${roeVal.toFixed(2)}% (${roeX.toFixed(2)}x)`, std: 'Standar: ≥ 5,00%', pass: roeVal >= 5.0 },
-      { no: 16, name: 'ROI %', val: `${roiVal.toFixed(2)}%`, std: 'Return on Investment (EBIT / Total Aktiva) (Standar: > 0%)', pass: roiVal > 0 },
-      { no: 17, name: 'Gross Profit Margin %', val: `${gpmVal.toFixed(2)}%`, std: 'Laba Kotor / Penjualan (Standar: > 0%)', pass: gpmVal > 0 },
-      { no: 18, name: 'Net Profit Margin % x', val: `${npmVal.toFixed(2)}% (${npmX.toFixed(2)}x)`, std: 'Standar: > 10,00%', pass: npmVal > 10.0 },
-      { no: 19, name: 'Operating Income Ratio %', val: `${oirVal.toFixed(2)}%`, std: 'EBIT / Penjualan (Net Operating Margin)', pass: oirVal > 0 },
-      { no: 20, name: 'Operating Ratio %', val: `${oprVal.toFixed(2)}%`, std: '(HPP + Beban Usaha) / Penjualan (Batas: ≤ 95%)', pass: oprVal <= 95 },
-      { no: 21, name: 'Cash Ratio % x', val: cashRatioTxt, std: 'Standar: > 40,00%', pass: cashRatioVal > 40 || cl2 === 0 },
-      { no: 22, name: 'Sales Growth %', val: `${salesGrowth >= 0 ? '+' : ''}${salesGrowth.toFixed(2)}%`, std: 'Pertumbuhan Penjualan YoY (Standar: Positif)', pass: salesGrowth >= 0 },
-      { no: 23, name: 'Operating Profit Margin %', val: `${opmVal.toFixed(2)}%`, std: 'Laba Bruto Operasional / Penjualan', pass: opmVal > 0 },
-      { no: 24, name: 'Ebitda', val: this.fmtRp(ebitdaVal), std: 'Laba Usaha (EBIT) + Akum. Penyusutan', pass: ebitdaVal > 0 },
-      { no: 25, name: 'Ebitda to interest %', val: ebitdaIntVal !== null ? `${ebitdaIntVal.toFixed(2)}% (${ebitdaIntX.toFixed(2)}x)` : 'N/A (Bebas Bunga)', std: 'Interest Coverage Ratio (Standar: ≥ 2.0x)', pass: ebitdaIntX >= 2.0 || ebitdaIntVal === null },
-      { no: 26, name: 'Ebitda to debt %', val: ebitdaDebtVal !== null ? `${ebitdaDebtVal.toFixed(2)}%` : 'N/A (Bebas Hutang)', std: 'EBITDA / Total Hutang (Standar: ≥ 20%)', pass: ebitdaDebtVal >= 20 || ebitdaDebtVal === null },
-      { no: 27, name: 'Net Working Capital', val: this.fmtRp(nwcVal), std: 'Standar: > 40,00% Nilai Proyek', pass: projectVal > 0 ? (nwcToProject > 40) : (nwcVal >= 0) }
+      { no: 1, name: 'Current Ratio% x', val1: hasData1 ? crTxt1 : '-', val: crTxt, std: 'Standar: ≥ 100,00%', pass: crVal >= 100 || cl2 === 0 },
+      { no: 2, name: 'Quick Ratio % x', val1: hasData1 ? qrTxt1 : '-', val: qrTxt, std: 'Standar: > 100,00%', pass: qrVal > 100 || cl2 === 0 },
+      { no: 3, name: 'Working Capital To Total Asset%', val1: hasData1 ? wctaTxt1 : '-', val: `${wctaVal.toFixed(2)}%`, std: 'Modal Kerja Bersih / Total Aktiva (Standar: > 0%)', pass: wctaVal > 0 },
+      { no: 4, name: 'DER% x', val1: hasData1 ? derTxt1 : '-', val: `${derVal.toFixed(2)}% (${derX.toFixed(2)}x)`, std: 'Standar: < 200,00%', pass: derVal < 200 },
+      { no: 5, name: 'DAR% x', val1: hasData1 ? darTxt1 : '-', val: `${darVal.toFixed(2)}% (${darX.toFixed(2)}x)`, std: 'Batas Toleransi: < 70,00%', pass: darVal < 70 },
+      { no: 6, name: 'Long Term Debt to Equity%', val1: hasData1 ? ltdeTxt1 : '-', val: `${ltdeVal.toFixed(2)}%`, std: 'Hutang Jk. Panjang / Modal Sendiri (Standar: < 100%)', pass: ltdeVal < 100 },
+      { no: 7, name: 'Total Asset Turnover x', val1: hasData1 ? tatoTxt1 : '-', val: `${tatoVal.toFixed(2)}x`, std: 'Penjualan / Total Aset (Standar: ≥ 1.0x)', pass: tatoVal >= 1.0 },
+      { no: 8, name: 'Working Capital Turnover x', val1: hasData1 ? wctoTxt1 : '-', val: nwcVal > 0 ? `${wctoVal.toFixed(2)}x` : 'N/A', std: 'Penjualan / Modal Kerja Bersih (NWC)', pass: wctoVal > 0 },
+      { no: 9, name: 'Receivable Turnover x', val1: hasData1 ? rtoTxt1 : '-', val: arVal > 0 ? `${rtoVal.toFixed(2)}x` : 'N/A', std: 'Penjualan / Piutang Usaha (Standar: ≥ 4.0x)', pass: rtoVal >= 4.0 },
+      { no: 10, name: 'Day account Recieveable /Average Collection Period(hari)', val1: hasData1 ? acpTxt1 : '-', val: `${Math.round(acpVal)} hari`, std: 'Rata-rata Waktu Penagihan Piutang (Batas: ≤ 90 hari)', pass: acpVal <= 90 },
+      { no: 11, name: 'Inventory Turnover Ratio X', val1: hasData1 ? itoTxt1 : '-', val: invVal > 0 ? `${itoVal.toFixed(2)}x` : 'N/A', std: 'HPP / Persediaan Barang (Standar: ≥ 4.0x)', pass: itoVal >= 4.0 },
+      { no: 12, name: 'Day Inventory (hari)', val1: hasData1 ? dioTxt1 : '-', val: `${Math.round(dioVal)} hari`, std: 'Rata-rata Hari Persediaan Tersimpan (Batas: ≤ 90 hari)', pass: dioVal <= 90 },
+      { no: 13, name: 'Day account payable (hari)', val1: hasData1 ? dpoTxt1 : '-', val: `${Math.round(dpoVal)} hari`, std: 'Rata-rata Hari Pembayaran Utang Usaha', pass: true },
+      { no: 14, name: 'ROA % x', val1: hasData1 ? roaTxt1 : '-', val: `${roaVal.toFixed(2)}% (${roaX.toFixed(2)}x)`, std: 'Standar: ≥ 1,00%', pass: roaVal >= 1.0 },
+      { no: 15, name: 'ROE % x', val1: hasData1 ? roeTxt1 : '-', val: `${roeVal.toFixed(2)}% (${roeX.toFixed(2)}x)`, std: 'Standar: ≥ 5,00%', pass: roeVal >= 5.0 },
+      { no: 16, name: 'ROI %', val1: hasData1 ? roiTxt1 : '-', val: `${roiVal.toFixed(2)}%`, std: 'Return on Investment (EBIT / Total Aktiva) (Standar: > 0%)', pass: roiVal > 0 },
+      { no: 17, name: 'Gross Profit Margin %', val1: hasData1 ? gpmTxt1 : '-', val: `${gpmVal.toFixed(2)}%`, std: 'Laba Kotor / Penjualan (Standar: > 0%)', pass: gpmVal > 0 },
+      { no: 18, name: 'Net Profit Margin % x', val1: hasData1 ? npmTxt1 : '-', val: `${npmVal.toFixed(2)}% (${npmX.toFixed(2)}x)`, std: 'Standar: > 10,00%', pass: npmVal > 10.0 },
+      { no: 19, name: 'Operating Income Ratio %', val1: hasData1 ? oirTxt1 : '-', val: `${oirVal.toFixed(2)}%`, std: 'EBIT / Penjualan (Net Operating Margin)', pass: oirVal > 0 },
+      { no: 20, name: 'Operating Ratio %', val1: hasData1 ? oprTxt1 : '-', val: `${oprVal.toFixed(2)}%`, std: '(HPP + Beban Usaha) / Penjualan (Batas: ≤ 95%)', pass: oprVal <= 95 },
+      { no: 21, name: 'Cash Ratio % x', val1: hasData1 ? cashRatioTxt1 : '-', val: cashRatioTxt, std: 'Standar: > 40,00%', pass: cashRatioVal > 40 || cl2 === 0 },
+      { no: 22, name: 'Sales Growth %', val1: '-', val: `${salesGrowth >= 0 ? '+' : ''}${salesGrowth.toFixed(2)}%`, std: 'Pertumbuhan Penjualan YoY (Standar: Positif)', pass: salesGrowth >= 0 },
+      { no: 23, name: 'Operating Profit Margin %', val1: hasData1 ? opmTxt1 : '-', val: `${opmVal.toFixed(2)}%`, std: 'Laba Bruto Operasional / Penjualan', pass: opmVal > 0 },
+      { no: 24, name: 'Ebitda', val1: hasData1 ? ebitdaTxt1 : '-', val: this.fmtRp(ebitdaVal), std: 'Laba Usaha (EBIT) + Akum. Penyusutan', pass: ebitdaVal > 0 },
+      { no: 25, name: 'Ebitda to interest %', val1: hasData1 ? ebitdaIntTxt1 : '-', val: ebitdaIntVal !== null ? `${ebitdaIntVal.toFixed(2)}% (${ebitdaIntX.toFixed(2)}x)` : 'N/A (Bebas Bunga)', std: 'Interest Coverage Ratio (Standar: ≥ 2.0x)', pass: ebitdaIntX >= 2.0 || ebitdaIntVal === null },
+      { no: 26, name: 'Ebitda to debt %', val1: hasData1 ? ebitdaDebtTxt1 : '-', val: ebitdaDebtVal !== null ? `${ebitdaDebtVal.toFixed(2)}%` : 'N/A (Bebas Hutang)', std: 'EBITDA / Total Hutang (Standar: ≥ 20%)', pass: ebitdaDebtVal >= 20 || ebitdaDebtVal === null },
+      { no: 27, name: 'Net Working Capital', val1: hasData1 ? nwcTxt1 : '-', val: this.fmtRp(nwcVal), std: 'Standar: > 40,00% Nilai Proyek', pass: projectVal > 0 ? (nwcToProject > 40) : (nwcVal >= 0) }
     ];
 
     // Simpan objek analisis untuk lembar cetak
@@ -4184,18 +4478,20 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
 
           <!-- Tabel Rasio Keuangan Lengkap (27 Indikator) -->
           <div>
-            <h4 class="text-xs font-bold text-slate-800 mb-2 uppercase tracking-wider">Hasil Analisis 27 Indikator Rasio Finansial (Tahun ${c.year2})</h4>
+            <h4 class="text-xs font-bold text-slate-800 mb-2 uppercase tracking-wider">Hasil Analisis 27 Indikator Rasio Finansial Komparatif (${c.year1 ? `Tahun ${c.year1} &amp; ${c.year2}` : `Tahun ${c.year2}`})</h4>
             <table class="w-full text-xs border border-slate-200">
               <tr class="bg-slate-100 font-bold">
                 <th class="p-2 text-center w-8">No</th>
                 <th class="p-2 text-left">Indikator Rasio</th>
-                <th class="p-2 text-right">Hasil Analisis</th>
+                <th class="p-2 text-right">${c.year1 ? `Tahun ${c.year1}` : 'Tahun 1'}</th>
+                <th class="p-2 text-right">${c.year2 ? `Tahun ${c.year2} (Eval)` : 'Tahun 2'}</th>
                 <th class="p-2 text-left">Parameter / Standar Acuan</th>
               </tr>
               ${(c.ratios27 || []).map(r => `
                 <tr class="border-b">
                   <td class="p-1.5 text-center font-bold text-slate-400 text-[11px]">${r.no}</td>
                   <td class="p-1.5 font-medium text-slate-800">${r.name}</td>
+                  <td class="p-1.5 text-right font-mono text-slate-600">${r.val1 || '-'}</td>
                   <td class="p-1.5 text-right font-mono font-bold ${r.pass ? 'text-emerald-700' : 'text-slate-800'}">${r.val}</td>
                   <td class="p-1.5 text-slate-500 text-[11px]">${r.std}</td>
                 </tr>
