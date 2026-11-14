@@ -167,12 +167,17 @@ window.PelakuModule = {
     return {
       companyName: 'PT Adhi Bangun Persada',
       sector: 'konstruksi',
+      years: ['2024', '2025'],
       year1: '2024',
       year2: '2025',
       auditStatus: 'audited',
       opinion: 'Wajar Tanpa Pengecualian (WTP)',
       projectVal: 15000000000,
       kapName: 'KAP Tanubrata Sutanto Fahmi Bambang & Rekan (BDO Indonesia)',
+      yearlyData: {
+        '2024': { ...this.defaultData1 },
+        '2025': { ...this.defaultData2 }
+      },
       d1: { ...this.defaultData1 },
       d2: { ...this.defaultData2 }
     };
@@ -184,15 +189,183 @@ window.PelakuModule = {
     return {
       companyName: '',
       sector: 'konstruksi',
+      years: ['2024', '2025'],
       year1: '',
       year2: '',
       auditStatus: '',
       opinion: '',
       projectVal: '',
       kapName: '',
+      yearlyData: {
+        '2024': { ...blankAcc },
+        '2025': { ...blankAcc }
+      },
       d1: { ...blankAcc },
       d2: { ...blankAcc }
     };
+  },
+
+  getActiveYears() {
+    let yrs = this.workspaceState?.years;
+    if (Array.isArray(yrs) && yrs.length >= 2) {
+      return [...new Set(yrs.map(String))].sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+    }
+    const y1 = document.getElementById('inp_year1')?.value?.trim() || this.workspaceState?.year1 || '2024';
+    const y2 = document.getElementById('inp_year2')?.value?.trim() || this.workspaceState?.year2 || '2025';
+    const set = new Set([String(y1), String(y2)].filter(Boolean));
+    if (set.size < 2) set.add('2025');
+    return Array.from(set).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+  },
+
+  openAddYearModal() {
+    const modal = document.getElementById('pelaku-modal-container');
+    if (!modal) return;
+
+    const years = this.getActiveYears();
+    const highestYear = years.length > 0 ? Math.max(...years.map(y => parseInt(y, 10) || 0)) : new Date().getFullYear();
+    const suggestedYear = highestYear > 0 ? highestYear + 1 : new Date().getFullYear();
+
+    modal.innerHTML = `
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-md p-6 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2 text-purple-700 font-bold text-sm">
+              <i data-lucide="calendar-plus" class="w-4 h-4"></i>
+              <span>Tambah Kolom Periode Baru</span>
+            </div>
+            <button onclick="document.getElementById('pelaku-modal-container').innerHTML=''" class="w-8 h-8 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center text-lg font-bold transition">&times;</button>
+          </div>
+          <div class="space-y-3 text-xs">
+            <p class="text-slate-600 leading-relaxed">
+              Tambahkan kolom tahun baru ke dalam tabel laporan keuangan. Data tahun-tahun sebelumnya 
+              <strong class="text-slate-800">(${years.join(', ')})</strong> tetap aman tersimpan di bawah ID perusahaan ini.
+            </p>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Tahun Laporan Keuangan Baru</label>
+              <input type="number" id="modal_new_year_inp" value="${suggestedYear}" class="w-full px-3 py-2.5 rounded-xl border border-purple-300 font-mono font-bold text-center text-sm focus:border-purple-600 focus:outline-none bg-purple-50/30" placeholder="Contoh: 2026" />
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+              <label class="flex items-center gap-2 cursor-pointer font-semibold text-slate-700">
+                <input type="checkbox" id="modal_copy_prev_chk" class="w-4 h-4 rounded text-purple-600" />
+                <span>Salin angka awal dari tahun ${highestYear}</span>
+              </label>
+              <span class="text-[11px] text-slate-500 block pl-6">Centang untuk menggunakan angka tahun ${highestYear} sebagai dasar estimasi, atau biarkan tidak tercentang untuk mengisi angka baru (0,00) / dari hasil pindai AI OCR.</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+            <button type="button" onclick="document.getElementById('pelaku-modal-container').innerHTML=''" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Batal</button>
+            <button type="button" onclick="window.PelakuModule.submitAddYearModal()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 shadow-md shadow-purple-500/20 transition flex items-center gap-1.5">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Tambahkan Kolom Tahun</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    if (window.lucide) window.lucide.createIcons();
+    setTimeout(() => document.getElementById('modal_new_year_inp')?.focus(), 50);
+  },
+
+  submitAddYearModal() {
+    const val = document.getElementById('modal_new_year_inp')?.value?.trim();
+    const copyPrev = document.getElementById('modal_copy_prev_chk')?.checked ?? false;
+    if (!val || !/^\d{4}$/.test(val)) {
+      window.askrindoApp.showToast('Masukkan tahun yang valid (4 digit angka, misal: 2026).', 'error');
+      return;
+    }
+    document.getElementById('pelaku-modal-container').innerHTML = '';
+    this.addYearColumn(val, copyPrev);
+  },
+
+  addYearColumn(newYear, copyFromPrev = false) {
+    const yrStr = String(newYear).trim();
+    if (!yrStr || !/^\d{4}$/.test(yrStr)) {
+      window.askrindoApp.showToast('Format tahun tidak valid.', 'error');
+      return;
+    }
+
+    this.syncWorkspaceFromDom();
+
+    let years = this.getActiveYears();
+    if (years.includes(yrStr)) {
+      window.askrindoApp.showToast(`Kolom Tahun ${yrStr} sudah ada di tabel saat ini.`, 'info');
+      return;
+    }
+
+    const prevLatest = years[years.length - 1];
+    years.push(yrStr);
+    years.sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+
+    if (!this.workspaceState) this.workspaceState = this.buildBlankState();
+    if (!this.workspaceState.yearlyData) this.workspaceState.yearlyData = {};
+
+    const blankAcc = {};
+    FIN_ACCOUNT_KEYS.forEach(k => { blankAcc[k] = ''; });
+
+    if (copyFromPrev && prevLatest && this.workspaceState.yearlyData[prevLatest]) {
+      this.workspaceState.yearlyData[yrStr] = { ...this.workspaceState.yearlyData[prevLatest] };
+    } else {
+      this.workspaceState.yearlyData[yrStr] = { ...blankAcc };
+    }
+
+    this.workspaceState.years = years;
+    const idxNew = years.indexOf(yrStr);
+    if (idxNew > 0) {
+      this.workspaceState.year1 = years[idxNew - 1];
+      this.workspaceState.year2 = yrStr;
+    }
+
+    this.formSourceMode = 'dirty';
+    this.saveWorkspaceDraft();
+
+    const main = document.getElementById('app-main') || document.querySelector('main');
+    if (main) {
+      main.innerHTML = this.render();
+      this.updateYearLabels();
+      this.calculateRatios();
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    window.askrindoApp.showToast(`Kolom Tahun ${yrStr} berhasil ditambahkan! Riwayat tahun sebelumnya (${years.filter(y => y !== yrStr).join(', ')}) tetap aman tersimpan.`, 'success');
+  },
+
+  removeYearColumn(year) {
+    const yrStr = String(year).trim();
+    let years = this.getActiveYears();
+    if (years.length <= 2) {
+      window.askrindoApp.showToast('Minimal 2 tahun laporan keuangan diperlukan untuk analisis komparatif underwriting.', 'warning');
+      return;
+    }
+    if (!confirm(`Hapus kolom Tahun ${yrStr} dari tabel saat ini? Angka yang telah diinput pada tahun ini akan dihapus dari tabel.`)) {
+      return;
+    }
+
+    this.syncWorkspaceFromDom();
+    years = years.filter(y => y !== yrStr);
+    this.workspaceState.years = years;
+    if (this.workspaceState.yearlyData) {
+      delete this.workspaceState.yearlyData[yrStr];
+    }
+
+    if (this.workspaceState.year2 === yrStr) {
+      this.workspaceState.year2 = years[years.length - 1];
+      this.workspaceState.year1 = years.length >= 2 ? years[years.length - 2] : years[0];
+    } else if (this.workspaceState.year1 === yrStr) {
+      this.workspaceState.year1 = years[0];
+    }
+
+    this.formSourceMode = 'dirty';
+    this.saveWorkspaceDraft();
+
+    const main = document.getElementById('app-main') || document.querySelector('main');
+    if (main) {
+      main.innerHTML = this.render();
+      this.updateYearLabels();
+      this.calculateRatios();
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    window.askrindoApp.showToast(`Kolom Tahun ${yrStr} berhasil dihapus dari tabel.`, 'info');
   },
 
   initWorkspaceState() {
@@ -244,29 +417,41 @@ window.PelakuModule = {
     const compEl = document.getElementById('pelaku-company');
     if (!compEl) return this.workspaceState;
 
+    const years = this.getActiveYears();
+    const y1 = document.getElementById('inp_year1')?.value?.trim() || (years.length >= 2 ? years[years.length - 2] : '2024');
+    const y2 = document.getElementById('inp_year2')?.value?.trim() || (years.length >= 1 ? years[years.length - 1] : '2025');
+
     const readAcc = (yr) => {
       const obj = {};
       FIN_ACCOUNT_KEYS.forEach(k => {
-        const el = document.getElementById(`inp_${k}_${yr}`);
+        const el = document.getElementById(`inp_${k}_${yr}`) ||
+                   document.getElementById(`inp_${k}_${yr === y1 ? 1 : (yr === y2 ? 2 : yr)}`);
         const raw = el ? el.value.trim() : '';
         obj[k] = raw === '' ? '' : this.parseFormattedNumber(raw);
       });
       return obj;
     };
 
+    const yearlyData = { ...(this.workspaceState?.yearlyData || {}) };
+    years.forEach(yr => {
+      yearlyData[yr] = readAcc(yr);
+    });
+
     const projRaw = document.getElementById('inp_projectValue')?.value.trim() || '';
 
     return {
       companyName: compEl.value || '',
       sector: document.getElementById('pelaku-sector')?.value || 'konstruksi',
-      year1: document.getElementById('inp_year1')?.value || '',
-      year2: document.getElementById('inp_year2')?.value || '',
+      years: years,
+      year1: y1,
+      year2: y2,
       auditStatus: document.getElementById('pelaku-audit-status')?.value || '',
       opinion: document.getElementById('pelaku-opinion')?.value || '',
       projectVal: projRaw === '' ? '' : this.parseFormattedNumber(projRaw),
       kapName: document.getElementById('pelaku-kap-name')?.value || '',
-      d1: readAcc(1),
-      d2: readAcc(2)
+      yearlyData: yearlyData,
+      d1: yearlyData[y1] || readAcc(y1),
+      d2: yearlyData[y2] || readAcc(y2)
     };
   },
 
@@ -436,6 +621,7 @@ window.PelakuModule = {
     const savedList = window.askrindoDB ? window.askrindoDB.getPelakuAnalyses() : [];
     const savedCount = savedList.length;
     const ws = this.workspaceState;
+    const activeYearsList = this.getActiveYears();
     const projFormatted = (ws.projectVal === '' || ws.projectVal === null || ws.projectVal === undefined)
       ? ''
       : this.formatNumberWithDots(ws.projectVal, false);
@@ -510,19 +696,20 @@ window.PelakuModule = {
           <!-- Banner Keseimbangan Neraca (Real-Time Balance Bar) -->
           <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-[#002B49] text-white p-4 rounded-2xl shadow-md border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-4 flex-wrap">
-              <div class="flex items-center gap-2">
-                <span class="text-xs text-slate-300 font-semibold">Status Neraca <span id="lbl_balance_yr1" class="font-bold text-amber-300">${ws.year1 ? `Th ${this.escapeHtml(ws.year1)}` : 'Th 1'}</span>:</span>
-                <span id="badge_balance_yr1" class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-500/20 text-slate-300 border border-slate-500/40">
-                  MENUNGGU DATA
-                </span>
-              </div>
-              <div class="h-4 w-px bg-slate-700 hidden sm:block"></div>
-              <div class="flex items-center gap-2">
-                <span class="text-xs text-slate-300 font-semibold">Status Neraca <span id="lbl_balance_yr2" class="font-bold text-amber-300">${ws.year2 ? `Th ${this.escapeHtml(ws.year2)}` : 'Th 2'}</span>:</span>
-                <span id="badge_balance_yr2" class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-500/20 text-slate-300 border border-slate-500/40">
-                  MENUNGGU DATA
-                </span>
-              </div>
+              ${activeYearsList.map((yr, idx) => `
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-slate-300 font-semibold">Status Neraca <span id="lbl_balance_yr_${yr}" class="font-bold text-amber-300">Th ${this.escapeHtml(yr)}</span>:</span>
+                  <span id="badge_balance_yr_${yr}" class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-500/20 text-slate-300 border border-slate-500/40">
+                    MENUNGGU DATA
+                  </span>
+                </div>
+                ${idx < activeYearsList.length - 1 ? '<div class="h-4 w-px bg-slate-700 hidden sm:block"></div>' : ''}
+              `).join('')}
+              <!-- Hidden fallback elements for backward compatibility -->
+              <span id="lbl_balance_yr1" class="hidden"></span>
+              <span id="lbl_balance_yr2" class="hidden"></span>
+              <span id="badge_balance_yr1" class="hidden"></span>
+              <span id="badge_balance_yr2" class="hidden"></span>
             </div>
             <div class="flex items-center gap-2">
               <button onclick="window.PelakuModule.autoBalanceAllYears()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-amber-300 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 transition flex items-center gap-1.5">
@@ -611,19 +798,34 @@ window.PelakuModule = {
 
               <!-- Card 2: Tabel Pos-Pos Laporan Keuangan Lengkap 27 Akun (Persis ASCA) -->
               <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                      <i data-lucide="table-2" class="w-4 h-4 text-purple-600"></i>
-                      <span>2. Tabel Neraca &amp; Laba Rugi Komparatif 2 Tahun (Standar ASCA)</span>
-                    </h3>
-                    <p class="text-[11px] text-slate-500">
-                      Masukkan nilai dalam Rupiah penuh (contoh: <code>14.200.000.000</code>). Subtotal, rasio common-size %, dan pertumbuhan otomatis dihitung.
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="table-2" class="w-4 h-4 text-purple-600"></i>
+                        <span>2. Tabel Neraca &amp; Laba Rugi Komparatif Multi-Tahun (Standar ASCA)</span>
+                      </h3>
+                      <div class="flex items-center gap-1 flex-wrap">
+                        ${activeYearsList.map(y => `
+                          <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold ${y === (ws.year2 || activeYearsList[activeYearsList.length - 1]) ? 'bg-purple-100 text-purple-800 border border-purple-200' : 'bg-slate-200 text-slate-700'}">
+                            Th ${this.escapeHtml(y)}
+                          </span>
+                        `).join('')}
+                      </div>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-0.5">
+                      Masukkan nilai dalam Rupiah penuh (contoh: <code>14.200.000.000</code>). Riwayat seluruh periode tersimpan di Unique ID perusahaan ini.
                     </p>
                   </div>
-                  <span class="text-[10px] font-mono text-slate-400 bg-white px-2 py-1 rounded border border-slate-200 self-start sm:self-auto">
-                    Format: IDR
-                  </span>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <button type="button" onclick="window.PelakuModule.openAddYearModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 shadow-sm transition flex items-center gap-1.5" title="Tambah kolom periode tahun baru (misal 2026)">
+                      <i data-lucide="calendar-plus" class="w-3.5 h-3.5"></i>
+                      <span>+ Tambah Kolom Tahun</span>
+                    </button>
+                    <span class="text-[10px] font-mono text-slate-400 bg-white px-2 py-1 rounded border border-slate-200">
+                      IDR
+                    </span>
+                  </div>
                 </div>
 
                 <!-- Kontainer Tabel Komparatif -->
@@ -631,13 +833,23 @@ window.PelakuModule = {
                   <table class="w-full text-left text-xs border-collapse" id="finStatementInputTable">
                     <thead>
                       <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
-                        <th class="p-2.5 w-[35%]">Uraian Neraca &amp; Laba Rugi</th>
-                        <th class="p-2.5 w-[7%] text-center">Kode</th>
-                        <th class="p-2.5 w-[20%] text-right"><span id="thLabelYear1" class="font-bold">${ws.year1 ? `Tahun ${this.escapeHtml(ws.year1)}` : 'Tahun 1'}</span> (Rp)</th>
-                        <th class="p-2.5 w-[7%] text-right">%</th>
-                        <th class="p-2.5 w-[20%] text-right"><span id="thLabelYear2" class="font-bold">${ws.year2 ? `Tahun ${this.escapeHtml(ws.year2)}` : 'Tahun 2'}</span> (Rp)</th>
-                        <th class="p-2.5 w-[7%] text-right">%</th>
-                        <th class="p-2.5 w-[9%] text-right">Growth (%)</th>
+                        <th class="p-2.5 w-[28%] min-w-[200px]">Uraian Neraca &amp; Laba Rugi</th>
+                        <th class="p-2.5 w-[5%] min-w-[45px] text-center">Kode</th>
+                        ${activeYearsList.map(yr => `
+                          <th class="p-2.5 min-w-[130px] text-right ${yr === (ws.year2 || activeYearsList[activeYearsList.length - 1]) ? 'bg-purple-50/70 border-x border-purple-100' : ''}">
+                            <div class="flex items-center justify-end gap-1.5">
+                              <span class="font-bold text-slate-800">Tahun ${this.escapeHtml(yr)}</span>
+                              ${activeYearsList.length > 2 ? `
+                                <button type="button" onclick="window.PelakuModule.removeYearColumn('${yr}')" title="Hapus kolom Tahun ${yr}" class="w-4 h-4 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center text-xs transition">
+                                  &times;
+                                </button>
+                              ` : ''}
+                            </div>
+                            <span class="text-[10px] text-slate-500 font-normal block">(Rp)</span>
+                          </th>
+                          <th class="p-2.5 min-w-[45px] text-right ${yr === (ws.year2 || activeYearsList[activeYearsList.length - 1]) ? 'bg-purple-50/70' : ''}">%</th>
+                        `).join('')}
+                        <th class="p-2.5 min-w-[75px] text-right">Growth (%)</th>
                       </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -1106,11 +1318,17 @@ window.PelakuModule = {
   },
 
   renderFinStatementTableRows() {
+    const years = this.getActiveYears();
+    const y1 = document.getElementById('inp_year1')?.value?.trim() || (years.length >= 2 ? years[years.length - 2] : '2024');
+    const y2 = document.getElementById('inp_year2')?.value?.trim() || (years.length >= 1 ? years[years.length - 1] : '2025');
+    const ws = this.workspaceState || this.buildBlankState();
+    const yearly = ws.yearlyData || {};
+
     return FIN_STATEMENT_STRUCTURE.map((row) => {
       if (row.type === 'header') {
         return `
           <tr class="${row.bg}">
-            <td colspan="7" class="py-2.5 px-3 text-xs font-extrabold uppercase tracking-wide">
+            <td colspan="${years.length * 2 + 3}" class="py-2.5 px-3 text-xs font-extrabold uppercase tracking-wide">
               ${row.title}
             </td>
           </tr>
@@ -1119,7 +1337,7 @@ window.PelakuModule = {
       if (row.type === 'subheader') {
         return `
           <tr class="${row.bg}">
-            <td colspan="7" class="py-1.5 px-3 text-[11px] font-bold uppercase tracking-wide">
+            <td colspan="${years.length * 2 + 3}" class="py-1.5 px-3 text-[11px] font-bold uppercase tracking-wide">
               ${row.title}
             </td>
           </tr>
@@ -1136,18 +1354,14 @@ window.PelakuModule = {
             <td class="py-2 px-1 text-center font-mono font-bold text-xs text-purple-700">
               ${row.code}
             </td>
-            <td class="py-2 px-2 text-right font-mono font-extrabold text-xs" id="${row.id}_1">
-              -
-            </td>
-            <td class="py-2 px-1 text-right font-mono text-[11px] font-bold text-slate-600" id="pct_${row.id}_1">
-              -
-            </td>
-            <td class="py-2 px-2 text-right font-mono font-extrabold text-xs" id="${row.id}_2">
-              -
-            </td>
-            <td class="py-2 px-1 text-right font-mono text-[11px] font-bold text-slate-600" id="pct_${row.id}_2">
-              -
-            </td>
+            ${years.map(yr => `
+              <td class="py-2 px-2 text-right font-mono font-extrabold text-xs" id="${row.id}_${yr}">
+                -
+              </td>
+              <td class="py-2 px-1 text-right font-mono text-[11px] font-bold text-slate-600" id="pct_${row.id}_${yr}">
+                -
+              </td>
+            `).join('')}
             <td class="py-2 px-2 text-right font-mono text-[11px] font-bold" id="grw_${row.id}">
               -
             </td>
@@ -1163,18 +1377,14 @@ window.PelakuModule = {
             <td class="py-1.5 px-1 text-center font-mono font-semibold text-slate-400">
               ${row.code}
             </td>
-            <td class="py-1.5 px-2 text-right font-mono" id="${row.id}_1">
-              -
-            </td>
-            <td class="py-1.5 px-1 text-right font-mono text-slate-400">
-              -
-            </td>
-            <td class="py-1.5 px-2 text-right font-mono" id="${row.id}_2">
-              -
-            </td>
-            <td class="py-1.5 px-1 text-right font-mono text-slate-400">
-              -
-            </td>
+            ${years.map(yr => `
+              <td class="py-1.5 px-2 text-right font-mono" id="${row.id}_${yr}">
+                -
+              </td>
+              <td class="py-1.5 px-1 text-right font-mono text-slate-400" id="pct_${row.id}_${yr}">
+                -
+              </td>
+            `).join('')}
             <td class="py-1.5 px-2 text-right font-mono font-semibold" id="grw_${row.id}">
               -
             </td>
@@ -1183,11 +1393,6 @@ window.PelakuModule = {
       }
 
       // Baris Input Akun Finansial (a, b, c, ... z1, z2)
-      const ws = this.workspaceState || this.buildSampleState();
-      const val1 = ws.d1?.[row.k];
-      const val2 = ws.d2?.[row.k];
-      const strVal1 = (val1 === '' || val1 === null || val1 === undefined) ? '' : this.formatNumberWithDots(val1, true);
-      const strVal2 = (val2 === '' || val2 === null || val2 === undefined) ? '' : this.formatNumberWithDots(val2, true);
       return `
         <tr class="hover:bg-slate-50/80 transition-colors border-b border-slate-100">
           <td class="py-1 px-3 text-slate-700 text-xs font-medium">
@@ -1196,18 +1401,32 @@ window.PelakuModule = {
           <td class="py-1 px-1 text-center font-mono font-bold text-[11px] text-slate-500 bg-slate-50/40">
             ${row.code}
           </td>
-          <td class="py-1 px-2">
-            <input type="text" id="inp_${row.k}_1" value="${strVal1}" oninput="window.PelakuModule.handleDotInput(this); window.PelakuModule.onFinancialInputChanged();" onblur="window.PelakuModule.handleDotBlur(this); window.PelakuModule.calculateRatios();" class="w-full px-2 py-1 rounded-lg border border-slate-200 text-right font-mono text-xs font-semibold focus:border-purple-500 focus:outline-none bg-white" placeholder="0,00" />
-          </td>
-          <td class="py-1 px-1 text-right font-mono text-[11px] text-slate-500" id="pct_${row.k}_1">
-            -
-          </td>
-          <td class="py-1 px-2">
-            <input type="text" id="inp_${row.k}_2" value="${strVal2}" oninput="window.PelakuModule.handleDotInput(this); window.PelakuModule.onFinancialInputChanged();" onblur="window.PelakuModule.handleDotBlur(this); window.PelakuModule.calculateRatios();" class="w-full px-2 py-1 rounded-lg border border-slate-200 text-right font-mono text-xs font-semibold focus:border-purple-500 focus:outline-none bg-white" placeholder="0,00" />
-          </td>
-          <td class="py-1 px-1 text-right font-mono text-[11px] text-slate-500" id="pct_${row.k}_2">
-            -
-          </td>
+          ${years.map(yr => {
+            let val = yearly[yr]?.[row.k];
+            if (val === undefined || val === null || val === '') {
+              if (yr === y1 && ws.d1?.[row.k] !== undefined) val = ws.d1[row.k];
+              else if (yr === y2 && ws.d2?.[row.k] !== undefined) val = ws.d2[row.k];
+            }
+            const strVal = (val === '' || val === null || val === undefined) ? '' : this.formatNumberWithDots(val, true);
+            return `
+              <td class="py-1 px-2">
+                <input
+                  type="text"
+                  id="inp_${row.k}_${yr}"
+                  data-year="${yr}"
+                  data-key="${row.k}"
+                  value="${strVal}"
+                  oninput="window.PelakuModule.handleDotInput(this); window.PelakuModule.onFinancialInputChanged();"
+                  onblur="window.PelakuModule.handleDotBlur(this); window.PelakuModule.calculateRatios();"
+                  class="w-full px-2 py-1 rounded-lg border border-slate-200 text-right font-mono text-xs font-semibold focus:border-purple-500 focus:outline-none bg-white transition"
+                  placeholder="0,00"
+                />
+              </td>
+              <td class="py-1 px-1 text-right font-mono text-[11px] text-slate-500" id="pct_${row.k}_${yr}">
+                -
+              </td>
+            `;
+          }).join('')}
           <td class="py-1 px-2 text-right font-mono text-[11px] font-bold" id="grw_${row.k}">
             -
           </td>
@@ -1258,113 +1477,140 @@ window.PelakuModule = {
 
     this.updateYearLabels();
 
-    const getVal = (k, yr) => this.parseFormattedNumber(document.getElementById(`inp_${k}_${yr}`)?.value) || 0;
+    const years = this.getActiveYears();
+    const y1 = document.getElementById('inp_year1')?.value?.trim() || (years.length >= 2 ? years[years.length - 2] : '2024');
+    const y2 = document.getElementById('inp_year2')?.value?.trim() || (years.length >= 1 ? years[years.length - 1] : '2025');
 
-    const y1 = document.getElementById('inp_year1')?.value || '';
-    const y2 = document.getElementById('inp_year2')?.value || '';
+    const getVal = (k, yr) => {
+      const el = document.getElementById(`inp_${k}_${yr}`) ||
+                 document.getElementById(`inp_${k}_${yr === y1 ? 1 : (yr === y2 ? 2 : yr)}`);
+      return this.parseFormattedNumber(el?.value) || 0;
+    };
 
-    // 1. Hitung Subtotal Neraca & Laba Rugi untuk Kedua Tahun
-    const d1 = {};
-    const d2 = {};
-    FIN_ACCOUNT_KEYS.forEach(k => {
-      d1[k] = getVal(k, 1);
-      d2[k] = getVal(k, 2);
+    // 1. Hitung Subtotal Neraca & Laba Rugi untuk SEMUA Tahun yang aktif
+    const yearlyMetrics = {};
+    const yearlyAccountData = {};
+
+    years.forEach(yr => {
+      const d = {};
+      FIN_ACCOUNT_KEYS.forEach(k => {
+        d[k] = getVal(k, yr);
+      });
+      yearlyAccountData[yr] = d;
+
+      const hasData = FIN_ACCOUNT_KEYS.some(k => Math.abs(d[k]) > 0);
+
+      const ca = d.cash + d.otherCa + d.ar + d.inv + d.otherAr + d.prepaid;
+      const nca = (d.fa - Math.abs(d.depr)) + d.invest + d.taxAsset;
+      const ta = ca + nca;
+      const cl = d.ap + d.stDebt + d.otherAp + d.accrued;
+      const lt = d.ltDebt;
+      const tl = cl + lt;
+      const eq = d.capital + d.otherCap + d.retEarn + d.re;
+      const pass = tl + eq;
+
+      const rev = d.rev;
+      const revMo = rev / 12;
+      const gp = rev - d.cogs;
+      const opBruto = gp - d.opex;
+      const ebit = opBruto + d.otherInc - d.otherExp;
+      const ebitMo = ebit / 12;
+      const ebt = ebit - d.intExp;
+      const eat = (d.re !== 0 && d.rev === 0) ? d.re : (ebt - d.tax - d.div);
+      const eatMo = eat / 12;
+
+      yearlyMetrics[yr] = {
+        hasData,
+        ca, nca, ta, cl, lt, tl, eq, pass,
+        rev, revMo, gp, opBruto, ebit, ebitMo, ebt, eat, eatMo
+      };
+
+      // Tampilkan Subtotals di Tabel untuk Tahun yr
+      const setCalcCell = (id, val) => {
+        const elYr = document.getElementById(`${id}_${yr}`);
+        const elSlot = yr === y1 ? document.getElementById(`${id}_1`) : (yr === y2 ? document.getElementById(`${id}_2`) : null);
+        const txt = hasData ? this.formatNumberWithDots(val, true) : '-';
+        if (elYr) elYr.textContent = txt;
+        if (elSlot) elSlot.textContent = txt;
+      };
+
+      setCalcCell('calc_ca', ca);
+      setCalcCell('calc_nca', nca);
+      setCalcCell('calc_ta', ta);
+      setCalcCell('calc_cl', cl);
+      setCalcCell('calc_tl', tl);
+      setCalcCell('calc_eq', eq);
+      setCalcCell('calc_tlEq', pass);
+      setCalcCell('calc_revMo', revMo);
+      setCalcCell('calc_gp', gp);
+      setCalcCell('calc_opBruto', opBruto);
+      setCalcCell('calc_ebit', ebit);
+      setCalcCell('calc_ebitMo', ebitMo);
+      setCalcCell('calc_ebt', ebt);
+      setCalcCell('calc_eat', eat);
+      setCalcCell('calc_eatMo', eatMo);
+
+      // Tampilkan Common Size % untuk Tahun yr
+      const setPctCell = (id, val, base) => {
+        const elYr = document.getElementById(`pct_${id}_${yr}`);
+        const elSlot = yr === y1 ? document.getElementById(`pct_${id}_1`) : (yr === y2 ? document.getElementById(`pct_${id}_2`) : null);
+        let txt = '-';
+        if (hasData && base && base > 0) {
+          const p = (val / base) * 100;
+          txt = p.toFixed(1).replace('.', ',') + '%';
+        }
+        if (elYr) elYr.textContent = txt;
+        if (elSlot) elSlot.textContent = txt;
+      };
+
+      // Subtotals Common Size %
+      setPctCell('calc_ca', ca, ta);
+      setPctCell('calc_nca', nca, ta);
+      setPctCell('calc_ta', ta, ta);
+      setPctCell('calc_cl', cl, pass);
+      setPctCell('calc_tl', tl, pass);
+      setPctCell('calc_eq', eq, pass);
+      setPctCell('calc_tlEq', pass, pass);
+      setPctCell('calc_gp', gp, rev);
+      setPctCell('calc_opBruto', opBruto, rev);
+      setPctCell('calc_ebit', ebit, rev);
+      setPctCell('calc_ebt', ebt, rev);
+      setPctCell('calc_eat', eat, rev);
+
+      // Accounts Common Size %
+      FIN_STATEMENT_STRUCTURE.forEach(r => {
+        if (!r.k) return;
+        const v = d[r.k];
+        const base = (r.section === 'ca' || r.section === 'nca') ? ta : (r.section === 'is' ? rev : pass);
+        setPctCell(r.k, v, base);
+      });
+
+      // Update Balance Badge untuk Tahun yr
+      const badgeEl = document.getElementById(`badge_balance_yr_${yr}`) ||
+                      (yr === y1 ? document.getElementById('badge_balance_yr1') : (yr === y2 ? document.getElementById('badge_balance_yr2') : null));
+      if (badgeEl) {
+        if (!hasData) {
+          badgeEl.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-slate-500/20 text-slate-300 border border-slate-500/40';
+          badgeEl.innerHTML = 'MENUNGGU DATA';
+        } else {
+          const diff = Math.abs(ta - pass);
+          const isBal = diff < 1.0;
+          badgeEl.className = `px-2.5 py-1 rounded-full text-xs font-bold ${isBal ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/25 text-rose-300 border border-rose-500/50'}`;
+          badgeEl.innerHTML = isBal ? '&check; BALANCE' : `SELISIH ${this.fmtRp(diff)}`;
+        }
+      }
     });
 
-    const hasData1 = FIN_ACCOUNT_KEYS.some(k => Math.abs(d1[k]) > 0);
-    const hasData2 = FIN_ACCOUNT_KEYS.some(k => Math.abs(d2[k]) > 0);
-
-    // Tahun 1
-    const ca1 = d1.cash + d1.otherCa + d1.ar + d1.inv + d1.otherAr + d1.prepaid;
-    const nca1 = (d1.fa - Math.abs(d1.depr)) + d1.invest + d1.taxAsset;
-    const ta1 = ca1 + nca1;
-    const cl1 = d1.ap + d1.stDebt + d1.otherAp + d1.accrued;
-    const lt1 = d1.ltDebt;
-    const tl1 = cl1 + lt1;
-    const eq1 = d1.capital + d1.otherCap + d1.retEarn + d1.re;
-    const pass1 = tl1 + eq1;
-
-    const rev1 = d1.rev;
-    const revMo1 = rev1 / 12;
-    const gp1 = rev1 - d1.cogs;
-    const opBruto1 = gp1 - d1.opex;
-    const ebit1 = opBruto1 + d1.otherInc - d1.otherExp;
-    const ebitMo1 = ebit1 / 12;
-    const ebt1 = ebit1 - d1.intExp;
-    const eat1 = d1.re !== 0 && d1.rev === 0 ? d1.re : (ebt1 - d1.tax - d1.div);
-    const eatMo1 = eat1 / 12;
-
-    // Tahun 2
-    const ca2 = d2.cash + d2.otherCa + d2.ar + d2.inv + d2.otherAr + d2.prepaid;
-    const nca2 = (d2.fa - Math.abs(d2.depr)) + d2.invest + d2.taxAsset;
-    const ta2 = ca2 + nca2;
-    const cl2 = d2.ap + d2.stDebt + d2.otherAp + d2.accrued;
-    const lt2 = d2.ltDebt;
-    const tl2 = cl2 + lt2;
-    const eq2 = d2.capital + d2.otherCap + d2.retEarn + d2.re;
-    const pass2 = tl2 + eq2;
-
-    const rev2 = d2.rev;
-    const revMo2 = rev2 / 12;
-    const gp2 = rev2 - d2.cogs;
-    const opBruto2 = gp2 - d2.opex;
-    const ebit2 = opBruto2 + d2.otherInc - d2.otherExp;
-    const ebitMo2 = ebit2 / 12;
-    const ebt2 = ebit2 - d2.intExp;
-    const eat2 = d2.re !== 0 && d2.rev === 0 ? d2.re : (ebt2 - d2.tax - d2.div);
-    const eatMo2 = eat2 / 12;
-
-    // Update Subtotals Display di Tabel
-    const setCalc = (id, v1, v2) => {
-      const el1 = document.getElementById(`${id}_1`);
-      const el2 = document.getElementById(`${id}_2`);
-      if (el1) el1.textContent = hasData1 ? this.formatNumberWithDots(v1, true) : '-';
-      if (el2) el2.textContent = hasData2 ? this.formatNumberWithDots(v2, true) : '-';
-    };
-
-    setCalc('calc_ca', ca1, ca2);
-    setCalc('calc_nca', nca1, nca2);
-    setCalc('calc_ta', ta1, ta2);
-    setCalc('calc_cl', cl1, cl2);
-    setCalc('calc_tl', tl1, tl2);
-    setCalc('calc_eq', eq1, eq2);
-    setCalc('calc_tlEq', pass1, pass2);
-
-    setCalc('calc_revMo', revMo1, revMo2);
-    setCalc('calc_gp', gp1, gp2);
-    setCalc('calc_opBruto', opBruto1, opBruto2);
-    setCalc('calc_ebit', ebit1, ebit2);
-    setCalc('calc_ebitMo', ebitMo1, ebitMo2);
-    setCalc('calc_ebt', ebt1, ebt2);
-    setCalc('calc_eat', eat1, eat2);
-    setCalc('calc_eatMo', eatMo1, eatMo2);
-
-    // 2. Update Persentase Common Size % & Growth %
-    const setPct = (id, v1, base1, v2, base2) => {
-      const el1 = document.getElementById(`pct_${id}_1`);
-      const el2 = document.getElementById(`pct_${id}_2`);
-      if (el1) {
-        if (!hasData1 || !base1 || base1 <= 0) {
-          el1.textContent = '-';
-        } else {
-          const p1 = (v1 / base1) * 100;
-          el1.textContent = p1.toFixed(1).replace('.', ',') + '%';
-        }
-      }
-      if (el2) {
-        if (!hasData2 || !base2 || base2 <= 0) {
-          el2.textContent = '-';
-        } else {
-          const p2 = (v2 / base2) * 100;
-          el2.textContent = p2.toFixed(1).replace('.', ',') + '%';
-        }
-      }
-    };
+    // Subtotal & Akun Growth % (Komparasi antara Tahun 1 dan Tahun 2)
+    const m1 = yearlyMetrics[y1] || {};
+    const m2 = yearlyMetrics[y2] || {};
+    const hasData1 = m1.hasData || false;
+    const hasData2 = m2.hasData || false;
 
     const setGrw = (id, v1, v2) => {
       const el = document.getElementById(`grw_${id}`);
       if (!el) return;
-      if (!hasData1 || !hasData2 || v1 === 0) {
+      if (!hasData1 || !hasData2 || v1 === 0 || v1 === undefined || v2 === undefined) {
         el.textContent = '-';
         el.className = 'py-1 px-2 text-right font-mono text-[11px] font-bold text-slate-400';
         return;
@@ -1375,78 +1621,33 @@ window.PelakuModule = {
       el.className = `py-1 px-2 text-right font-mono text-[11px] font-bold ${g >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
     };
 
-    // Subtotal Persentase
-    setPct('calc_ca', ca1, ta1, ca2, ta2);
-    setPct('calc_nca', nca1, ta1, nca2, ta2);
-    setPct('calc_ta', ta1, ta1, ta2, ta2);
-    setPct('calc_cl', cl1, pass1, cl2, pass2);
-    setPct('calc_tl', tl1, pass1, tl2, pass2);
-    setPct('calc_eq', eq1, pass1, eq2, pass2);
-    setPct('calc_tlEq', pass1, pass1, pass2, pass2);
+    setGrw('calc_ca', m1.ca, m2.ca);
+    setGrw('calc_nca', m1.nca, m2.nca);
+    setGrw('calc_ta', m1.ta, m2.ta);
+    setGrw('calc_cl', m1.cl, m2.cl);
+    setGrw('calc_tl', m1.tl, m2.tl);
+    setGrw('calc_eq', m1.eq, m2.eq);
+    setGrw('calc_tlEq', m1.pass, m2.pass);
+    setGrw('calc_revMo', m1.revMo, m2.revMo);
+    setGrw('calc_gp', m1.gp, m2.gp);
+    setGrw('calc_opBruto', m1.opBruto, m2.opBruto);
+    setGrw('calc_ebit', m1.ebit, m2.ebit);
+    setGrw('calc_ebitMo', m1.ebitMo, m2.ebitMo);
+    setGrw('calc_ebt', m1.ebt, m2.ebt);
+    setGrw('calc_eat', m1.eat, m2.eat);
+    setGrw('calc_eatMo', m1.eatMo, m2.eatMo);
 
-    setPct('calc_gp', gp1, rev1, gp2, rev2);
-    setPct('calc_opBruto', opBruto1, rev1, opBruto2, rev2);
-    setPct('calc_ebit', ebit1, rev1, ebit2, rev2);
-    setPct('calc_ebt', ebt1, rev1, ebt2, rev2);
-    setPct('calc_eat', eat1, rev1, eat2, rev2);
-
-    // Subtotal Growth
-    setGrw('calc_ca', ca1, ca2);
-    setGrw('calc_nca', nca1, nca2);
-    setGrw('calc_ta', ta1, ta2);
-    setGrw('calc_cl', cl1, cl2);
-    setGrw('calc_tl', tl1, tl2);
-    setGrw('calc_eq', eq1, eq2);
-    setGrw('calc_tlEq', pass1, pass2);
-    setGrw('calc_revMo', revMo1, revMo2);
-    setGrw('calc_gp', gp1, gp2);
-    setGrw('calc_opBruto', opBruto1, opBruto2);
-    setGrw('calc_ebit', ebit1, ebit2);
-    setGrw('calc_ebitMo', ebitMo1, ebitMo2);
-    setGrw('calc_ebt', ebt1, ebt2);
-    setGrw('calc_eat', eat1, eat2);
-    setGrw('calc_eatMo', eatMo1, eatMo2);
-
-    // Masing-masing akun (Aktiva vs Total Aktiva, Hutang/Ekuitas vs Total Passiva, Laba Rugi vs Penjualan)
     FIN_STATEMENT_STRUCTURE.forEach(r => {
       if (!r.k) return;
-      const v1 = d1[r.k];
-      const v2 = d2[r.k];
-      const base1 = (r.section === 'ca' || r.section === 'nca') ? ta1 : (r.section === 'is' ? rev1 : pass1);
-      const base2 = (r.section === 'ca' || r.section === 'nca') ? ta2 : (r.section === 'is' ? rev2 : pass2);
-      setPct(r.k, v1, base1, v2, base2);
-      setGrw(r.k, v1, v2);
+      setGrw(r.k, yearlyAccountData[y1]?.[r.k] || 0, yearlyAccountData[y2]?.[r.k] || 0);
     });
 
-    // 3. Balance Indicator Neraca
-    const b1 = document.getElementById('badge_balance_yr1');
-    const b2 = document.getElementById('badge_balance_yr2');
-    let isBal1 = false;
-    let isBal2 = false;
-
-    if (b1) {
-      if (!hasData1) {
-        b1.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-slate-500/20 text-slate-300 border border-slate-500/40';
-        b1.innerHTML = 'MENUNGGU DATA';
-      } else {
-        const diff1 = Math.abs(ta1 - pass1);
-        isBal1 = diff1 < 1.0;
-        b1.className = `px-2.5 py-1 rounded-full text-xs font-bold ${isBal1 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/25 text-rose-300 border border-rose-500/50'}`;
-        b1.innerHTML = isBal1 ? '&check; BALANCE' : `SELISIH ${this.fmtRp(diff1)}`;
-      }
-    }
-
-    if (b2) {
-      if (!hasData2) {
-        b2.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-slate-500/20 text-slate-300 border border-slate-500/40';
-        b2.innerHTML = 'MENUNGGU DATA';
-      } else {
-        const diff2 = Math.abs(ta2 - pass2);
-        isBal2 = diff2 < 1.0;
-        b2.className = `px-2.5 py-1 rounded-full text-xs font-bold ${isBal2 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/25 text-rose-300 border border-rose-500/50'}`;
-        b2.innerHTML = isBal2 ? '&check; BALANCE' : `SELISIH ${this.fmtRp(diff2)}`;
-      }
-    }
+    const d1 = yearlyAccountData[y1] || {};
+    const d2 = yearlyAccountData[y2] || {};
+    const ca1 = m1.ca || 0, nca1 = m1.nca || 0, ta1 = m1.ta || 0, cl1 = m1.cl || 0, lt1 = m1.lt || 0, tl1 = m1.tl || 0, eq1 = m1.eq || 0, pass1 = m1.pass || 0;
+    const ca2 = m2.ca || 0, nca2 = m2.nca || 0, ta2 = m2.ta || 0, cl2 = m2.cl || 0, lt2 = m2.lt || 0, tl2 = m2.tl || 0, eq2 = m2.eq || 0, pass2 = m2.pass || 0;
+    const rev1 = m1.rev || 0, ebit1 = m1.ebit || 0, eat1 = m1.eat || 0;
+    const rev2 = m2.rev || 0, ebit2 = m2.ebit || 0, eat2 = m2.eat || 0;
 
     // JIKA DATA EVALUASI KOSONG / BELUM DIISI:
     // Reset seluruh 27 indikator rasio, status RAC, dan scoring komposit ke state 'BELUM DIANALISIS' / '-'
@@ -2119,6 +2320,8 @@ window.PelakuModule = {
       roa: roaVal,
       salesGrowth,
       netProfitGrowth,
+      years,
+      yearlyData: yearlyAccountData,
       d1,
       d2,
       totals1,
@@ -2353,23 +2556,37 @@ window.PelakuModule = {
   },
 
   autoBalanceAllYears() {
-    const d1Has = FIN_ACCOUNT_KEYS.some(k => (this.parseFormattedNumber(document.getElementById(`inp_${k}_1`)?.value) || 0) !== 0);
-    const d2Has = FIN_ACCOUNT_KEYS.some(k => (this.parseFormattedNumber(document.getElementById(`inp_${k}_2`)?.value) || 0) !== 0);
-    if (!d1Has && !d2Has) {
+    const years = this.getActiveYears();
+    const y1 = document.getElementById('inp_year1')?.value?.trim() || (years.length >= 2 ? years[years.length - 2] : '2024');
+    const y2 = document.getElementById('inp_year2')?.value?.trim() || (years.length >= 1 ? years[years.length - 1] : '2025');
+
+    const getVal = (k, yr) => {
+      const el = document.getElementById(`inp_${k}_${yr}`) || document.getElementById(`inp_${k}_${yr === y1 ? 1 : (yr === y2 ? 2 : yr)}`);
+      return this.parseFormattedNumber(el?.value) || 0;
+    };
+
+    const anyHas = years.some(yr => FIN_ACCOUNT_KEYS.some(k => getVal(k, yr) !== 0));
+    if (!anyHas) {
       window.askrindoApp.showToast('Belum ada data neraca yang dimasukkan untuk diseimbangkan.', 'warning');
       return;
     }
-    [1, 2].forEach(yr => {
+
+    years.forEach(yr => {
       this.autoBalanceYear(yr);
     });
     this.calculateRatios();
-    window.askrindoApp.showToast('Neraca berhasil diseimbangkan otomatis (Aktiva = Passiva)!', 'success');
+    window.askrindoApp.showToast(`Neraca seluruh periode (${years.join(', ')}) berhasil diseimbangkan otomatis (Aktiva = Passiva)!`, 'success');
   },
 
   autoBalanceYear(yr) {
-    const getVal = (k) => this.parseFormattedNumber(document.getElementById(`inp_${k}_${yr}`)?.value) || 0;
+    const years = this.getActiveYears();
+    const y1 = document.getElementById('inp_year1')?.value?.trim() || (years.length >= 2 ? years[years.length - 2] : '2024');
+    const y2 = document.getElementById('inp_year2')?.value?.trim() || (years.length >= 1 ? years[years.length - 1] : '2025');
+
+    const getEl = (k) => document.getElementById(`inp_${k}_${yr}`) || document.getElementById(`inp_${k}_${yr === y1 ? 1 : (yr === y2 ? 2 : yr)}`);
+    const getVal = (k) => this.parseFormattedNumber(getEl(k)?.value) || 0;
     const setVal = (k, v) => {
-      const el = document.getElementById(`inp_${k}_${yr}`);
+      const el = getEl(k);
       if (el) el.value = this.formatNumberWithDots(Math.round(v * 100) / 100, true);
     };
 
@@ -2514,6 +2731,27 @@ window.PelakuModule = {
   },
 
   applyStateToDom(state, preserveCompanyText = false) {
+    const domYears = this.getActiveYears();
+    const stateYears = Array.isArray(state.years) && state.years.length >= 2
+      ? [...new Set(state.years.map(String))].sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
+      : null;
+
+    if (stateYears && JSON.stringify(domYears) !== JSON.stringify(stateYears)) {
+      this.workspaceState = {
+        ...(this.workspaceState || {}),
+        ...state,
+        years: stateYears
+      };
+      const main = document.getElementById('app-main') || document.querySelector('main');
+      if (main) {
+        main.innerHTML = this.render();
+        this.updateYearLabels();
+        this.calculateRatios();
+        if (window.lucide) window.lucide.createIcons();
+        return;
+      }
+    }
+
     const comp = document.getElementById('pelaku-company');
     if (comp && !preserveCompanyText) comp.value = state.companyName || '';
     const sec = document.getElementById('pelaku-sector');
@@ -2535,11 +2773,27 @@ window.PelakuModule = {
         : this.formatNumberWithDots(state.projectVal, false);
     }
 
+    const activeYears = stateYears || domYears;
+    const yearly = state.yearlyData || {};
+
+    activeYears.forEach(yr => {
+      FIN_ACCOUNT_KEYS.forEach(k => {
+        const el = document.getElementById(`inp_${k}_${yr}`);
+        let val = yearly[yr]?.[k];
+        if (val === undefined || val === null || val === '') {
+          if (yr === state.year1 && state.d1?.[k] !== undefined) val = state.d1[k];
+          else if (yr === state.year2 && state.d2?.[k] !== undefined) val = state.d2[k];
+        }
+        if (el) el.value = (val === '' || val === null || val === undefined) ? '' : this.formatNumberWithDots(val, true);
+      });
+    });
+
+    // Fallback for slot 1 & 2
     FIN_ACCOUNT_KEYS.forEach(k => {
       const el1 = document.getElementById(`inp_${k}_1`);
       const el2 = document.getElementById(`inp_${k}_2`);
-      const v1 = state.d1?.[k];
-      const v2 = state.d2?.[k];
+      const v1 = state.d1?.[k] ?? yearly[state.year1]?.[k];
+      const v2 = state.d2?.[k] ?? yearly[state.year2]?.[k];
       if (el1) el1.value = (v1 === '' || v1 === null || v1 === undefined) ? '' : this.formatNumberWithDots(v1, true);
       if (el2) el2.value = (v2 === '' || v2 === null || v2 === undefined) ? '' : this.formatNumberWithDots(v2, true);
     });
@@ -2766,17 +3020,37 @@ window.PelakuModule = {
     if (!rec) return;
     const src = opts.snapshot || rec;
 
+    let allYears = Array.isArray(src.years) && src.years.length >= 2
+      ? [...src.years]
+      : (Array.isArray(rec.years) && rec.years.length >= 2
+          ? [...rec.years]
+          : [String(src.year1 || rec.year1 || '2024'), String(src.year2 || rec.year2 || '2025')]);
+
+    allYears = [...new Set(allYears.map(String).filter(Boolean))].sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+
+    const yearlyData = {
+      ...(rec.yearlyData || {}),
+      ...(src.yearlyData || {})
+    };
+    if (src.data1 && src.year1 && !yearlyData[src.year1]) yearlyData[src.year1] = { ...src.data1 };
+    if (src.data2 && src.year2 && !yearlyData[src.year2]) yearlyData[src.year2] = { ...src.data2 };
+
+    const y1 = String(src.year1 || (allYears.length >= 2 ? allYears[allYears.length - 2] : allYears[0]));
+    const y2 = String(src.year2 || allYears[allYears.length - 1]);
+
     const state = {
       companyName: rec.companyName || '',
       sector: src.sector || rec.sector || 'konstruksi',
-      year1: String(src.year1 || rec.year1 || '2024'),
-      year2: String(src.year2 || rec.year2 || '2025'),
+      years: allYears,
+      year1: y1,
+      year2: y2,
       auditStatus: src.auditStatus || rec.auditStatus || 'audited',
       opinion: src.opinion || rec.opinion || '-',
       projectVal: src.projectVal !== undefined ? src.projectVal : (rec.projectVal || 0),
       kapName: src.kapName || rec.kapName || '-',
-      d1: { ...(src.data1 || {}) },
-      d2: { ...(src.data2 || {}) }
+      yearlyData,
+      d1: yearlyData[y1] || { ...(src.data1 || {}) },
+      d2: yearlyData[y2] || { ...(src.data2 || {}) }
     };
 
     this.formSourceMode = opts.snapshot ? 'dirty' : 'saved';
@@ -2788,8 +3062,9 @@ window.PelakuModule = {
     this.applyStateToDom(state, !!opts.preserveCompanyText);
 
     if (opts.toast) {
+      const yrSummary = allYears.join(', ');
       window.askrindoApp.showToast(
-        opts.toastMessage || `Data laporan keuangan "${rec.companyName}" (ID: ${rec.id}) dimuat otomatis!`,
+        opts.toastMessage || `Data laporan keuangan "${rec.companyName}" (ID: ${rec.id}, Periode: ${yrSummary}) dimuat otomatis!`,
         'success'
       );
     }
@@ -3037,12 +3312,24 @@ window.PelakuModule = {
       return null;
     }
 
+    const years = this.getActiveYears();
+    const yearlyData = { ...(this.workspaceState?.yearlyData || {}) };
+    years.forEach(yr => {
+      const acc = {};
+      FIN_ACCOUNT_KEYS.forEach(k => {
+        const el = document.getElementById(`inp_${k}_${yr}`) || document.getElementById(`inp_${k}_${yr === c.year1 ? 1 : (yr === c.year2 ? 2 : yr)}`);
+        acc[k] = this.parseFormattedNumber(el?.value) || 0;
+      });
+      yearlyData[yr] = acc;
+    });
+
     const payload = {
       companyName,
       sector: c.sector,
       auditStatus: document.getElementById('pelaku-audit-status')?.value || '',
       kapName: c.kapName,
       opinion: c.opinion,
+      years,
       year1: c.year1,
       year2: c.year2,
       projectVal: c.projectVal,
@@ -3050,6 +3337,7 @@ window.PelakuModule = {
       grade: c.grade,
       racPassCount: c.passRacCount,
       racFailCount: c.failRacCount,
+      yearlyData,
       data1: c.d1,
       data2: c.d2,
       summaryMetrics: {
@@ -3112,20 +3400,39 @@ window.PelakuModule = {
     this.preAutoMatchState = null;
     this.autoLoadedCompanyId = null;
 
+    const src = chosenSnap || rec;
+    let allYears = Array.isArray(src.years) && src.years.length >= 2
+      ? [...src.years]
+      : (Array.isArray(rec.years) && rec.years.length >= 2
+          ? [...rec.years]
+          : [String(src.year1 || rec.year1 || '2024'), String(src.year2 || rec.year2 || '2025')]);
+    allYears = [...new Set(allYears.map(String).filter(Boolean))].sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+
+    const yearlyData = {
+      ...(rec.yearlyData || {}),
+      ...(src.yearlyData || {})
+    };
+    if (src.data1 && src.year1 && !yearlyData[src.year1]) yearlyData[src.year1] = { ...src.data1 };
+    if (src.data2 && src.year2 && !yearlyData[src.year2]) yearlyData[src.year2] = { ...src.data2 };
+
+    const y1 = String(src.year1 || (allYears.length >= 2 ? allYears[allYears.length - 2] : allYears[0]));
+    const y2 = String(src.year2 || allYears[allYears.length - 1]);
+
     if (this.currentTab !== 'workspace') {
       this.currentTab = 'workspace';
-      const src = chosenSnap || rec;
       this.workspaceState = {
         companyName: rec.companyName,
         sector: src.sector || rec.sector || 'konstruksi',
-        year1: String(src.year1 || rec.year1 || '2024'),
-        year2: String(src.year2 || rec.year2 || '2025'),
+        years: allYears,
+        year1: y1,
+        year2: y2,
         auditStatus: src.auditStatus || rec.auditStatus || 'audited',
         opinion: src.opinion || rec.opinion || '-',
         projectVal: src.projectVal !== undefined ? src.projectVal : (rec.projectVal || 0),
         kapName: src.kapName || rec.kapName || '-',
-        d1: { ...(src.data1 || {}) },
-        d2: { ...(src.data2 || {}) }
+        yearlyData,
+        d1: yearlyData[y1] || { ...(src.data1 || {}) },
+        d2: yearlyData[y2] || { ...(src.data2 || {}) }
       };
       this.formSourceMode = chosenSnap ? 'dirty' : 'saved';
       this.loadedCompanyId = rec.id;
@@ -3138,9 +3445,10 @@ window.PelakuModule = {
       this.populateFormFromAnalysisRecord(rec, { snapshot: chosenSnap, toast: false });
     }
 
+    const yrSummary = allYears.join(', ');
     const msg = chosenSnap
       ? `Membuka riwayat "${rec.companyName}" periode Th ${chosenSnap.year1}–${chosenSnap.year2}!`
-      : `Analisa "${rec.companyName}" (ID: ${rec.id}) berhasil dibuka!`;
+      : `Analisa "${rec.companyName}" (ID: ${rec.id}) berhasil dibuka (Periode: ${yrSummary})!`;
     window.askrindoApp.showToast(msg, 'success');
   },
 
@@ -3210,7 +3518,7 @@ window.PelakuModule = {
                 <div class="p-4 rounded-2xl border ${idx === 0 ? 'border-purple-300 bg-purple-50/40' : 'border-slate-200 bg-white'} flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div class="space-y-1 text-xs">
                     <div class="flex items-center gap-2 flex-wrap">
-                      <span class="font-bold text-slate-800">Periode Buku: Th ${this.escapeHtml(s.year1)} &ndash; ${this.escapeHtml(s.year2)}</span>
+                      <span class="font-bold text-slate-800">Periode Buku: Th ${s.years && s.years.length > 2 ? this.escapeHtml(s.years.join(', ')) : (this.escapeHtml(s.year1) + ' &ndash; ' + this.escapeHtml(s.year2))}</span>
                       ${idx === 0 ? '<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-purple-600 text-white uppercase">Terbaru</span>' : ''}
                       <span class="px-2 py-0.5 rounded text-[10px] font-bold ${Number(s.racFailCount) === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
                         ${s.racPassCount ?? 0}/${(Number(s.racPassCount) || 0) + (Number(s.racFailCount) || 0) || 9} RAC LULUS
@@ -3402,7 +3710,7 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
             </span>
           </td>
           <td class="py-3.5 px-4">
-            <span class="font-bold text-slate-800 font-mono">Th ${this.escapeHtml(item.year1)} &ndash; ${this.escapeHtml(item.year2)}</span>
+            <span class="font-bold text-slate-800 font-mono">Th ${item.years && item.years.length > 2 ? this.escapeHtml(item.years.join(', ')) : (this.escapeHtml(item.year1) + ' &ndash; ' + this.escapeHtml(item.year2))}</span>
             <button onclick="window.PelakuModule.openCompanySnapshotsModal('${this.escapeHtml(item.id)}')" class="mt-1 flex items-center gap-1 text-[10px] font-bold text-indigo-700 hover:underline">
               <i data-lucide="history" class="w-3 h-3"></i>
               <span>${snapCount} Riwayat Periode</span>
@@ -4064,6 +4372,34 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
             </div>
           </div>
 
+          ${(() => {
+            const compRaw = (data.company_name || '').trim();
+            const nId = compRaw && window.askrindoDB ? window.askrindoDB.normalizeCompanyId(compRaw) : '';
+            const exRec = nId && window.askrindoDB ? window.askrindoDB.getPelakuAnalysis(nId) : null;
+            if (!exRec) return '';
+            const exYears = exRec.years || [exRec.year1, exRec.year2].filter(Boolean);
+            return `
+              <div class="p-3 bg-purple-50 rounded-2xl border border-purple-200 text-xs flex items-center justify-between gap-2 animate-fadeIn">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center shrink-0">
+                    <i data-lucide="history" class="w-4 h-4"></i>
+                  </div>
+                  <div>
+                    <p class="font-bold text-purple-950">
+                      Riwayat Perusahaan Terdaftar: <span class="font-mono text-purple-700">ID: ${this.escapeHtml(exRec.id)}</span>
+                    </p>
+                    <p class="text-[11px] text-purple-800 mt-0.5">
+                      Tahun sebelumnya: <strong>${exYears.join(', ')}</strong>. Data hasil scan <strong>Th ${y1} &amp; ${y2}</strong> akan digabungkan otomatis sehingga riwayat tahun sebelumnya tetap utuh.
+                    </p>
+                  </div>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-purple-200 text-purple-900 border border-purple-300 shrink-0">
+                  Multi-Tahun Aktif
+                </span>
+              </div>
+            `;
+          })()}
+
           <!-- Tabel Akun Laporan Keuangan 27 Pos -->
           <div class="max-h-96 overflow-y-auto border border-slate-200 rounded-xl bg-white shadow-sm">
             <table class="w-full text-left text-xs border-collapse">
@@ -4255,71 +4591,78 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
       d2[k] = el2 ? this.parseFormattedNumber(el2.value) : (this.currentExtractedFinData.data_year2?.[k] || 0);
     });
 
-    const y1 = this.currentExtractedFinData.year1 || 2024;
-    const y2 = this.currentExtractedFinData.year2 || 2025;
+    const scanY1 = String(this.currentExtractedFinData.year1 || 2024);
+    const scanY2 = String(this.currentExtractedFinData.year2 || 2025);
     const autoSaveArchive = document.getElementById('chkAiAutoSaveArchive')?.checked ?? true;
 
-    this.formSourceMode = 'ocr';
-    this.loadedCompanyId = null;
-    this.preAutoMatchState = null;
-    this.autoLoadedCompanyId = null;
-    this.dismissedBannerForId = null;
-
-    // Terapkan ke Form Utama
-    const compInp = document.getElementById('pelaku-company');
-    if (compInp && this.currentExtractedFinData.company_name) {
-      compInp.value = this.currentExtractedFinData.company_name;
-    }
-
-    const y1Inp = document.getElementById('inp_year1');
-    const y2Inp = document.getElementById('inp_year2');
-    if (y1Inp) y1Inp.value = y1;
-    if (y2Inp) y2Inp.value = y2;
-
-    const auditSel = document.getElementById('pelaku-audit-status');
-    if (auditSel) {
-      auditSel.value = this.currentExtractedFinData.audit_status === 'audited' ? 'audited' : 'unaudited';
-    }
-
-    const kapInp = document.getElementById('pelaku-kap-name');
-    if (kapInp) kapInp.value = this.currentExtractedFinData.auditor_kap_name || '-';
-
-    const opInp = document.getElementById('pelaku-opinion');
-    if (opInp) opInp.value = this.currentExtractedFinData.auditor_opinion || '-';
-
-    // Isi 27 Pos Finansial untuk Kedua Tahun
-    FIN_ACCOUNT_KEYS.forEach(k => {
-      const el1 = document.getElementById(`inp_${k}_1`);
-      const el2 = document.getElementById(`inp_${k}_2`);
-      if (el1) el1.value = this.formatNumberWithDots(d1[k] || 0, true);
-      if (el2) el2.value = this.formatNumberWithDots(d2[k] || 0, true);
-    });
-
-    this.closeAiFinUploadModal();
-    this.updateYearLabels();
-    this.calculateRatios();
-
-    const companyName = document.getElementById('pelaku-company')?.value.trim() || '';
+    const companyName = (this.currentExtractedFinData.company_name || document.getElementById('pelaku-company')?.value || '').trim();
     const normId = companyName && window.askrindoDB ? window.askrindoDB.normalizeCompanyId(companyName) : '';
     const existingBeforeSave = normId && window.askrindoDB ? window.askrindoDB.getPelakuAnalysis(normId) : null;
+
+    // Gabungkan riwayat tahun dari existing record (misal 2024) dengan hasil scan OCR (misal 2025 & 2026)
+    const existingYears = existingBeforeSave?.years || this.workspaceState?.years || [];
+    const allYears = Array.from(new Set([...existingYears, scanY1, scanY2].map(String).filter(Boolean))).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+
+    const mergedYearlyData = {
+      ...(existingBeforeSave?.yearlyData || {}),
+      ...(this.workspaceState?.yearlyData || {})
+    };
+    if (existingBeforeSave?.data1 && existingBeforeSave?.year1 && !mergedYearlyData[existingBeforeSave.year1]) {
+      mergedYearlyData[existingBeforeSave.year1] = { ...existingBeforeSave.data1 };
+    }
+    if (existingBeforeSave?.data2 && existingBeforeSave?.year2 && !mergedYearlyData[existingBeforeSave.year2]) {
+      mergedYearlyData[existingBeforeSave.year2] = { ...existingBeforeSave.data2 };
+    }
+    mergedYearlyData[scanY1] = { ...(mergedYearlyData[scanY1] || {}), ...d1 };
+    mergedYearlyData[scanY2] = { ...(mergedYearlyData[scanY2] || {}), ...d2 };
+
+    this.workspaceState = {
+      companyName,
+      sector: this.workspaceState?.sector || 'konstruksi',
+      years: allYears,
+      year1: scanY1,
+      year2: scanY2,
+      auditStatus: this.currentExtractedFinData.audit_status === 'audited' ? 'audited' : 'unaudited',
+      opinion: this.currentExtractedFinData.auditor_opinion || '-',
+      projectVal: this.workspaceState?.projectVal || '',
+      kapName: this.currentExtractedFinData.auditor_kap_name || '-',
+      yearlyData: mergedYearlyData,
+      d1: mergedYearlyData[scanY1],
+      d2: mergedYearlyData[scanY2]
+    };
+
+    this.formSourceMode = 'ocr';
+    this.loadedCompanyId = existingBeforeSave?.id || normId || null;
+    this.preAutoMatchState = null;
+    this.autoLoadedCompanyId = null;
+    this.historyBannerMatch = existingBeforeSave || null;
+    this.historyBannerAutoLoaded = true;
+    this.dismissedBannerForId = null;
+
+    this.closeAiFinUploadModal();
+
+    // Re-render table agar seluruh kolom tahun (termasuk tahun baru) langsung muncul berdampingan
+    const main = document.getElementById('app-main') || document.querySelector('main');
+    if (main) {
+      main.innerHTML = this.render();
+      this.updateYearLabels();
+      this.calculateRatios();
+      if (window.lucide) window.lucide.createIcons();
+    }
 
     let savedRes = null;
     if (autoSaveArchive && companyName && normId) {
       savedRes = this.saveCurrentAnalysis(true);
     } else {
-      this.historyBannerMatch = existingBeforeSave || null;
-      this.historyBannerAutoLoaded = false;
       this.updateCompanyIdBadgeAndBanner();
       this.updateSaveIndicators();
     }
 
-    const bd1 = (this.currentExtractedFinData?.data_year1?.cash_breakdown || '').trim();
-    const bd2 = (this.currentExtractedFinData?.data_year2?.cash_breakdown || '').trim();
-    const isMerged = (bd1 && !bd1.toLowerCase().includes('gabungan')) || (bd2 && !bd2.toLowerCase().includes('gabungan'));
-    const extraMsg = isMerged ? ' (Termasuk penggabungan otomatis Kas + Bank)' : '';
+    const prevYears = allYears.filter(y => y !== scanY1 && y !== scanY2);
+    const histMsg = prevYears.length > 0 ? ` (Riwayat Th ${prevYears.join(', ')} tetap aman tersimpan)` : '';
     const saveMsg = savedRes ? ` & tersimpan otomatis ke Arsip (ID: ${savedRes.savedRecord.id})` : '';
 
-    window.askrindoApp.showToast(`Laporan Keuangan Th ${y1} & ${y2} berhasil diterapkan ke 27 pos${extraMsg}${saveMsg}!`, 'success');
+    window.askrindoApp.showToast(`Laporan Keuangan Th ${scanY1} & ${scanY2} berhasil diterapkan ke 27 pos${histMsg}${saveMsg}!`, 'success');
   },
 
   // =========================================================================

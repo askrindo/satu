@@ -1005,13 +1005,45 @@ class AskrindoDB {
     const existingIdx = list.findIndex(item => item.id === companyId);
     const existing = existingIdx !== -1 ? list[existingIdx] : null;
 
+    // Gabungkan riwayat multi-tahun (yearlyData) agar tahun-tahun sebelumnya tidak pernah tertimpa
+    const prevYearly = existing?.yearlyData ? { ...existing.yearlyData } : {};
+    if (existing?.year1 && existing?.data1 && !prevYearly[existing.year1]) {
+      prevYearly[existing.year1] = { ...existing.data1 };
+    }
+    if (existing?.year2 && existing?.data2 && !prevYearly[existing.year2]) {
+      prevYearly[existing.year2] = { ...existing.data2 };
+    }
+
+    const mergedYearlyData = { ...prevYearly, ...(analysisData.yearlyData || {}) };
+    if (analysisData.year1 && analysisData.data1) {
+      mergedYearlyData[analysisData.year1] = { ...(mergedYearlyData[analysisData.year1] || {}), ...analysisData.data1 };
+    }
+    if (analysisData.year2 && analysisData.data2) {
+      mergedYearlyData[analysisData.year2] = { ...(mergedYearlyData[analysisData.year2] || {}), ...analysisData.data2 };
+    }
+
+    // Susun daftar tahun berurutan kronologis (contoh: ['2024', '2025', '2026'])
+    let allYears = Array.from(new Set([
+      ...(existing?.years || []),
+      ...(analysisData.years || []),
+      analysisData.year1,
+      analysisData.year2,
+      ...Object.keys(mergedYearlyData)
+    ].filter(y => y && String(y).trim().length > 0))).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+
+    if (allYears.length === 0) allYears = ['2024', '2025'];
+
+    const activeYr1 = String(analysisData.year1 || (allYears.length >= 2 ? allYears[allYears.length - 2] : allYears[0]));
+    const activeYr2 = String(analysisData.year2 || allYears[allYears.length - 1]);
+
     const snapshot = {
       snapshotId: 'SNAP-' + nowIso.replace(/[-:T.Z]/g, '').slice(0, 14),
       savedAt: nowIso,
       savedBy: session ? session.name : (analysisData.updatedBy || 'Analis'),
       branch: session ? session.branch : (analysisData.branch || '-'),
-      year1: String(analysisData.year1 || ''),
-      year2: String(analysisData.year2 || ''),
+      years: allYears,
+      year1: activeYr1,
+      year2: activeYr2,
       projectVal: Number(analysisData.projectVal) || 0,
       sector: analysisData.sector || 'konstruksi',
       auditStatus: analysisData.auditStatus || 'audited',
@@ -1021,11 +1053,9 @@ class AskrindoDB {
       grade: analysisData.grade || '-',
       racPassCount: Number(analysisData.racPassCount) || 0,
       racFailCount: Number(analysisData.racFailCount) || 0,
-      projectOwner: analysisData.projectOwner || 'apbn',
-      projectSpec: analysisData.projectSpec || 'lengkap',
-      financingSource: analysisData.financingSource || 'ada',
-      data1: { ...(analysisData.data1 || {}) },
-      data2: { ...(analysisData.data2 || {}) },
+      yearlyData: mergedYearlyData,
+      data1: mergedYearlyData[activeYr1] || { ...(analysisData.data1 || {}) },
+      data2: mergedYearlyData[activeYr2] || { ...(analysisData.data2 || {}) },
       summaryMetrics: { ...(analysisData.summaryMetrics || {}) }
     };
 
@@ -1035,6 +1065,7 @@ class AskrindoDB {
       latestSnap.year1 === snapshot.year1 &&
       latestSnap.year2 === snapshot.year2 &&
       Number(latestSnap.projectVal) === snapshot.projectVal &&
+      JSON.stringify(latestSnap.yearlyData || {}) === JSON.stringify(snapshot.yearlyData || {}) &&
       JSON.stringify(latestSnap.data1) === JSON.stringify(snapshot.data1) &&
       JSON.stringify(latestSnap.data2) === JSON.stringify(snapshot.data2);
 
@@ -1052,6 +1083,7 @@ class AskrindoDB {
       auditStatus: snapshot.auditStatus,
       kapName: snapshot.kapName,
       opinion: snapshot.opinion,
+      years: allYears,
       year1: snapshot.year1,
       year2: snapshot.year2,
       projectVal: snapshot.projectVal,
@@ -1059,9 +1091,7 @@ class AskrindoDB {
       grade: snapshot.grade,
       racPassCount: snapshot.racPassCount,
       racFailCount: snapshot.racFailCount,
-      projectOwner: snapshot.projectOwner || 'apbn',
-      projectSpec: snapshot.projectSpec || 'lengkap',
-      financingSource: snapshot.financingSource || 'ada',
+      yearlyData: mergedYearlyData,
       data1: snapshot.data1,
       data2: snapshot.data2,
       summaryMetrics: snapshot.summaryMetrics,
@@ -1152,6 +1182,8 @@ class AskrindoDB {
       rac_pass_count: Number(rec.racPassCount) || 0,
       rac_fail_count: Number(rec.racFailCount) || 0,
       payload: {
+        years: rec.years || [rec.year1, rec.year2].filter(Boolean),
+        yearlyData: rec.yearlyData || {},
         data1: rec.data1,
         data2: rec.data2,
         summaryMetrics: rec.summaryMetrics,
@@ -1212,6 +1244,8 @@ class AskrindoDB {
             grade: row.grade,
             racPassCount: Number(row.rac_pass_count) || 0,
             racFailCount: Number(row.rac_fail_count) || 0,
+            years: payload.years || [row.year1, row.year2].filter(Boolean),
+            yearlyData: payload.yearlyData || {},
             data1: payload.data1 || {},
             data2: payload.data2 || {},
             summaryMetrics: payload.summaryMetrics || {},
