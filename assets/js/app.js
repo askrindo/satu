@@ -317,6 +317,19 @@ class AskrindoApp {
                     <!-- Menu List -->
                     <div class="p-1.5 space-y-1">
                       <button 
+                        onclick="window.askrindoApp.showMyActivityModal(); window.askrindoApp.closeProfileMenu();" 
+                        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 transition text-left group cursor-pointer"
+                      >
+                        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition">
+                          <i data-lucide="history" class="w-4 h-4"></i>
+                        </div>
+                        <div class="min-w-0">
+                          <p class="font-bold text-slate-800 group-hover:text-blue-600">Riwayat Aktivitas Saya</p>
+                          <p class="text-[10px] text-slate-400 font-normal">Lihat log & tindakan akun Anda</p>
+                        </div>
+                      </button>
+
+                      <button 
                         onclick="window.askrindoApp.showChangePasswordModal(); window.askrindoApp.closeProfileMenu();" 
                         class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50 transition text-left group cursor-pointer"
                       >
@@ -1155,6 +1168,142 @@ class AskrindoApp {
 
     this.closeAllModals();
     this.showToast('Kata sandi berhasil diperbarui! Gunakan kata sandi baru untuk login berikutnya.', 'success');
+  }
+
+  showMyActivityModal() {
+    const modal = document.getElementById('global-modal-container');
+    if (!modal) return;
+
+    const user = window.authService.getCurrentUser();
+    if (!user) return;
+
+    const logs = window.askrindoDB.getAuditLogsForUser(user);
+
+    modal.innerHTML = `
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] flex flex-col">
+          <!-- Header -->
+          <div class="flex items-center justify-between border-b pb-3 border-slate-100 shrink-0">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                <i data-lucide="history" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-slate-800">Riwayat Aktivitas Saya</h3>
+                <p class="text-[11px] text-slate-400">
+                  Akun: <span class="font-medium text-slate-700">${user.name}</span> &bull; NIP: <span class="font-mono text-slate-700">${user.nip}</span> &bull; Role: <span class="text-slate-700">${user.role}</span>
+                </p>
+              </div>
+            </div>
+            <button onclick="window.askrindoApp.closeAllModals()" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer" title="Tutup Modal">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <!-- Search & Filter bar -->
+          <div class="flex items-center gap-3 shrink-0">
+            <div class="relative flex-1">
+              <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
+              <input 
+                type="text" 
+                id="my-activity-search" 
+                oninput="window.askrindoApp.filterMyActivityList()" 
+                placeholder="Cari aktivitas, modul, atau kata kunci..." 
+                class="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-xs"
+              />
+            </div>
+            <span class="text-xs font-semibold text-slate-600 shrink-0 bg-slate-100 px-3 py-2 rounded-xl">
+              Total: <span id="my-activity-count">${logs.length}</span> log
+            </span>
+          </div>
+
+          <!-- Scrollable Log List -->
+          <div id="my-activity-list" class="flex-1 overflow-y-auto divide-y divide-slate-100 pr-1 space-y-1">
+            ${logs.length === 0 ? `
+              <div class="py-12 text-center flex flex-col items-center justify-center border border-dashed border-slate-200 rounded-2xl bg-slate-50/50 my-2">
+                <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
+                  <i data-lucide="inbox" class="w-6 h-6"></i>
+                </div>
+                <p class="text-xs font-semibold text-slate-700">Belum Ada Riwayat Aktivitas</p>
+                <p class="text-[11px] text-slate-400 max-w-sm mt-0.5">
+                  Aktivitas yang Anda lakukan pada modul portal akan otomatis tercatat dan muncul di sini.
+                </p>
+              </div>
+            ` : logs.map(log => {
+                const dateObj = new Date(log.timestamp);
+                const formattedDate = isNaN(dateObj.getTime()) ? log.timestamp : dateObj.toLocaleDateString('id-ID', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric'
+                });
+                const formattedTime = isNaN(dateObj.getTime()) ? '' : dateObj.toLocaleTimeString('id-ID', {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                }) + ' WIB';
+
+                return `
+                  <div class="activity-item py-3 flex items-start justify-between gap-3 text-left">
+                    <div class="flex items-start gap-3 min-w-0">
+                      <div class="w-9 h-9 rounded-xl bg-slate-100 text-blue-700 border border-slate-200/80 flex items-center justify-center shrink-0 text-xs font-bold shadow-xs">
+                        ${log.subApp || 'PORTAL'}
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <p class="text-xs font-bold text-slate-800">${log.action}</p>
+                          <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">${log.id}</span>
+                        </div>
+                        <p class="text-xs text-slate-600 mt-0.5 break-words">${log.details}</p>
+                        <p class="text-[10px] text-slate-400 mt-1">
+                          Dicatat pada: <span class="font-medium text-slate-600">${formattedDate} ${formattedTime}</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+          </div>
+
+          <!-- Footer -->
+          <div class="flex items-center justify-between pt-3 border-t border-slate-100 shrink-0">
+            <span class="text-[11px] text-slate-400">
+              Menampilkan data audit log khusus untuk akun Anda
+            </span>
+            <button 
+              type="button" 
+              onclick="window.askrindoApp.closeAllModals()" 
+              class="px-5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    if (window.lucide) window.lucide.createIcons();
+    setTimeout(() => document.getElementById('my-activity-search')?.focus(), 50);
+  }
+
+  filterMyActivityList() {
+    const searchInput = document.getElementById('my-activity-search');
+    const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const container = document.getElementById('my-activity-list');
+    if (!container) return;
+    const items = container.querySelectorAll('.activity-item');
+    let visibleCount = 0;
+
+    items.forEach(item => {
+      const text = item.textContent.toLowerCase();
+      if (!query || text.includes(query)) {
+        item.style.display = 'flex';
+        visibleCount++;
+      } else {
+        item.style.display = 'none';
+      }
+    });
+
+    const countSpan = document.getElementById('my-activity-count');
+    if (countSpan) countSpan.textContent = visibleCount;
   }
 
   showToast(message, type = 'info') {

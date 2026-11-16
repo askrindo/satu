@@ -224,6 +224,8 @@ const INITIAL_AUDIT = [
   {
     id: 'LOG-1001',
     timestamp: '2026-11-12T09:35:10Z',
+    userId: 'USR-001',
+    userNip: '19850101',
     user: 'Ahmad Faisal, S.E., M.M.',
     role: 'Super Administrator',
     subApp: 'ADMIN',
@@ -233,6 +235,8 @@ const INITIAL_AUDIT = [
   {
     id: 'LOG-1002',
     timestamp: '2026-11-12T09:12:44Z',
+    userId: 'USR-002',
+    userNip: '19900315',
     user: 'Budi Santoso, AAIJ',
     role: 'Underwriter',
     subApp: 'KABAR',
@@ -242,6 +246,8 @@ const INITIAL_AUDIT = [
   {
     id: 'LOG-1003',
     timestamp: '2026-11-12T08:45:20Z',
+    userId: 'USR-003',
+    userNip: '19940722',
     user: 'Siti Rahmawati, S.E.',
     role: 'Relationship Manager',
     subApp: 'TTK',
@@ -1355,12 +1361,71 @@ class AskrindoDB {
     }
   }
 
+  getAuditLogsForUser(user) {
+    if (!user) return [];
+    const logs = this.getAuditLogs();
+    const uId = user.id ? String(user.id).trim().toLowerCase() : '';
+    const uNip = user.nip ? String(user.nip).trim().toLowerCase() : '';
+    const rawName = user.name ? String(user.name).trim() : '';
+    // Normalize user name: e.g. "Alrizal Akbar Nusantara (Technical Head)" -> "alrizal akbar nusantara"
+    const cleanName = rawName.replace(/\(.*?\)/g, '').split(',')[0].trim().toLowerCase();
+
+    return logs.filter(log => {
+      // 1. Direct match by userId
+      if (log.userId && uId && String(log.userId).trim().toLowerCase() === uId) {
+        return true;
+      }
+
+      // 2. Direct match by userNip
+      if (log.userNip && uNip && String(log.userNip).trim().toLowerCase() === uNip) {
+        return true;
+      }
+
+      // 3. Match by log.user
+      if (log.user) {
+        const logUserRaw = String(log.user).trim();
+        const logUserClean = logUserRaw.replace(/\(.*?\)/g, '').split(',')[0].trim().toLowerCase();
+
+        // Exact match of clean names
+        if (cleanName && logUserClean === cleanName) {
+          return true;
+        }
+
+        // Substring match if name is distinctive (>= 5 chars)
+        if (cleanName.length >= 5 && (logUserClean.includes(cleanName) || cleanName.includes(logUserClean))) {
+          // Avoid false positives between admin and non-admin
+          const isLogAdmin = logUserClean === 'admin' || logUserClean.includes('super admin');
+          const isUserAdmin = cleanName === 'admin' || cleanName.includes('super admin');
+          if (isLogAdmin !== isUserAdmin) {
+            return false;
+          }
+          return true;
+        }
+      }
+
+      // 4. Match in log.details (e.g. "Pengguna Alrizal Akbar Nusantara (NIP 1922)...")
+      if (log.details) {
+        const det = String(log.details).toLowerCase();
+        if (uNip && uNip.length >= 3 && det.includes(uNip)) {
+          return true;
+        }
+        if (cleanName && cleanName.length >= 6 && det.includes(cleanName)) {
+          return true;
+        }
+      }
+
+      return false;
+    });
+  }
+
   logActivity(subApp, action, details, userOverride = null) {
     const session = userOverride || this.getCurrentSession();
     const logs = this.getAuditLogs();
     const newLog = {
       id: 'LOG-' + (logs.length + 1001),
       timestamp: new Date().toISOString(),
+      userId: session ? (session.id || null) : null,
+      userNip: session ? (session.nip || null) : null,
       user: session ? session.name : 'System',
       role: session ? session.role : 'Guest',
       subApp: subApp || 'SYSTEM',
@@ -1368,7 +1433,7 @@ class AskrindoDB {
       details: details
     };
     logs.unshift(newLog);
-    if (logs.length > 150) logs.pop();
+    if (logs.length > 200) logs.pop();
     localStorage.setItem(DB_KEYS.AUDIT, JSON.stringify(logs));
 
     // Async sync to Supabase
@@ -1376,6 +1441,8 @@ class AskrindoDB {
       this.supabase.from('audit_logs').insert({
         id: newLog.id,
         timestamp: newLog.timestamp,
+        user_id: newLog.userId,
+        user_nip: newLog.userNip,
         user_name: newLog.user,
         role: newLog.role,
         sub_app: newLog.subApp,

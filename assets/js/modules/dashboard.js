@@ -10,7 +10,10 @@ window.DashboardModule = {
 
     const apps = window.SUB_APPS_CATALOG;
     const sppaList = window.askrindoDB.getSppaList();
-    const auditLogs = window.askrindoDB.getAuditLogs().slice(0, 5);
+    const isAdmin = window.authService.canAccessAdmin();
+    const auditLogs = isAdmin 
+      ? window.askrindoDB.getAuditLogs().slice(0, 5)
+      : window.askrindoDB.getAuditLogsForUser(user).slice(0, 5);
 
     // Calculate quick stats
     const totalSppaCount = sppaList.length;
@@ -339,30 +342,55 @@ window.DashboardModule = {
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <i data-lucide="activity" class="w-5 h-5 text-blue-600"></i>
-                <h3 class="font-bold text-slate-800 text-base">Aktivitas Terkini di Portal</h3>
+                <h3 class="font-bold text-slate-800 text-base">
+                  ${isAdmin ? 'Aktivitas Terkini di Portal' : 'Aktivitas Akun Saya'}
+                </h3>
+                <span class="text-[10px] font-semibold px-2.5 py-0.5 rounded-full ${isAdmin ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}">
+                  ${isAdmin ? 'Audit Log Sistem' : 'Riwayat Saya'}
+                </span>
               </div>
-              <a href="#/admin" class="text-xs font-semibold text-blue-600 hover:underline">Lihat Semua Audit Log &rarr;</a>
+              ${isAdmin ? `
+                <a href="#/admin" onclick="if(window.AdminModule) window.AdminModule.setTab('audit')" class="text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1">
+                  Lihat Semua Audit Log <span>&rarr;</span>
+                </a>
+              ` : `
+                <button type="button" onclick="window.askrindoApp.showMyActivityModal()" class="text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 cursor-pointer">
+                  Lihat Semua Riwayat Saya <span>&rarr;</span>
+                </button>
+              `}
             </div>
 
-            <div class="divide-y divide-slate-100">
-              ${auditLogs.map(log => `
-                <div class="py-3 flex items-start justify-between gap-4">
-                  <div class="flex items-start gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 text-xs font-bold">
-                      ${log.subApp}
-                    </div>
-                    <div>
-                      <p class="text-xs font-semibold text-slate-800">${log.action}</p>
-                      <p class="text-xs text-slate-500 mt-0.5">${log.details}</p>
-                      <p class="text-[10px] text-slate-400 mt-1">Oleh: <span class="font-medium text-slate-600">${log.user}</span> (${log.role})</p>
-                    </div>
-                  </div>
-                  <span class="text-[10px] text-slate-400 whitespace-nowrap">
-                    ${new Date(log.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-                  </span>
+            ${auditLogs.length === 0 ? `
+              <div class="py-10 text-center flex flex-col items-center justify-center border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-2">
+                  <i data-lucide="clock" class="w-5 h-5"></i>
                 </div>
-              `).join('')}
-            </div>
+                <p class="text-xs font-semibold text-slate-700">Belum Ada Riwayat Aktivitas</p>
+                <p class="text-[11px] text-slate-400 max-w-sm mt-0.5">
+                  ${isAdmin ? 'Belum ada log aktivitas sistem yang tercatat di portal.' : 'Aktivitas login, kalkulasi, dan pengajuan Anda akan otomatis tercatat di sini.'}
+                </p>
+              </div>
+            ` : `
+              <div class="divide-y divide-slate-100">
+                ${auditLogs.map(log => `
+                  <div class="py-3 flex items-start justify-between gap-4">
+                    <div class="flex items-start gap-3">
+                      <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 text-xs font-bold">
+                        ${log.subApp || 'PORTAL'}
+                      </div>
+                      <div>
+                        <p class="text-xs font-semibold text-slate-800">${log.action}</p>
+                        <p class="text-xs text-slate-500 mt-0.5">${log.details}</p>
+                        <p class="text-[10px] text-slate-400 mt-1">Oleh: <span class="font-medium text-slate-600">${log.user}</span> (${log.role || 'Pengguna'})</p>
+                      </div>
+                    </div>
+                    <span class="text-[10px] text-slate-400 whitespace-nowrap">
+                      ${new Date(log.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                `).join('')}
+              </div>
+            `}
           </div>
 
           <!-- Kolom 3: Pengumuman & Bantuan Askrindo -->
