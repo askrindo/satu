@@ -2681,121 +2681,125 @@ window.PelakuModule = {
     this.modalPreEnteredData = null;
 
     container.innerHTML = `
-      <div id="newAnalysisModalBackdrop" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-        <div class="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6 max-h-[92vh] overflow-y-auto">
+      <div id="newAnalysisModalBackdrop" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+        <div class="bg-white rounded-2xl max-w-3xl w-full p-4 sm:p-5 shadow-2xl border border-slate-200 space-y-3.5 max-h-[95vh] overflow-y-auto">
           
           <!-- Modal Header -->
-          <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-            <div class="flex items-center gap-3">
-              <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-purple-700 via-indigo-600 to-purple-800 text-white flex items-center justify-center shadow-md shadow-purple-500/25">
-                <i data-lucide="plus-circle" class="w-6 h-6"></i>
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-700 via-indigo-600 to-purple-800 text-white flex items-center justify-center shadow-sm shadow-purple-500/25 shrink-0">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
               </div>
               <div>
-                <h3 class="text-base sm:text-lg font-black text-slate-800">Buat Analisa Laporan Keuangan Baru</h3>
-                <p class="text-xs text-slate-500">Lengkapi profil debitur &amp; nilai proyek atau unggah berkas untuk dipindai otomatis oleh AI OCR Vision.</p>
+                <h3 class="text-sm sm:text-base font-black text-slate-800 leading-tight">Buat Analisa Laporan Keuangan Baru</h3>
+                <p class="text-[11px] text-slate-500">Lengkapi profil debitur &amp; nilai proyek atau unggah berkas untuk dipindai otomatis oleh AI OCR Vision.</p>
               </div>
             </div>
-            <button onclick="window.PelakuModule.closeNewAnalysisModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition" title="Tutup">
+            <button onclick="window.PelakuModule.closeNewAnalysisModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition shrink-0" title="Tutup">
               <i data-lucide="x" class="w-4 h-4"></i>
             </button>
           </div>
 
           <!-- Section 1: Profil Proyek & Calon Debitur (Isian Field-Field) -->
-          <div class="space-y-4">
+          <div class="space-y-2">
             <div class="flex items-center justify-between">
-              <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                <i data-lucide="building-2" class="w-4 h-4 text-purple-600"></i>
+              <h4 class="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                <i data-lucide="building-2" class="w-3.5 h-3.5 text-purple-600"></i>
                 <span>1. Profil Calon Debitur &amp; Parameter Proyek</span>
               </h4>
               <span class="text-[10px] text-slate-400 font-medium">Bisa diedit kembali nanti</span>
             </div>
 
-            <!-- Nama Perusahaan & Live Unique ID -->
-            <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-2">
-              <div class="flex items-center justify-between gap-2">
-                <label for="modal_new_companyName" class="text-xs font-bold text-slate-700">Nama Perusahaan / Rekanan <span class="text-rose-500">*</span></label>
-                <span id="modal_new_companyIdBadge" class="px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-bold bg-white text-purple-700 border border-purple-200 shadow-xs truncate max-w-[260px]">
-                  ID: -
-                </span>
+            <!-- Unified Compact Card: Nama Perusahaan, Tahun 1, Tahun 2 & Nilai Proyek -->
+            <div class="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80 space-y-2.5">
+              <div>
+                <div class="flex items-center justify-between gap-2 mb-1">
+                  <label for="modal_new_companyName" class="text-xs font-bold text-slate-700">Nama Perusahaan / Rekanan <span class="text-rose-500">*</span></label>
+                  <span id="modal_new_companyIdBadge" class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-white text-purple-700 border border-purple-200 shadow-xs truncate max-w-[240px]">
+                    ID: -
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  id="modal_new_companyName"
+                  placeholder="Ketik Nama Perusahaan (Contoh: PT Tri Cipta Karya)..."
+                  oninput="window.PelakuModule.handleNewModalCompanyNameChange(this.value)"
+                  class="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white font-semibold text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
+                />
+                <div id="modal_new_companyExistsAlert" class="hidden mt-1.5 p-2 rounded-lg bg-purple-50 border border-purple-200 text-[11px] text-purple-900 font-medium flex items-center gap-2">
+                  <i data-lucide="info" class="w-3.5 h-3.5 text-purple-600 shrink-0"></i>
+                  <span id="modal_new_companyExistsText">Perusahaan ini sudah ada di Arsip. Analisa baru akan tersambung ke Unique ID tersebut.</span>
+                </div>
               </div>
-              <input
-                type="text"
-                id="modal_new_companyName"
-                placeholder="Ketik Nama Perusahaan (Contoh: PT Tri Cipta Karya)..."
-                oninput="window.PelakuModule.handleNewModalCompanyNameChange(this.value)"
-                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white font-semibold text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
-              />
-              <div id="modal_new_companyExistsAlert" class="hidden p-2.5 rounded-xl bg-purple-50 border border-purple-200 text-[11px] text-purple-900 font-medium flex items-center gap-2">
-                <i data-lucide="info" class="w-4 h-4 text-purple-600 shrink-0"></i>
-                <span id="modal_new_companyExistsText">Perusahaan ini sudah ada di Arsip. Analisa baru akan tersambung ke Unique ID tersebut.</span>
-              </div>
-            </div>
 
-            <!-- Grid Periode Tahun & Nilai Proyek (Tahun 1 & 2 Kosong Dulu saat Buat Baru) -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-              <div>
-                <label for="modal_new_year1" class="block font-semibold text-slate-700 mb-1">Tahun 1 (Sebelumnya)</label>
-                <input
-                  type="text"
-                  inputmode="numeric"
-                  maxlength="4"
-                  id="modal_new_year1"
-                  value=""
-                  placeholder="Contoh: 2024"
-                  oninput="this.value=this.value.replace(/[^0-9]/g,'')"
-                  class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold font-mono text-center placeholder-slate-300 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
-                />
-              </div>
-              <div>
-                <label for="modal_new_year2" class="block font-semibold text-slate-700 mb-1">Tahun 2 (Terakhir)</label>
-                <input
-                  type="text"
-                  inputmode="numeric"
-                  maxlength="4"
-                  id="modal_new_year2"
-                  value=""
-                  placeholder="Contoh: 2025"
-                  oninput="this.value=this.value.replace(/[^0-9]/g,'')"
-                  class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold font-mono text-center placeholder-slate-300 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
-                />
-              </div>
-              <div>
-                <label for="modal_new_projectVal" class="block font-semibold text-slate-700 mb-1">Nilai Proyek yang Dijamin (Rp)</label>
-                <input
-                  type="text"
-                  id="modal_new_projectVal"
-                  value=""
-                  placeholder="Contoh: 15.000.000.000"
-                  oninput="window.PelakuModule.handleDotInput(this)"
-                  class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold font-mono placeholder-slate-300 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
-                />
+              <!-- Grid Periode Tahun & Nilai Proyek -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                <div>
+                  <label for="modal_new_year1" class="block text-[11px] font-semibold text-slate-700 mb-1">Tahun 1 (Sebelumnya)</label>
+                  <input
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="4"
+                    id="modal_new_year1"
+                    value=""
+                    placeholder="Contoh: 2024"
+                    oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                    class="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-bold font-mono text-center placeholder-slate-300 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
+                  />
+                </div>
+                <div>
+                  <label for="modal_new_year2" class="block text-[11px] font-semibold text-slate-700 mb-1">Tahun 2 (Terakhir)</label>
+                  <input
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="4"
+                    id="modal_new_year2"
+                    value=""
+                    placeholder="Contoh: 2025"
+                    oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                    class="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-bold font-mono text-center placeholder-slate-300 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
+                  />
+                </div>
+                <div>
+                  <label for="modal_new_projectVal" class="block text-[11px] font-semibold text-slate-700 mb-1">Nilai Proyek yang Dijamin (Rp)</label>
+                  <input
+                    type="text"
+                    id="modal_new_projectVal"
+                    value=""
+                    placeholder="Contoh: 15.000.000.000"
+                    oninput="window.PelakuModule.handleDotInput(this)"
+                    class="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-bold font-mono placeholder-slate-300 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
+                  />
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Section 2: Fitur Upload Laporan Keuangan (AI OCR Vision) -->
-          <div class="space-y-3 pt-3 border-t border-slate-100">
-            <div class="flex items-center justify-between">
-              <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                <i data-lucide="sparkles" class="w-4 h-4 text-amber-500"></i>
-                <span>2. Fitur Upload Laporan Keuangan (AI OCR Vision)</span>
-              </h4>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+          <div class="space-y-2 pt-2 border-t border-slate-100">
+            <div class="flex items-center justify-between gap-2">
+              <div>
+                <h4 class="text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
+                  <span>2. Fitur Upload Laporan Keuangan (AI OCR Vision)</span>
+                </h4>
+                <p class="text-[11px] text-slate-500 mt-0.5">
+                  Unggah berkas PDF atau gambar Neraca &amp; Laba Rugi untuk diekstrak otomatis oleh Gemini Vision AI.
+                </p>
+              </div>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
                 Pindai Otomatis
               </span>
             </div>
-            <p class="text-xs text-slate-500">
-              Unggah berkas PDF atau gambar Neraca &amp; Laba Rugi. Gemini Vision AI akan membaca dan mengekstrak secara otomatis.
-            </p>
 
-            <!-- Drop Zone Area -->
+            <!-- Compact Drop Zone Area -->
             <div
               id="modal_new_dropzone"
               ondragover="event.preventDefault(); this.classList.add('border-purple-500', 'bg-purple-50/40');"
               ondragleave="this.classList.remove('border-purple-500', 'bg-purple-50/40');"
               ondrop="event.preventDefault(); this.classList.remove('border-purple-500', 'bg-purple-50/40'); window.PelakuModule.handleDropNewAnalysisFiles(event);"
               onclick="document.getElementById('modal_new_fileInput').click()"
-              class="border-2 border-dashed border-slate-300 rounded-2xl p-5 text-center space-y-2 cursor-pointer hover:border-purple-500 hover:bg-purple-50/20 transition group"
+              class="border-2 border-dashed border-slate-300 rounded-xl p-3.5 text-center cursor-pointer hover:border-purple-500 hover:bg-purple-50/20 transition group flex flex-col sm:flex-row items-center justify-center gap-3"
             >
               <input
                 type="file"
@@ -2805,45 +2809,44 @@ window.PelakuModule = {
                 class="hidden"
                 onchange="window.PelakuModule.handleSelectNewAnalysisFiles(this)"
               />
-              <div class="w-12 h-12 mx-auto rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform shadow-inner">
-                <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+              <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform shadow-inner shrink-0">
+                <i data-lucide="upload-cloud" class="w-5 h-5"></i>
               </div>
-              <div>
-                <p class="text-xs font-bold text-slate-700">Tarik &amp; Lepaskan berkas Laporan Keuangan ke sini</p>
-                <p class="text-[11px] text-slate-500 mt-0.5">atau <span class="text-purple-600 font-semibold underline">pilih berkas dari perangkat Anda</span></p>
-              </div>
-              <div class="flex items-center justify-center gap-2 pt-1 text-[10px] text-slate-400">
-                <span class="px-2 py-0.5 rounded bg-slate-100 font-mono">PDF</span>
-                <span class="px-2 py-0.5 rounded bg-slate-100 font-mono">JPG / PNG / WEBP</span>
-                <span>&bull; Maks 25MB per berkas</span>
+              <div class="text-center sm:text-left">
+                <p class="text-xs font-bold text-slate-700">Tarik &amp; Lepaskan berkas Laporan Keuangan ke sini <span class="font-normal text-slate-500">atau</span> <span class="text-purple-600 font-semibold underline">pilih berkas</span></p>
+                <div class="flex items-center justify-center sm:justify-start gap-1.5 mt-1 text-[10px] text-slate-400">
+                  <span class="px-1.5 py-0.5 rounded bg-slate-100 font-mono">PDF</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-100 font-mono">JPG / PNG / WEBP</span>
+                  <span>&bull; Maks 25MB per berkas</span>
+                </div>
               </div>
             </div>
 
             <!-- File List Container -->
-            <div id="modal_new_fileList" class="space-y-2 text-xs"></div>
+            <div id="modal_new_fileList" class="space-y-1.5 text-xs"></div>
 
             <!-- Progress Box (Hidden initially) -->
-            <div id="modal_new_progressBox" class="hidden p-4 rounded-2xl bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 space-y-3">
+            <div id="modal_new_progressBox" class="hidden p-3 rounded-xl bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 space-y-2">
               <div class="flex items-center justify-between text-xs">
                 <div class="flex items-center gap-2 text-purple-900 font-bold">
-                  <span class="w-2.5 h-2.5 rounded-full bg-purple-600 animate-ping"></span>
+                  <span class="w-2 h-2 rounded-full bg-purple-600 animate-ping"></span>
                   <span id="modal_new_progressText">AI Vision sedang memindai dokumen laporan keuangan...</span>
                 </div>
                 <span id="modal_new_progressPct" class="font-mono font-extrabold text-purple-700">30%</span>
               </div>
-              <div class="w-full h-2 bg-purple-200/60 rounded-full overflow-hidden">
+              <div class="w-full h-1.5 bg-purple-200/60 rounded-full overflow-hidden">
                 <div id="modal_new_progressBar" class="h-full bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full transition-all duration-300" style="width: 30%;"></div>
               </div>
-              <p class="text-[11px] text-slate-500">Mengekstrak 27 akun keuangan Neraca &amp; Laba Rugi untuk periode tahun yang dipilih...</p>
+              <p class="text-[10px] text-slate-500">Mengekstrak 27 akun keuangan Neraca &amp; Laba Rugi untuk periode tahun yang dipilih...</p>
             </div>
           </div>
 
           <!-- Modal Action Buttons Footer -->
-          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100">
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-2.5 border-t border-slate-100">
             <button
               type="button"
               onclick="window.PelakuModule.closeNewAnalysisModal()"
-              class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition order-3 sm:order-1"
+              class="w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition order-3 sm:order-1"
             >
               Batal
             </button>
@@ -2852,7 +2855,7 @@ window.PelakuModule = {
                 type="button"
                 id="btn_submit_manual"
                 onclick="window.PelakuModule.submitNewAnalysisManual()"
-                class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition flex items-center justify-center gap-1.5"
+                class="w-full sm:w-auto px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition flex items-center justify-center gap-1.5"
                 title="Buka form lembar kerja analisa untuk input angka secara langsung"
               >
                 <i data-lucide="file-spreadsheet" class="w-4 h-4 text-purple-600"></i>
@@ -2862,7 +2865,7 @@ window.PelakuModule = {
                 type="button"
                 id="btn_submit_ai_ocr"
                 onclick="window.PelakuModule.submitNewAnalysisAiOcr()"
-                class="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-800 hover:from-purple-800 hover:to-indigo-700 shadow-md shadow-purple-600/30 transition flex items-center justify-center gap-2 group"
+                class="w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-800 hover:from-purple-800 hover:to-indigo-700 shadow-md shadow-purple-600/30 transition flex items-center justify-center gap-1.5 group"
                 title="Pindai dokumen yang diunggah dengan AI Vision"
               >
                 <i data-lucide="sparkles" class="w-4 h-4 text-amber-300 group-hover:scale-110 transition-transform"></i>
