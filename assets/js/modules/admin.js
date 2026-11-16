@@ -227,19 +227,19 @@ window.AdminModule = {
                 </tr>
               ` : filteredUsers.map(user => `
                 <tr class="hover:bg-slate-50/80 transition-colors">
-                  <td class="py-3 px-4">
+                  <td class="py-3 px-4 min-w-[200px]">
                     <div class="flex items-center gap-3">
-                      <img src="${window.DEFAULT_AVATAR || 'assets/images/default-avatar.svg'}" onerror="this.src='assets/images/default-avatar.svg'" alt="${user.name}" class="w-9 h-9 rounded-full object-cover border border-slate-200 bg-slate-100" />
-                      <div>
-                        <p class="font-bold text-slate-800">${user.name}</p>
-                        <p class="text-[11px] text-slate-400">${user.email}</p>
+                      <img src="${window.DEFAULT_AVATAR || 'assets/images/default-avatar.svg'}" onerror="this.src='assets/images/default-avatar.svg'" alt="${user.name}" class="w-9 h-9 rounded-full object-cover border border-slate-200 bg-slate-100 shrink-0" />
+                      <div class="min-w-0">
+                        <p class="font-bold text-slate-800 truncate">${user.name}</p>
+                        <p class="text-[11px] text-slate-400 truncate">${user.email}</p>
                       </div>
                     </div>
                   </td>
-                  <td class="py-3 px-4">
+                  <td class="py-3 px-4 whitespace-nowrap">
                     <span class="font-mono font-medium text-slate-700">${user.nip}</span>
                   </td>
-                  <td class="py-3 px-4 text-slate-700 font-medium max-w-[240px]">
+                  <td class="py-3 px-4 text-slate-700 font-medium max-w-[220px]">
                     <span class="line-clamp-2" title="${window.askrindoDB.getUserUnitKerja(user)}">${window.askrindoDB.getUserUnitKerja(user)}</span>
                   </td>
                   <td class="py-3 px-4 whitespace-nowrap">
@@ -247,7 +247,7 @@ window.AdminModule = {
                       ${user.role}
                     </span>
                   </td>
-                  <td class="py-3 px-4">
+                  <td class="py-3 px-4 min-w-[180px]">
                     <div class="flex flex-wrap gap-1">
                       ${(() => {
                         const appBadgeColors = {
@@ -275,13 +275,13 @@ window.AdminModule = {
                       })()}
                     </div>
                   </td>
-                  <td class="py-3 px-4 text-center">
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${user.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+                  <td class="py-3 px-4 text-center whitespace-nowrap">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap ${user.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
                       <span class="w-1.5 h-1.5 rounded-full ${user.status === 'active' ? 'bg-emerald-500' : 'bg-rose-500'}"></span>
                       ${user.status === 'active' ? 'Aktif' : 'Nonaktif'}
                     </span>
                   </td>
-                  <td class="py-3 px-4 text-center">
+                  <td class="py-3 px-4 text-center whitespace-nowrap">
                     <div class="inline-flex items-center gap-1">
                       <button onclick="window.AdminModule.openEditUserModal('${user.id}')" title="Edit Pengguna & Hak Akses" class="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors">
                         <i data-lucide="edit-3" class="w-4 h-4"></i>
