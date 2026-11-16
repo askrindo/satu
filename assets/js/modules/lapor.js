@@ -2933,7 +2933,7 @@ window.LaporModule = {
               <span class="text-[10px] text-slate-400 font-medium">Bisa diedit kembali nanti</span>
             </div>
 
-            <!-- Unified Compact Card: Nama Perusahaan, Tahun 1, Tahun 2 & Nilai Proyek -->
+            <!-- Unified Compact Card: Nama Perusahaan, Tahun 1, Tahun 2, Status Audit & Nilai Proyek -->
             <div class="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80 space-y-2.5">
               <div>
                 <div class="flex items-center justify-between gap-2 mb-1">
@@ -2955,8 +2955,8 @@ window.LaporModule = {
                 </div>
               </div>
 
-              <!-- Grid Periode Tahun & Nilai Proyek -->
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+              <!-- Grid Periode Tahun, Status Audit & Nilai Proyek -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-[1fr_1fr_1.45fr_1.65fr] gap-2.5 text-xs items-end">
                 <div>
                   <label for="modal_new_year1" class="block text-[11px] font-semibold text-slate-700 mb-1">Tahun 1 (Sebelumnya)</label>
                   <input
@@ -2982,6 +2982,17 @@ window.LaporModule = {
                     oninput="this.value=this.value.replace(/[^0-9]/g,'')"
                     class="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-bold font-mono text-center placeholder-slate-300 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
                   />
+                </div>
+                <div>
+                  <label for="modal_new_auditStatus" class="block text-[11px] font-semibold text-slate-700 mb-1">Status Audit</label>
+                  <select
+                    id="modal_new_auditStatus"
+                    class="w-full h-9 px-2.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-700 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
+                  >
+                    <option value="">-- Status Audit --</option>
+                    <option value="audited">Audited KAP</option>
+                    <option value="unaudited">In-House / Unaudited</option>
+                  </select>
                 </div>
                 <div>
                   <label for="modal_new_projectVal" class="block text-[11px] font-semibold text-slate-700 mb-1">Nilai Proyek yang Dijamin (Rp)</label>
@@ -3126,6 +3137,8 @@ window.LaporModule = {
       const yrs = existing.years ? existing.years.join(', ') : `${existing.year1}-${existing.year2}`;
       const creator = existing.createdBy ? ` • Pembuat: ${existing.createdBy}` : '';
       alertText.textContent = `✨ Ditemukan data tersimpan untuk "${existing.companyName}" (${yrs}${creator}). Data finansial sebelumnya otomatis dimuat!`;
+      const auditEl = document.getElementById('modal_new_auditStatus');
+      if (auditEl && existing.auditStatus && auditEl.value === '') auditEl.value = existing.auditStatus;
       const projEl = document.getElementById('modal_new_projectVal');
       if (projEl && existing.projectVal && projEl.value.trim() === '') projEl.value = this.formatNumberWithDots(existing.projectVal, false);
     } else if (alertEl) {
@@ -3245,9 +3258,10 @@ window.LaporModule = {
     }
 
     const sector = existing?.sector || 'konstruksi';
-    const audit = existing?.auditStatus || 'audited';
+    const modalAudit = (document.getElementById('modal_new_auditStatus')?.value || '').trim();
+    const audit = modalAudit || existing?.auditStatus || '';
     const kap = existing?.kapName || '-';
-    const opinion = existing?.opinion || (audit === 'audited' ? 'Wajar Tanpa Pengecualian (WTP)' : '-');
+    const opinion = (existing?.opinion && existing.opinion !== '-') ? existing.opinion : (audit === 'audited' ? 'Wajar Tanpa Pengecualian (WTP)' : '-');
     const projValInput = this.parseFormattedNumber(document.getElementById('modal_new_projectVal')?.value);
     const projVal = (projValInput !== null && projValInput !== undefined && projValInput > 0) ? projValInput : (existing?.projectVal || 0);
 
@@ -3311,6 +3325,7 @@ window.LaporModule = {
     const compName = (document.getElementById('modal_new_companyName')?.value || '').trim();
     const y1 = (document.getElementById('modal_new_year1')?.value || '').trim();
     const y2 = (document.getElementById('modal_new_year2')?.value || '').trim();
+    const auditStatus = (document.getElementById('modal_new_auditStatus')?.value || '').trim();
     const projRaw = (document.getElementById('modal_new_projectVal')?.value || '').trim();
     const projVal = projRaw ? (this.parseFormattedNumber(projRaw) || 0) : '';
 
@@ -3319,6 +3334,7 @@ window.LaporModule = {
       sector: 'konstruksi',
       year1: y1,
       year2: y2,
+      auditStatus: auditStatus,
       projectVal: projVal
     };
 
@@ -5104,9 +5120,10 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
             <div>
               <div class="flex items-center gap-2">
                 <span class="font-bold text-slate-900">${data.company_name || 'Rekanan Terdeteksi'}</span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${data.audit_status === 'audited' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-300'}">
-                  ${data.audit_status === 'audited' ? 'Audited KAP' : 'In-House / Unaudited'}
-                </span>
+                ${(() => {
+                  const effAudit = this.modalPreEnteredData?.auditStatus || (data.audit_status === 'audited' ? 'audited' : 'unaudited');
+                  return `<span class="px-2 py-0.5 rounded text-[10px] font-bold ${effAudit === 'audited' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-300'}">${effAudit === 'audited' ? 'Audited KAP' : 'In-House / Unaudited'}</span>`;
+                })()}
               </div>
               <p class="text-slate-500 text-[11px] mt-0.5">
                 KAP: <strong>${data.auditor_kap_name}</strong> &bull; Opini: <strong>${data.auditor_opinion}</strong>
@@ -5347,6 +5364,7 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
 
     const modalComp = this.modalPreEnteredData?.companyName;
     const modalSector = this.modalPreEnteredData?.sector;
+    const modalAudit = this.modalPreEnteredData?.auditStatus;
     const modalProjVal = this.modalPreEnteredData?.projectVal;
 
     const detectedComp = (this.currentExtractedFinData.company_name || '').trim();
@@ -5377,7 +5395,7 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
       years: allYears,
       year1: scanY1,
       year2: scanY2,
-      auditStatus: this.currentExtractedFinData.audit_status === 'audited' ? 'audited' : 'unaudited',
+      auditStatus: modalAudit || (this.currentExtractedFinData.audit_status === 'audited' ? 'audited' : 'unaudited'),
       opinion: this.currentExtractedFinData.auditor_opinion || '-',
       projectVal: (modalProjVal !== undefined && modalProjVal !== '') ? modalProjVal : (existingBeforeSave?.projectVal || this.workspaceState?.projectVal || ''),
       kapName: this.currentExtractedFinData.auditor_kap_name || '-',
