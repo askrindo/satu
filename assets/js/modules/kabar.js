@@ -427,8 +427,25 @@ window.KabarModule = {
     if (!modal) return;
 
     modal.innerHTML = `
-      <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-        <div class="bg-white rounded-3xl max-w-2xl w-full p-8 shadow-2xl border border-slate-200 space-y-6 max-h-[90vh] overflow-y-auto printable-document">
+      <div onclick="if (event.target === this) document.getElementById('kabar-modal-container').innerHTML=''" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn print-modal-backdrop">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-8 shadow-2xl border border-slate-200 space-y-6 max-h-[90vh] overflow-y-auto printable-document relative">
+          <!-- Top Preview Toolbar (Layar Saja / Hilang Saat Cetak) -->
+          <div class="sticky -top-8 z-20 -mx-8 -mt-8 px-6 py-3 bg-slate-50/95 backdrop-blur-sm border-b border-slate-200 flex items-center justify-between gap-3 rounded-t-3xl no-print">
+            <div class="flex items-center gap-2 text-xs">
+              <span class="font-bold text-slate-700">Pratinjau Dokumen Cetak</span>
+              <span class="hidden sm:inline-block px-2 py-0.5 rounded bg-slate-200/80 text-slate-600 text-[10px] font-mono">Tekan ESC untuk menutup</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="window.print()" class="px-3.5 py-1.5 rounded-xl text-white font-semibold bg-orange-600 hover:bg-orange-700 transition text-xs flex items-center gap-1.5 shadow-sm cursor-pointer">
+                <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                <span>Cetak / Simpan PDF</span>
+              </button>
+              <button type="button" onclick="document.getElementById('kabar-modal-container').innerHTML=''" title="Tutup Pratinjau (ESC)" aria-label="Tutup Pratinjau" class="w-8 h-8 rounded-full bg-white hover:bg-rose-50 text-slate-500 hover:text-rose-600 border border-slate-200 hover:border-rose-200 flex items-center justify-center transition shadow-xs cursor-pointer">
+                <i data-lucide="x" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
           <!-- Kop Penawaran -->
           <div class="flex items-center justify-between border-b-2 border-slate-900 pb-4">
             <div class="flex items-center gap-3">

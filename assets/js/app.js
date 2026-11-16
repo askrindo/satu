@@ -40,7 +40,7 @@ class AskrindoApp {
           window.LaporModule.saveCurrentAnalysis();
         }
       }
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' || e.key === 'Esc') {
         this.closeAllModals();
         this.closeProfileMenu();
       }
@@ -876,8 +876,16 @@ class AskrindoApp {
   }
 
   closeAllModals() {
-    const modal = document.getElementById('global-modal-container');
-    if (modal) modal.innerHTML = '';
+    [
+      'global-modal-container',
+      'lapor-modal-container',
+      'kabar-modal-container',
+      'admin-modal-container',
+      'akur-amort-modal-container'
+    ].forEach(id => {
+      const modal = document.getElementById(id);
+      if (modal) modal.innerHTML = '';
+    });
   }
 
   renderUnauthorized(appName) {
