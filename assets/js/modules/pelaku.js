@@ -2241,8 +2241,8 @@ window.PelakuModule = {
 
     let grade = 'GRADE A (SEHAT & SANGAT LAYAK)';
     let gradeCls = 'bg-emerald-100 text-emerald-800 border-emerald-300';
-    let summaryText = 'Profil rekanan sangat prima, memenuhi standar underwriting RAC likuiditas, solvabilitas dan kapasitas Askrindo.';
-    let narrative = 'Rekanan memenuhi standar RAC dan kriteria underwriting 5C. Sangat layak diberikan persetujuan penjaminan kredit & surety bond.';
+    let summaryText = 'Profil Principal sangat prima, memenuhi standar underwriting RAC likuiditas, solvabilitas dan kapasitas Askrindo.';
+    let narrative = 'Principal memenuhi standar RAC dan kriteria underwriting. Sangat layak diberikan persetujuan penjaminan kredit & suretyship.';
 
     if (score < 50) {
       grade = 'GRADE D (RISIKO TINGGI / PERTIMBANGAN KHUSUS)';
@@ -2257,7 +2257,7 @@ window.PelakuModule = {
     } else if (score < 80) {
       grade = 'GRADE B (SEHAT STANDAR / LAYAK)';
       gradeCls = 'bg-blue-100 text-blue-800 border-blue-300';
-      summaryText = 'Profil rekanan memenuhi standar wajar industri dengan indikator likuiditas dan operasional positif.';
+      summaryText = 'Profil Principal memenuhi standar wajar industri dengan indikator likuiditas dan operasional positif.';
       narrative = 'Layak diberikan fasilitas penjaminan dengan syarat dan pemantauan standar komite kredit.';
     }
 
