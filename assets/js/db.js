@@ -413,6 +413,7 @@ class AskrindoDB {
       role: user.role,
       division: user.division,
       branch: user.branch,
+      avatar: user.avatar || DEFAULT_AVATAR,
       status: user.status,
       allowedApps: this.normalizeAllowedApps(user.allowedApps),
       updatedAt: new Date().toISOString()
@@ -441,7 +442,7 @@ class AskrindoDB {
           const normalizedUnit = this.normalizeLegacyUnitKerja(u.division, u.branch);
           u.division = normalizedUnit;
           u.branch = normalizedUnit;
-          u.avatar = DEFAULT_AVATAR;
+          if (!u.avatar) u.avatar = DEFAULT_AVATAR;
         });
         localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
 
@@ -449,7 +450,7 @@ class AskrindoDB {
         const sess = this.getCurrentSession();
         if (sess) {
           let sessUpdated = false;
-          if (sess.avatar !== DEFAULT_AVATAR) {
+          if (!sess.avatar) {
             sess.avatar = DEFAULT_AVATAR;
             sessUpdated = true;
           }
@@ -567,7 +568,7 @@ class AskrindoDB {
             role: this.normalizeLegacyRole(ov?.role || u.role),
             division: this.normalizeLegacyUnitKerja(ov?.division || u.division, ov?.branch || u.branch),
             branch: this.normalizeLegacyUnitKerja(ov?.division || u.division, ov?.branch || u.branch),
-            avatar: DEFAULT_AVATAR,
+            avatar: ov?.avatar || u.avatar || DEFAULT_AVATAR,
             allowedApps: resolvedAllowed,
             status: ov?.status || u.status || 'active',
             createdAt: u.created_at,
@@ -581,7 +582,7 @@ class AskrindoDB {
           if (!exists) {
             mappedUsers.push({
               ...lu,
-              avatar: DEFAULT_AVATAR,
+              avatar: lu.avatar || DEFAULT_AVATAR,
               allowedApps: this.normalizeAllowedApps(lu.allowedApps)
             });
           }
@@ -668,13 +669,16 @@ class AskrindoDB {
   getUsers() {
     try {
       const users = JSON.parse(localStorage.getItem(DB_KEYS.USERS)) || [];
-      return users.map(u => ({ ...u, avatar: DEFAULT_AVATAR }));
+      return users.map(u => ({ ...u, avatar: u.avatar || DEFAULT_AVATAR }));
     } catch (e) {
       return INITIAL_USERS;
     }
   }
 
   getUserAvatar(user) {
+    if (user && typeof user.avatar === 'string' && user.avatar.trim()) {
+      return user.avatar.trim();
+    }
     return DEFAULT_AVATAR;
   }
 
@@ -849,7 +853,7 @@ class AskrindoDB {
         users[index] = {
           ...users[index],
           ...normalizedPayload,
-          avatar: DEFAULT_AVATAR,
+          avatar: normalizedPayload.avatar || users[index].avatar || DEFAULT_AVATAR,
           allowedApps: this.normalizeAllowedApps(normalizedPayload.allowedApps || users[index].allowedApps)
         };
         targetUser = users[index];
@@ -865,7 +869,7 @@ class AskrindoDB {
         ...normalizedPayload,
         allowedApps: this.normalizeAllowedApps(normalizedPayload.allowedApps)
       };
-      targetUser.avatar = DEFAULT_AVATAR;
+      if (!targetUser.avatar) targetUser.avatar = DEFAULT_AVATAR;
       users.push(targetUser);
     }
     localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
@@ -958,6 +962,78 @@ class AskrindoDB {
     return false;
   }
 
+  async updateUserAvatar(userId, avatarDataOrNull, blob = null) {
+    const users = this.getUsers();
+    const user = users.find(u => u.id === userId);
+    if (!user) return { success: false, message: 'Pengguna tidak ditemukan.' };
+
+    let finalAvatar = avatarDataOrNull && String(avatarDataOrNull).trim()
+      ? String(avatarDataOrNull).trim()
+      : DEFAULT_AVATAR;
+    let storageMode = finalAvatar === DEFAULT_AVATAR ? 'default' : 'inline';
+
+    // Opsional: unggah ke Supabase Storage bucket 'avatars' jika tersedia & cloud terhubung
+    if (blob && finalAvatar !== DEFAULT_AVATAR && this.supabase && this.cloudStatus === 'connected' && this.supabase.storage) {
+      try {
+        const ext = blob.type === 'image/webp' ? 'webp' : 'jpg';
+        const filePath = `${user.id}.${ext}`;
+        const { error: uploadErr } = await this.supabase.storage
+          .from('avatars')
+          .upload(filePath, blob, { contentType: blob.type || 'image/jpeg', upsert: true });
+        if (!uploadErr) {
+          const { data: pub } = this.supabase.storage.from('avatars').getPublicUrl(filePath);
+          if (pub && pub.publicUrl) {
+            finalAvatar = `${pub.publicUrl}?t=${Date.now()}`;
+            storageMode = 'supabase_storage';
+          }
+        }
+      } catch (e) {
+        // Fallback otomatis ke Data URL terkompresi di users.avatar
+      }
+    }
+
+    user.avatar = finalAvatar;
+    localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
+    this.saveUserOverride(user);
+
+    try {
+      const activeSess = JSON.parse(localStorage.getItem(DB_KEYS.SESSION) || 'null');
+      if (activeSess && (activeSess.id === user.id || (activeSess.nip && String(activeSess.nip).toLowerCase() === String(user.nip).toLowerCase()))) {
+        this.setSession(user);
+      }
+    } catch (e) {}
+
+    if (this.supabase && this.cloudStatus === 'connected') {
+      try {
+        const { error } = await this.supabase.from('users').upsert({
+          id: user.id,
+          nip: user.nip,
+          name: user.name,
+          email: user.email,
+          password: user.password || 'password123',
+          role: user.role,
+          division: user.division,
+          branch: user.branch,
+          avatar: finalAvatar,
+          allowed_apps: user.allowedApps,
+          status: user.status || 'active',
+          last_login: user.lastLogin || new Date().toISOString()
+        });
+        if (error) console.warn('[Supabase Update Avatar Error]:', error);
+      } catch (e) {
+        console.warn('[Supabase Update Avatar Error]:', e);
+      }
+    }
+
+    const actionLabel = finalAvatar === DEFAULT_AVATAR ? 'Reset Foto Profil' : 'Ubah Foto Profil';
+    const actionDesc = finalAvatar === DEFAULT_AVATAR
+      ? `Pengguna ${user.name} (NIP ${user.nip}) mengembalikan foto profil ke default.`
+      : `Pengguna ${user.name} (NIP ${user.nip}) memperbarui foto profil.`;
+    this.logActivity('AUTH', actionLabel, actionDesc, user);
+
+    return { success: true, avatar: finalAvatar, storageMode };
+  }
+
   // --- Session ---
   getCurrentSession() {
     try {
@@ -969,11 +1045,11 @@ class AskrindoDB {
         return {
           ...sess,
           ...latest,
-          avatar: DEFAULT_AVATAR,
+          avatar: latest.avatar || sess.avatar || DEFAULT_AVATAR,
           allowedApps: this.normalizeAllowedApps(latest.allowedApps)
         };
       }
-      sess.avatar = DEFAULT_AVATAR;
+      if (!sess.avatar) sess.avatar = DEFAULT_AVATAR;
       sess.allowedApps = this.normalizeAllowedApps(sess.allowedApps);
       return sess;
     } catch (e) {
@@ -982,7 +1058,7 @@ class AskrindoDB {
   }
 
   setSession(user) {
-    if (user) user.avatar = DEFAULT_AVATAR;
+    if (user && !user.avatar) user.avatar = DEFAULT_AVATAR;
     localStorage.setItem(DB_KEYS.SESSION, JSON.stringify(user));
   }
 

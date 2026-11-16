@@ -241,7 +241,7 @@ class AskrindoApp {
             <!-- Bottom User Profile Card -->
             <div class="p-3 border-t border-slate-200 shrink-0">
               <div class="p-2.5 rounded-2xl bg-slate-50 flex items-center gap-2.5">
-                <img src="${window.DEFAULT_AVATAR || 'assets/images/default-avatar.svg'}" onerror="this.src='assets/images/default-avatar.svg'" alt="${user.name}" class="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0 bg-slate-100" />
+                <img data-user-avatar="${user.id}" src="${window.askrindoDB.getUserAvatar(user)}" onerror="this.src='assets/images/default-avatar.svg'" alt="${user.name}" class="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0 bg-slate-100" />
                 <div class="min-w-0 sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                   <p class="text-xs font-bold text-slate-800 truncate">${user.name}</p>
                   <p class="text-[10px] text-slate-400 truncate">${user.role}</p>
@@ -298,7 +298,7 @@ class AskrindoApp {
                     class="flex items-center gap-2 pl-2 py-0.5 pr-1 border-l border-slate-200 hover:bg-slate-50 rounded-xl transition focus:outline-none cursor-pointer"
                     title="Menu Profil Pengguna"
                   >
-                    <img src="${window.DEFAULT_AVATAR || 'assets/images/default-avatar.svg'}" onerror="this.src='assets/images/default-avatar.svg'" alt="${user.name}" class="w-8 h-8 rounded-full object-cover border border-slate-200 shadow-sm shrink-0 bg-slate-100" />
+                    <img data-user-avatar="${user.id}" src="${window.askrindoDB.getUserAvatar(user)}" onerror="this.src='assets/images/default-avatar.svg'" alt="${user.name}" class="w-8 h-8 rounded-full object-cover border border-slate-200 shadow-sm shrink-0 bg-slate-100" />
                     <div class="hidden sm:block text-left whitespace-nowrap">
                       <p class="text-xs font-bold text-slate-800 leading-tight">${user.name.split(',')[0]}</p>
                       <p class="text-[10px] font-mono text-slate-400">NIP: ${user.nip}</p>
@@ -314,7 +314,7 @@ class AskrindoApp {
                     <!-- Header with user info -->
                     <div class="px-4 py-3 border-b border-slate-100 bg-gradient-to-br from-slate-50 to-orange-50/30 rounded-t-xl">
                       <div class="flex items-start gap-3">
-                        <img src="${window.DEFAULT_AVATAR || 'assets/images/default-avatar.svg'}" onerror="this.src='assets/images/default-avatar.svg'" alt="${user.name}" class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm shrink-0 bg-slate-100" />
+                        <img data-user-avatar="${user.id}" src="${window.askrindoDB.getUserAvatar(user)}" onerror="this.src='assets/images/default-avatar.svg'" alt="${user.name}" class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm shrink-0 bg-slate-100" />
                         <div class="min-w-0 flex-1">
                           <p class="text-xs font-bold text-slate-900 truncate" title="${user.name}">${user.name}</p>
                           <p class="text-[11px] text-slate-600 truncate mt-0.5">${user.role}</p>
@@ -328,6 +328,19 @@ class AskrindoApp {
 
                     <!-- Menu List -->
                     <div class="p-1.5 space-y-1">
+                      <button 
+                        onclick="window.askrindoApp.showChangeAvatarModal(); window.askrindoApp.closeProfileMenu();" 
+                        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 transition text-left group cursor-pointer"
+                      >
+                        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition">
+                          <i data-lucide="camera" class="w-4 h-4"></i>
+                        </div>
+                        <div class="min-w-0">
+                          <p class="font-bold text-slate-800 group-hover:text-blue-600">Ubah Foto Profil</p>
+                          <p class="text-[10px] text-slate-400 font-normal">Unggah foto baru atau reset ke default</p>
+                        </div>
+                      </button>
+
                       <button 
                         onclick="window.askrindoApp.showChangePasswordModal(); window.askrindoApp.closeProfileMenu();" 
                         class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50 transition text-left group cursor-pointer"
@@ -982,6 +995,193 @@ class AskrindoApp {
     const chevron = document.getElementById('profile-chevron');
     if (menu) menu.classList.add('hidden');
     if (chevron) chevron.style.transform = 'rotate(0deg)';
+  }
+
+  showChangeAvatarModal() {
+    const modal = document.getElementById('global-modal-container');
+    if (!modal) return;
+
+    const user = window.authService.getCurrentUser();
+    if (!user) return;
+
+    const currentAvatar = window.askrindoDB.getUserAvatar(user);
+    const isDefault = currentAvatar === (window.DEFAULT_AVATAR || 'assets/images/default-avatar.svg');
+    this._pendingAvatarDataUrl = null;
+    this._pendingAvatarBlob = null;
+
+    modal.innerHTML = `
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+          <!-- Header -->
+          <div class="flex items-center justify-between border-b pb-3 border-slate-100">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                <i data-lucide="camera" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-slate-800">Ubah Foto Profil</h3>
+                <p class="text-[11px] text-slate-400">Pengguna: ${user.name.split(',')[0]} (NIP: ${user.nip})</p>
+              </div>
+            </div>
+            <button onclick="window.askrindoApp.closeAllModals()" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+
+          <!-- Preview -->
+          <div class="flex flex-col items-center gap-3 py-2">
+            <div class="relative">
+              <img id="avatar-modal-preview" src="${currentAvatar}" onerror="this.src='assets/images/default-avatar.svg'" alt="${user.name}" class="w-24 h-24 rounded-full object-cover border-4 border-slate-100 shadow-md bg-slate-100" />
+            </div>
+            <span id="avatar-modal-status" class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${isDefault ? 'bg-slate-100 text-slate-600' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}">
+              ${isDefault ? 'Menggunakan Foto Default' : 'Foto Profil Kustom Aktif'}
+            </span>
+          </div>
+
+          <!-- File Picker -->
+          <label class="block border-2 border-dashed border-slate-300 hover:border-blue-500 hover:bg-blue-50/40 rounded-2xl p-4 text-center cursor-pointer transition">
+            <input type="file" id="avatar-file-input" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="window.askrindoApp.handleAvatarFileSelect(this)" />
+            <div class="flex flex-col items-center gap-1.5 text-xs">
+              <i data-lucide="upload-cloud" class="w-6 h-6 text-blue-500"></i>
+              <span class="font-bold text-slate-700">Pilih Foto Baru (JPG / PNG / WEBP)</span>
+              <span class="text-[10px] text-slate-400">Otomatis dipotong persegi &amp; dikompresi agar ringan</span>
+            </div>
+          </label>
+
+          <!-- Alert -->
+          <div id="avatar-modal-alert" class="hidden p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
+            <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 text-rose-500"></i>
+            <span id="avatar-modal-alert-text"></span>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 border-t border-slate-100">
+            ${!isDefault ? `
+              <button type="button" onclick="window.askrindoApp.resetProfileAvatar()" class="w-full sm:w-auto px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 transition cursor-pointer">
+                Reset ke Default
+              </button>
+            ` : `<span></span>`}
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <button type="button" onclick="window.askrindoApp.closeAllModals()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition cursor-pointer">
+                Batal
+              </button>
+              <button type="button" id="btn-save-avatar" onclick="window.askrindoApp.saveProfileAvatar()" disabled class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-md shadow-blue-500/20 transition cursor-pointer">
+                Simpan Foto
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  handleAvatarFileSelect(input) {
+    const file = input && input.files && input.files[0];
+    if (!file) return;
+
+    const alertBox = document.getElementById('avatar-modal-alert');
+    const alertText = document.getElementById('avatar-modal-alert-text');
+    const showErr = (msg) => {
+      if (alertBox && alertText) {
+        alertText.textContent = msg;
+        alertBox.classList.remove('hidden');
+      }
+    };
+    if (alertBox) alertBox.classList.add('hidden');
+
+    if (!/^image\/(jpeg|png|webp)$/i.test(file.type)) {
+      showErr('Format file harus berupa JPG, PNG, atau WEBP.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showErr('Ukuran file maksimal 5 MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const size = 256;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        // Center-crop ke persegi
+        const minDim = Math.min(img.width, img.height);
+        const sx = (img.width - minDim) / 2;
+        const sy = (img.height - minDim) / 2;
+        ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        this._pendingAvatarDataUrl = dataUrl;
+        canvas.toBlob((blob) => {
+          this._pendingAvatarBlob = blob;
+        }, 'image/jpeg', 0.82);
+
+        const prev = document.getElementById('avatar-modal-preview');
+        if (prev) prev.src = dataUrl;
+        const statusEl = document.getElementById('avatar-modal-status');
+        if (statusEl) {
+          statusEl.textContent = 'Siap disimpan (256×256 px terkompresi)';
+          statusEl.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200';
+        }
+        const saveBtn = document.getElementById('btn-save-avatar');
+        if (saveBtn) saveBtn.disabled = false;
+      };
+      img.onerror = () => showErr('Gagal membaca berkas gambar.');
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async saveProfileAvatar() {
+    const user = window.authService.getCurrentUser();
+    if (!user || !this._pendingAvatarDataUrl) return;
+
+    const btn = document.getElementById('btn-save-avatar');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+    }
+
+    const res = await window.askrindoDB.updateUserAvatar(user.id, this._pendingAvatarDataUrl, this._pendingAvatarBlob);
+    if (res && res.success) {
+      this.refreshAvatarElements(user.id, res.avatar);
+      this.closeAllModals();
+      this.showToast('Foto profil berhasil diperbarui!', 'success');
+      if (window.location.hash === '#/admin') {
+        this.renderCurrentRoute();
+      }
+    } else {
+      this.showToast(res?.message || 'Gagal memperbarui foto profil.', 'error');
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Simpan Foto';
+      }
+    }
+  }
+
+  async resetProfileAvatar() {
+    const user = window.authService.getCurrentUser();
+    if (!user) return;
+    const res = await window.askrindoDB.updateUserAvatar(user.id, null);
+    if (res && res.success) {
+      this.refreshAvatarElements(user.id, res.avatar);
+      this.closeAllModals();
+      this.showToast('Foto profil dikembalikan ke default.', 'info');
+      if (window.location.hash === '#/admin') {
+        this.renderCurrentRoute();
+      }
+    }
+  }
+
+  refreshAvatarElements(userId, avatarSrc) {
+    document.querySelectorAll(`img[data-user-avatar="${userId}"]`).forEach(img => {
+      img.src = avatarSrc;
+    });
   }
 
   showChangePasswordModal() {
