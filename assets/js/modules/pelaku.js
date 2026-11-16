@@ -2943,32 +2943,47 @@ window.PelakuModule = {
 
   renderNewAnalysisFileList() {
     const list = document.getElementById('modal_new_fileList');
+    const btn = document.getElementById('btn_submit_ai_ocr');
     const btnText = document.getElementById('btn_submit_ai_ocr_text');
+    const dropzone = document.getElementById('modal_new_dropzone');
     if (!list) return;
+
+    if (btn) {
+      btn.disabled = false;
+      btn.classList.remove('opacity-60', 'cursor-wait');
+    }
 
     if (this.selectedAiFinFiles.length === 0) {
       list.innerHTML = '';
       if (btnText) btnText.textContent = 'Pindai AI OCR Vision';
+      if (dropzone) {
+        dropzone.classList.remove('p-2');
+        dropzone.classList.add('p-3.5');
+      }
       return;
     }
 
     if (btnText) btnText.textContent = `Pindai ${this.selectedAiFinFiles.length} Berkas (AI OCR)`;
+    if (dropzone) {
+      dropzone.classList.remove('p-3.5');
+      dropzone.classList.add('p-2');
+    }
 
     list.innerHTML = `
-      <div class="p-3 bg-purple-50/50 rounded-2xl border border-purple-200/80 space-y-2">
-        <div class="flex items-center justify-between text-slate-700 font-bold">
+      <div class="p-2.5 bg-purple-50/50 rounded-xl border border-purple-200/80 space-y-1.5">
+        <div class="flex items-center justify-between text-slate-700 font-bold text-[11px]">
           <span>Berkas Terlampir (${this.selectedAiFinFiles.length}):</span>
           <span class="text-purple-700 font-mono text-[10px]">Total: ${(this.selectedAiFinFiles.reduce((acc, f) => acc + f.size, 0) / (1024 * 1024)).toFixed(2)} MB</span>
         </div>
-        <div class="space-y-1.5 max-h-32 overflow-y-auto">
+        <div class="space-y-1 max-h-24 overflow-y-auto">
           ${this.selectedAiFinFiles.map((f, i) => `
-            <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-purple-100 text-xs shadow-xs">
+            <div class="flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-white border border-purple-100 text-xs shadow-xs">
               <div class="flex items-center gap-2 truncate">
-                <i data-lucide="${f.type.includes('pdf') ? 'file-text' : 'image'}" class="w-4 h-4 text-purple-600 shrink-0"></i>
-                <span class="truncate font-medium text-slate-800">${this.escapeHtml(f.name)}</span>
+                <i data-lucide="${(f.type || '').includes('pdf') || (f.name || '').toLowerCase().endsWith('.pdf') ? 'file-text' : 'image'}" class="w-3.5 h-3.5 text-purple-600 shrink-0"></i>
+                <span class="truncate font-medium text-slate-800 text-[11px]">${this.escapeHtml(f.name)}</span>
                 <span class="text-[10px] text-slate-400 shrink-0 font-mono">(${(f.size / 1024).toFixed(1)} KB)</span>
               </div>
-              <button type="button" onclick="window.PelakuModule.removeNewAnalysisFile(${i})" class="text-slate-400 hover:text-rose-600 p-1 transition" title="Hapus berkas">
+              <button type="button" onclick="window.PelakuModule.removeNewAnalysisFile(${i})" class="text-slate-400 hover:text-rose-600 p-0.5 transition" title="Hapus berkas">
                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
               </button>
             </div>
@@ -4520,10 +4535,18 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64Data = reader.result.split(',')[1];
+        const ext = (file.name || '').toLowerCase();
+        let mimeType = file.type;
+        if (!mimeType) {
+          if (ext.endsWith('.pdf')) mimeType = 'application/pdf';
+          else if (ext.endsWith('.png')) mimeType = 'image/png';
+          else if (ext.endsWith('.webp')) mimeType = 'image/webp';
+          else mimeType = 'image/jpeg';
+        }
         resolve({
           inlineData: {
             data: base64Data,
-            mimeType: file.type || 'application/pdf'
+            mimeType
           }
         });
       };
@@ -4544,18 +4567,36 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
       return;
     }
 
-    const y1 = parseInt(document.getElementById('modal_new_year1')?.value || document.getElementById('aiFinTargetYear1')?.value) || 2024;
-    const y2 = parseInt(document.getElementById('modal_new_year2')?.value || document.getElementById('aiFinTargetYear2')?.value) || 2025;
+    const rawY1 = (document.getElementById('modal_new_year1')?.value || document.getElementById('aiFinTargetYear1')?.value || '').trim();
+    const rawY2 = (document.getElementById('modal_new_year2')?.value || document.getElementById('aiFinTargetYear2')?.value || '').trim();
+    let y1 = parseInt(rawY1, 10);
+    let y2 = parseInt(rawY2, 10);
+    if (!y1 && y2) y1 = y2 - 1;
+    if (y1 && !y2) y2 = y1 + 1;
+    if (!y1 && !y2) {
+      y1 = 2024;
+      y2 = 2025;
+    }
 
     const pBox = document.getElementById('modal_new_progressBox') || document.getElementById('aiFinProgressBox');
     const pBar = document.getElementById('modal_new_progressBar') || document.getElementById('aiFinProgressBar');
     const pPct = document.getElementById('modal_new_progressPct') || document.getElementById('aiFinProgressPct');
     const pTxt = document.getElementById('modal_new_progressText') || document.getElementById('aiFinProgressText');
     const btn = document.getElementById('btn_submit_ai_ocr') || document.getElementById('btnStartAiFinExtraction');
+    const btnText = document.getElementById('btn_submit_ai_ocr_text');
     const btnManual = document.getElementById('btn_submit_manual');
 
-    if (pBox) pBox.classList.remove('hidden');
-    if (btn) btn.disabled = true;
+    if (pBox) {
+      pBox.classList.remove('hidden');
+      try { pBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {}
+    }
+    if (btn) {
+      btn.disabled = true;
+      btn.classList.add('opacity-60', 'cursor-wait');
+    }
+    if (btnText) {
+      btnText.textContent = 'Memindai Berkas (AI OCR)...';
+    }
     if (btnManual) btnManual.disabled = true;
 
     const setProgress = (pct, msg) => {
@@ -4570,13 +4611,14 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
 
       setProgress(45, 'Menghubungkan ke Google Gemini Multimodal Vision API...');
 
+      const fileNamesHint = this.selectedAiFinFiles.map((f, idx) => `Berkas ${idx + 1}: ${f.name}`).join(', ');
       const promptText = `
 Anda adalah seorang Senior Underwriter, Akuntan Publik, dan Analis Finansial Spesialis Pemindaian Dokumen Keuangan PT Asuransi Kredit Indonesia (Askrindo).
-Tugas Anda adalah membaca dan mengekstrak data Laporan Keuangan (Neraca & Laporan Laba Rugi) dari berkas dokumen/gambar terlampir secara teliti, objektif, dan presisi.
+Tugas Anda adalah membaca dan mengekstrak data Laporan Keuangan (Neraca & Laporan Laba Rugi) dari berkas dokumen/gambar terlampir (${fileNamesHint}) secara teliti, objektif, dan presisi.
 
 TARGET TAHUN BUKU:
-- Tahun 1 (Tahun Sebelumnya): ${y1}
-- Tahun 2 (Tahun Terakhir / Berjalan): ${y2}
+- Tahun 1 (Tahun Sebelumnya): ${y1} (atau tahun lebih awal yang tertera pada dokumen jika dokumen memuat tahun berbeda)
+- Tahun 2 (Tahun Terakhir / Berjalan): ${y2} (atau tahun terbaru yang tertera pada dokumen)
 
 ATURAN AKUNTANSI STANDAR INDONESIA:
 1. DETEKSI FORMAT ANGKA:
@@ -4632,16 +4674,25 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
 
       setProgress(65, 'Menganalisis pos-pos neraca & laba rugi dengan Gemini Vision...');
 
-      const candidateModels = ['gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
+      const candidateModels = [
+        'gemini-3-flash-preview',
+        'gemini-flash-lite-latest',
+        'gemini-3.1-flash-lite',
+        'gemini-3.8-flash'
+      ];
       let response = null;
       let usedModel = '';
+      let lastApiErr = '';
 
       for (const m of candidateModels) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
         try {
           const url = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`;
           const res = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
             body: JSON.stringify({
               contents,
               generationConfig: {
@@ -4651,19 +4702,26 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
               }
             })
           });
+          clearTimeout(timeoutId);
 
           if (res.ok) {
             response = await res.json();
             usedModel = m;
             break;
+          } else {
+            const errJson = await res.json().catch(() => ({}));
+            lastApiErr = errJson?.error?.message || `HTTP ${res.status}`;
+            console.warn(`Model ${m} mengembalikan status ${res.status}:`, lastApiErr);
           }
         } catch (err) {
+          clearTimeout(timeoutId);
+          lastApiErr = err.name === 'AbortError' ? `Timeout pada model ${m}` : err.message;
           console.warn(`Gagal memanggil model ${m}:`, err);
         }
       }
 
       if (!response) {
-        throw new Error('Gagal menghubungi Gemini Vision API. Periksa kuota API Anda.');
+        throw new Error(lastApiErr || 'Gagal menghubungi Gemini Vision API. Silakan coba lagi.');
       }
 
       setProgress(85, 'Memverifikasi dan merekonsiliasi saldo akuntansi...');
@@ -4689,12 +4747,20 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
       
       setTimeout(() => {
         this.renderAiFinReviewTable();
-      }, 500);
+      }, 300);
 
     } catch (err) {
       console.error(err);
       if (pBox) pBox.classList.add('hidden');
-      if (btn) btn.disabled = false;
+      if (btn) {
+        btn.disabled = false;
+        btn.classList.remove('opacity-60', 'cursor-wait');
+      }
+      if (btnText) {
+        btnText.textContent = this.selectedAiFinFiles.length > 0
+          ? `Pindai ${this.selectedAiFinFiles.length} Berkas (AI OCR)`
+          : 'Pindai AI OCR Vision';
+      }
       if (btnManual) btnManual.disabled = false;
       window.askrindoApp.showToast(`Ekstraksi gagal: ${err.message}`, 'error');
     }
