@@ -1629,14 +1629,6 @@ class AskrindoDB {
       });
     }
   }
-
-  // Reset to Factory Default
-  resetAll() {
-    localStorage.setItem(DB_KEYS.USERS, JSON.stringify(INITIAL_USERS));
-    localStorage.setItem(DB_KEYS.SPPA, JSON.stringify(INITIAL_SPPA));
-    localStorage.setItem(DB_KEYS.AUDIT, JSON.stringify(INITIAL_AUDIT));
-    this.clearSession();
-  }
 }
 
 // Global Export

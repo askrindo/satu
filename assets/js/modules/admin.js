@@ -79,9 +79,6 @@ window.AdminModule = {
               <i data-lucide="user-plus" class="w-4 h-4"></i>
               <span>Tambah User Baru</span>
             </button>
-            <button onclick="window.AdminModule.resetDefaultData()" title="Reset ke Data Bawaan" class="p-2.5 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 border border-slate-200 transition-colors">
-              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
-            </button>
           </div>
         </div>
 
@@ -460,18 +457,14 @@ window.AdminModule = {
         </div>
 
         <div class="pt-6 border-t border-slate-200 space-y-3">
-          <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Pemulihan & Backup Basis Data</h3>
+          <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Backup Basis Data</h3>
           <p class="text-xs text-slate-500">
-            Anda dapat mengekspor seluruh data simulasi SPPA, pengguna, dan audit log ke berkas JSON atau mengembalikan data ke bawaan pabrik.
+            Anda dapat mengekspor seluruh data simulasi SPPA, pengguna, dan audit log ke berkas JSON.
           </p>
           <div class="flex items-center gap-3 pt-1">
             <button onclick="window.AdminModule.exportBackupJson()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition flex items-center gap-1.5">
               <i data-lucide="download" class="w-4 h-4"></i>
               <span>Download Backup Data JSON</span>
-            </button>
-            <button onclick="window.AdminModule.resetDefaultData()" class="px-4 py-2 rounded-xl text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition flex items-center gap-1.5">
-              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-              <span>Reset Semua Data</span>
             </button>
           </div>
         </div>
@@ -820,14 +813,5 @@ window.AdminModule = {
     link.click();
     document.body.removeChild(link);
     window.askrindoApp.showToast('Log audit berhasil diekspor ke CSV.', 'success');
-  },
-
-  resetDefaultData() {
-    if (confirm('Apakah Anda yakin ingin mengembalikan semua data pengguna, SPPA, dan audit log ke kondisi awal (default)?')) {
-      window.askrindoDB.resetAll();
-      window.askrindoApp.showToast('Data sistem telah direset ke bawaan awal.', 'info');
-      window.location.hash = '#/dashboard';
-      location.reload();
-    }
   }
 };
