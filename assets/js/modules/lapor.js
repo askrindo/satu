@@ -758,41 +758,41 @@ window.LaporModule = {
       : this.formatNumberWithDots(ws.projectVal, false);
 
     return `
-      <div class="space-y-6 animate-fadeIn">
-        <div class="lapor-screen-content space-y-6">
+      <div class="${this.currentTab === 'archive' ? 'space-y-3.5' : 'space-y-6'} animate-fadeIn">
+        <div class="lapor-screen-content ${this.currentTab === 'archive' ? 'space-y-3.5' : 'space-y-6'}">
         <!-- Module Header with Tabs & Actions -->
-        <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 border-l-4 border-l-purple-600">
-          <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-purple-700 to-indigo-500 text-white flex items-center justify-center shadow-md shadow-purple-500/20 shrink-0">
-                <i data-lucide="calculator" class="w-6 h-6"></i>
+        <div class="bg-white ${this.currentTab === 'archive' ? 'p-3.5 sm:px-5 sm:py-3.5' : 'p-5 sm:p-6'} rounded-2xl border border-slate-200/80 shadow-sm border-l-4 border-l-purple-600">
+          <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+            <div class="flex items-center gap-3.5 min-w-0">
+              <div class="${this.currentTab === 'archive' ? 'w-10 h-10' : 'w-12 h-12'} rounded-xl bg-gradient-to-tr from-purple-700 to-indigo-500 text-white flex items-center justify-center shadow-md shadow-purple-500/20 shrink-0">
+                <i data-lucide="calculator" class="${this.currentTab === 'archive' ? 'w-5 h-5' : 'w-6 h-6'}"></i>
               </div>
-              <div>
+              <div class="min-w-0">
                 <div class="flex items-center gap-2 flex-wrap">
-                  <h1 class="text-2xl font-black text-slate-800 tracking-tight">LAPOR</h1>
-                  <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200">
+                  <h1 class="${this.currentTab === 'archive' ? 'text-xl' : 'text-2xl'} font-black text-slate-800 tracking-tight">LAPOR</h1>
+                  <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
                     Layanan Analisis dan Perhitungan Rasio Keuangan
                   </span>
                   <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm flex items-center gap-1">
                     <i data-lucide="sparkles" class="w-3 h-3"></i> AI OCR Vision
                   </span>
                 </div>
-                <p class="text-xs text-slate-500 mt-0.5">
+                <p class="text-[11px] text-slate-500 mt-0.5 truncate">
                   Layanan Analisis dan Perhitungan Rasio Keuangan berbasis AI OCR dengan 27 parameter rasio finansial secara otomatis
                 </p>
               </div>
             </div>
 
             <!-- Navigation Tabs & Workspace Quick Actions -->
-            <div class="flex items-center gap-2 flex-wrap">
+            <div class="flex items-center gap-2 flex-wrap xl:flex-nowrap shrink-0">
               <!-- Mode Tabs -->
               <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
-                <button onclick="window.LaporModule.setTab('archive')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${this.currentTab === 'archive' ? 'bg-purple-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}">
+                <button onclick="window.LaporModule.setTab('archive')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${this.currentTab === 'archive' ? 'bg-purple-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}">
                   <i data-lucide="folder-archive" class="w-3.5 h-3.5"></i>
                   <span>Daftar Proyek</span>
                   <span id="lapor-archive-count-badge" class="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${this.currentTab === 'archive' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-800'}">${savedCount}</span>
                 </button>
-                <button onclick="window.LaporModule.setTab('workspace')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${this.currentTab === 'workspace' ? 'bg-purple-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}">
+                <button onclick="window.LaporModule.setTab('workspace')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${this.currentTab === 'workspace' ? 'bg-purple-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}">
                   <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
                   <span>Lembar Analisa</span>
                 </button>
@@ -819,7 +819,7 @@ window.LaporModule = {
                   Kosongkan
                 </button>
               ` : `
-                <button onclick="window.LaporModule.openNewAnalysisModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 shadow-md shadow-purple-500/20 transition flex items-center gap-1.5">
+                <button onclick="window.LaporModule.openNewAnalysisModal()" class="px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 shadow-md shadow-purple-500/20 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
                   <i data-lucide="plus-circle" class="w-4 h-4"></i>
                   <span>+ Buat Analisa Baru</span>
                 </button>
@@ -4364,30 +4364,29 @@ CREATE POLICY "Allow public all access on lapor_analyses" ON public.lapor_analys
       const allPass = Number(item.racFailCount) === 0;
       return `
         <tr class="hover:bg-slate-50/80 transition">
-          <td class="py-3.5 px-4">
+          <td class="py-2.5 px-3.5">
             <div class="flex items-center gap-1.5 flex-wrap">
               <span class="font-bold text-slate-800 text-xs">${this.escapeHtml(item.companyName)}</span>
             </div>
-            <span class="inline-block mt-1 px-2 py-0.5 rounded bg-purple-50 text-purple-800 border border-purple-200 font-mono text-[10px] font-bold">
+            <span class="inline-block mt-0.5 px-2 py-0.5 rounded bg-purple-50 text-purple-800 border border-purple-200 font-mono text-[10px] font-bold">
               ID: ${this.escapeHtml(item.id)}
             </span>
             <span class="block text-[10px] text-slate-400 mt-0.5 capitalize">
               ${this.escapeHtml(this.sectorLabel(item.sector))} &bull; ${item.auditStatus === 'audited' ? 'Audited KAP' : 'Unaudited'}
             </span>
           </td>
-          <td class="py-3.5 px-4">
+          <td class="py-2.5 px-3.5">
             <span class="font-bold text-slate-800 font-mono">Th ${item.years && item.years.length !== 2 ? this.escapeHtml(item.years.join(', ')) : (this.escapeHtml(item.year1) + ' &ndash; ' + this.escapeHtml(item.year2))}</span>
-            <button onclick="window.LaporModule.openCompanySnapshotsModal('${this.escapeHtml(item.id)}')" class="mt-1 flex items-center gap-1 text-[10px] font-bold text-indigo-700 hover:underline">
+            <button onclick="window.LaporModule.openCompanySnapshotsModal('${this.escapeHtml(item.id)}')" class="mt-0.5 flex items-center gap-1 text-[10px] font-bold text-indigo-700 hover:underline">
               <i data-lucide="history" class="w-3 h-3"></i>
               <span>${snapCount} Riwayat Periode</span>
             </button>
           </td>
-          <td class="py-3.5 px-4">
+          <td class="py-2.5 px-3.5">
             <span class="font-mono font-bold text-slate-800">${this.fmtRp(item.projectVal || 0, true)}</span>
-            <span class="block text-[10px] text-slate-500 mt-0.5">Aset: ${this.fmtRp(m.ta2 || 0, true)}</span>
-            <span class="block text-[10px] text-slate-500">EAT: ${this.fmtRp(m.eat2 || 0, true)}</span>
+            <span class="block text-[10px] text-slate-500 mt-0.5">Aset: ${this.fmtRp(m.ta2 || 0, true)} &bull; EAT: ${this.fmtRp(m.eat2 || 0, true)}</span>
           </td>
-          <td class="py-3.5 px-4">
+          <td class="py-2.5 px-3.5">
             <div class="flex items-center gap-1.5 flex-wrap">
               <span class="px-2 py-0.5 rounded-md text-[10px] font-black ${Number(item.score) >= 80 ? 'bg-emerald-100 text-emerald-800' : (Number(item.score) >= 65 ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800')}">
                 Skor ${Number(item.score || 0).toFixed(1)}
@@ -4396,16 +4395,16 @@ CREATE POLICY "Allow public all access on lapor_analyses" ON public.lapor_analys
                 ${item.racPassCount ?? 0}/${(Number(item.racPassCount) || 0) + (Number(item.racFailCount) || 0) || 6} RAC
               </span>
             </div>
-            <span class="block text-[10px] text-slate-400 mt-1">${this.escapeHtml(item.grade || '-')}</span>
+            <span class="block text-[10px] text-slate-400 mt-0.5">${this.escapeHtml(item.grade || '-')}</span>
           </td>
-          <td class="py-3.5 px-4 text-[11px] text-slate-600">
+          <td class="py-2.5 px-3.5 text-[11px] text-slate-600">
             <span class="font-medium block">${this.formatDateTimeId(item.updatedAt)}</span>
             <span class="text-[10px] text-slate-500 block mt-0.5">Pembuat: <strong class="text-slate-700 font-semibold">${this.escapeHtml(item.createdBy || '-')}</strong></span>
             ${item.updatedBy && item.updatedBy !== item.createdBy ? `
               <span class="text-[10px] text-purple-600 block">Diedit: ${this.escapeHtml(item.updatedBy)}</span>
             ` : ''}
           </td>
-          <td class="py-3.5 px-4 text-right">
+          <td class="py-2.5 px-3.5 text-right">
             <div class="flex items-center justify-end gap-1.5">
               <button onclick="window.LaporModule.loadCompanyAnalysisById('${this.escapeHtml(item.id)}')" class="px-3 py-1.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-[11px] transition flex items-center gap-1 shadow-sm" title="Buka kembali analisa ini">
                 <i data-lucide="folder-open" class="w-3.5 h-3.5"></i>
@@ -4433,111 +4432,111 @@ CREATE POLICY "Allow public all access on lapor_analyses" ON public.lapor_analys
     const cloudStatus = window.askrindoDB?.laporCloudStatus || 'unknown';
 
     return `
-      <div id="lapor-archive-root" class="space-y-6">
+      <div id="lapor-archive-root" class="space-y-3.5">
         <!-- Summary KPI Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
-            <div>
-              <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">${this.archiveScope === 'mine' ? 'Proyek Saya' : 'Perusahaan Tersimpan'}</p>
-              <h4 class="text-2xl font-black text-slate-800">${list.length} <span class="text-xs font-normal text-slate-400">entitas</span></h4>
-              <p class="text-[11px] text-purple-600 font-medium">${this.archiveScope === 'mine' ? 'Analisa yang Anda buat / kontribusikan' : 'Terindeks otomatis by ID Perusahaan'}</p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="bg-white rounded-2xl px-4 py-3 border border-slate-200/80 shadow-sm flex items-center justify-between gap-2">
+            <div class="min-w-0">
+              <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">${this.archiveScope === 'mine' ? 'Proyek Saya' : 'Perusahaan Tersimpan'}</p>
+              <h4 class="text-xl font-black text-slate-800 leading-tight mt-0.5">${list.length} <span class="text-xs font-normal text-slate-400">entitas</span></h4>
+              <p class="text-[10px] text-purple-600 font-medium truncate">${this.archiveScope === 'mine' ? 'Analisa yang Anda buat / kontribusikan' : 'Terindeks otomatis by ID Perusahaan'}</p>
             </div>
-            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
-              <i data-lucide="${this.archiveScope === 'mine' ? 'folder-check' : 'building-2'}" class="w-6 h-6"></i>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
-            <div>
-              <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Lolos Semua Standar RAC</p>
-              <h4 class="text-2xl font-black text-emerald-600">${totalPassAll} <span class="text-xs font-normal text-slate-400">dari ${list.length}</span></h4>
-              <p class="text-[11px] text-slate-500">Memenuhi 6 Indikator RAC Askrindo</p>
-            </div>
-            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <i data-lucide="shield-check" class="w-6 h-6"></i>
+            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+              <i data-lucide="${this.archiveScope === 'mine' ? 'folder-check' : 'building-2'}" class="w-5 h-5"></i>
             </div>
           </div>
 
-          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
-            <div>
-              <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Akumulasi Nilai Proyek</p>
-              <h4 class="text-xl font-black text-slate-800 truncate max-w-[180px]" title="${this.fmtRp(totalProjVal, false)}">${this.fmtRp(totalProjVal, true)}</h4>
-              <p class="text-[11px] text-indigo-600 font-medium">Dasar Evaluasi NWC / Nilai Proyek</p>
+          <div class="bg-white rounded-2xl px-4 py-3 border border-slate-200/80 shadow-sm flex items-center justify-between gap-2">
+            <div class="min-w-0">
+              <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Lolos Semua Standar RAC</p>
+              <h4 class="text-xl font-black text-emerald-600 leading-tight mt-0.5">${totalPassAll} <span class="text-xs font-normal text-slate-400">dari ${list.length}</span></h4>
+              <p class="text-[10px] text-slate-500 truncate">Memenuhi 6 Indikator RAC Askrindo</p>
             </div>
-            <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-              <i data-lucide="briefcase" class="w-6 h-6"></i>
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <i data-lucide="shield-check" class="w-5 h-5"></i>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl px-4 py-3 border border-slate-200/80 shadow-sm flex items-center justify-between gap-2">
+            <div class="min-w-0">
+              <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Akumulasi Nilai Proyek</p>
+              <h4 class="text-xl font-black text-slate-800 leading-tight mt-0.5 truncate max-w-[180px]" title="${this.fmtRp(totalProjVal, false)}">${this.fmtRp(totalProjVal, true)}</h4>
+              <p class="text-[10px] text-indigo-600 font-medium truncate">Dasar Evaluasi NWC / Nilai Proyek</p>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+              <i data-lucide="briefcase" class="w-5 h-5"></i>
             </div>
           </div>
         </div>
 
         <!-- Search, Filter & Backup Toolbar -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs">
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
+        <div class="bg-white px-3 py-2 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-2 text-xs">
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full xl:w-auto">
             <!-- Scope Switcher: Proyek Saya vs Semua Proyek -->
-            <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80 shrink-0">
+            <div class="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200/80 shrink-0">
               <button
                 type="button"
                 onclick="window.LaporModule.setArchiveScope('mine')"
-                class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${this.archiveScope === 'mine' ? 'bg-purple-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
+                class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1 whitespace-nowrap ${this.archiveScope === 'mine' ? 'bg-purple-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
                 title="Tampilkan hanya arsip analisa proyek yang dibuat/disimpan oleh Anda"
               >
-                <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                <i data-lucide="user" class="w-3 h-3"></i>
                 <span>Proyek Saya (${safeUserList.length})</span>
               </button>
               <button
                 type="button"
                 onclick="window.LaporModule.setArchiveScope('all')"
-                class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${this.archiveScope === 'all' ? 'bg-purple-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
+                class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1 whitespace-nowrap ${this.archiveScope === 'all' ? 'bg-purple-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
                 title="Tampilkan seluruh arsip analisa proyek dari semua pengguna"
               >
-                <i data-lucide="globe" class="w-3.5 h-3.5"></i>
+                <i data-lucide="globe" class="w-3 h-3"></i>
                 <span>Semua Proyek (${safeAllList.length})</span>
               </button>
             </div>
 
-            <div class="relative w-full sm:w-64">
-              <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5"></i>
+            <div class="relative w-full sm:w-36 xl:w-40">
+              <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2"></i>
               <input
                 type="text"
                 id="lapor-archive-search"
-                placeholder="Cari Perusahaan, ID, KAP..."
+                placeholder="Cari Perusahaan, ID..."
                 value="${this.escapeHtml(this.archiveSearch)}"
                 oninput="window.LaporModule.setArchiveSearch(this.value)"
-                class="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 text-xs"
+                class="w-full pl-8 pr-2.5 py-1 rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 text-[11px]"
               />
             </div>
           </div>
 
-          <div class="flex items-center gap-2 flex-wrap">
-            <button onclick="window.LaporModule.setArchiveFilter('all')" class="px-3 py-1.5 rounded-xl font-semibold transition ${this.archiveFilter === 'all' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+          <div class="flex items-center gap-1 flex-wrap xl:flex-nowrap shrink-0">
+            <button onclick="window.LaporModule.setArchiveFilter('all')" class="px-2 py-1 rounded-xl text-[11px] font-semibold transition whitespace-nowrap ${this.archiveFilter === 'all' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
               Semua (${list.length})
             </button>
-            <button onclick="window.LaporModule.setArchiveFilter('rac_pass')" class="px-3 py-1.5 rounded-xl font-semibold transition ${this.archiveFilter === 'rac_pass' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+            <button onclick="window.LaporModule.setArchiveFilter('rac_pass')" class="px-2 py-1 rounded-xl text-[11px] font-semibold transition whitespace-nowrap ${this.archiveFilter === 'rac_pass' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
               Lulus RAC (${totalPassAll})
             </button>
-            <button onclick="window.LaporModule.setArchiveFilter('rac_fail')" class="px-3 py-1.5 rounded-xl font-semibold transition ${this.archiveFilter === 'rac_fail' ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+            <button onclick="window.LaporModule.setArchiveFilter('rac_fail')" class="px-2 py-1 rounded-xl text-[11px] font-semibold transition whitespace-nowrap ${this.archiveFilter === 'rac_fail' ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
               Tidak Lulus (${list.length - totalPassAll})
             </button>
 
-            <div class="h-4 w-px bg-slate-200 hidden sm:block mx-1"></div>
+            <div class="h-4 w-px bg-slate-200 hidden sm:block mx-0.5"></div>
 
-            <button onclick="window.LaporModule.exportArchiveJson()" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1" title="Unduh backup JSON proyek yang ditampilkan">
-              <i data-lucide="download" class="w-3.5 h-3.5"></i>
-              <span>Ekspor JSON</span>
+            <button onclick="window.LaporModule.exportArchiveJson()" class="px-2 py-1 rounded-xl text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1 whitespace-nowrap" title="Unduh backup JSON proyek yang ditampilkan">
+              <i data-lucide="download" class="w-3 h-3"></i>
+              <span>Ekspor</span>
             </button>
-            <label class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1 cursor-pointer" title="Muat backup JSON dari perangkat lain">
-              <i data-lucide="upload" class="w-3.5 h-3.5"></i>
-              <span>Impor JSON</span>
+            <label class="px-2 py-1 rounded-xl text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1 cursor-pointer whitespace-nowrap" title="Muat backup JSON dari perangkat lain">
+              <i data-lucide="upload" class="w-3 h-3"></i>
+              <span>Impor</span>
               <input type="file" accept=".json,application/json" class="hidden" onchange="window.LaporModule.handleImportArchiveFile(this)" />
             </label>
             ${cloudStatus === 'missing_table' ? `
-              <button onclick="window.LaporModule.openCloudSqlModal()" class="px-3 py-1.5 rounded-xl font-semibold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition flex items-center gap-1" title="Aktifkan sinkronisasi Cloud Supabase">
-                <i data-lucide="database" class="w-3.5 h-3.5"></i>
-                <span>Setup Cloud SQL</span>
+              <button onclick="window.LaporModule.openCloudSqlModal()" class="px-2 py-1 rounded-xl text-[11px] font-semibold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition flex items-center gap-1 whitespace-nowrap" title="Setup Cloud SQL (Sinkronisasi Supabase)">
+                <i data-lucide="database" class="w-3 h-3"></i>
+                <span>Cloud SQL</span>
               </button>
             ` : (cloudStatus === 'available' ? `
-              <span class="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Cloud Sync Aktif
+              <span class="px-2 py-1 rounded-xl text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 whitespace-nowrap">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Cloud Aktif
               </span>
             ` : '')}
           </div>
@@ -4549,12 +4548,12 @@ CREATE POLICY "Allow public all access on lapor_analyses" ON public.lapor_analys
             <table class="w-full text-left text-xs">
               <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase tracking-wider font-semibold text-[10px]">
                 <tr>
-                  <th class="py-3.5 px-4">Perusahaan &amp; ID Analisa</th>
-                  <th class="py-3.5 px-4">Periode &amp; Riwayat</th>
-                  <th class="py-3.5 px-4">Proyek &amp; Neraca Eval</th>
-                  <th class="py-3.5 px-4">Skor &amp; Kepatuhan RAC</th>
-                  <th class="py-3.5 px-4">Terakhir Disimpan</th>
-                  <th class="py-3.5 px-4 text-right">Aksi</th>
+                  <th class="py-2.5 px-3.5">Perusahaan &amp; ID Analisa</th>
+                  <th class="py-2.5 px-3.5">Periode &amp; Riwayat</th>
+                  <th class="py-2.5 px-3.5">Proyek &amp; Neraca Eval</th>
+                  <th class="py-2.5 px-3.5">Skor &amp; Kepatuhan RAC</th>
+                  <th class="py-2.5 px-3.5">Terakhir Disimpan</th>
+                  <th class="py-2.5 px-3.5 text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody id="lapor-archive-tbody" class="divide-y divide-slate-100">
