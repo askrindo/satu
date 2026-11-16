@@ -2920,6 +2920,7 @@ window.PelakuModule = {
       }
       this.selectedAiFinFiles.push(f);
     });
+    try { input.value = ''; } catch (e) {}
     this.renderNewAnalysisFileList();
   },
 
@@ -3087,14 +3088,15 @@ window.PelakuModule = {
     const compName = (document.getElementById('modal_new_companyName')?.value || '').trim();
     const y1 = (document.getElementById('modal_new_year1')?.value || '').trim();
     const y2 = (document.getElementById('modal_new_year2')?.value || '').trim();
-    const projVal = this.parseFormattedNumber(document.getElementById('modal_new_projectVal')?.value) || 0;
+    const projRaw = (document.getElementById('modal_new_projectVal')?.value || '').trim();
+    const projVal = projRaw ? (this.parseFormattedNumber(projRaw) || 0) : '';
 
     this.modalPreEnteredData = {
       companyName: compName,
       sector: 'konstruksi',
       year1: y1,
       year2: y2,
-      projectVal
+      projectVal: projVal
     };
 
     this.runGeminiFinExtraction();
@@ -3159,7 +3161,7 @@ window.PelakuModule = {
         ...state,
         years: stateYears
       };
-      const main = document.getElementById('app-main') || document.querySelector('main');
+      const main = document.getElementById('main-content') || document.getElementById('app-main') || document.querySelector('main');
       if (main) {
         main.innerHTML = this.render();
         this.updateYearLabels();
@@ -4470,6 +4472,7 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
       }
       this.selectedAiFinFiles.push(f);
     });
+    try { input.value = ''; } catch (e) {}
     this.renderSelectedAiFinFiles();
   },
 
@@ -4686,7 +4689,7 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
 
       for (const m of candidateModels) {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000);
+        const timeoutId = setTimeout(() => controller.abort(), 45000);
         try {
           const url = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`;
           const res = await fetch(url, {
@@ -5152,7 +5155,7 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
       year2: scanY2,
       auditStatus: this.currentExtractedFinData.audit_status === 'audited' ? 'audited' : 'unaudited',
       opinion: this.currentExtractedFinData.auditor_opinion || '-',
-      projectVal: modalProjVal !== undefined && modalProjVal !== '' ? modalProjVal : (this.workspaceState?.projectVal || ''),
+      projectVal: (modalProjVal !== undefined && modalProjVal !== '') ? modalProjVal : (existingBeforeSave?.projectVal || this.workspaceState?.projectVal || ''),
       kapName: this.currentExtractedFinData.auditor_kap_name || '-',
       yearlyData: mergedYearlyData,
       d1: mergedYearlyData[scanY1],
@@ -5173,7 +5176,7 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
     this.closeAiFinUploadModal();
 
     // Re-render table agar seluruh kolom tahun (termasuk tahun baru) langsung muncul berdampingan
-    const main = document.getElementById('app-main') || document.querySelector('main');
+    const main = document.getElementById('main-content') || document.getElementById('app-main') || document.querySelector('main');
     if (main) {
       main.innerHTML = this.render();
       this.updateYearLabels();
