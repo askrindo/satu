@@ -134,11 +134,11 @@ class AskrindoApp {
         <div class="flex flex-1 overflow-hidden">
           <!-- Left Sidebar -->
           <aside id="app-sidebar" class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 transition-all duration-300 z-30 no-print ${this.sidebarCollapsed ? 'sidebar-collapsed' : ''}">
-            <div class="p-3 space-y-3 overflow-y-auto">
+            <div class="p-3.5 space-y-3.5 overflow-y-auto">
               <!-- Sidebar Brand Header -->
               <div class="flex items-center justify-between px-2">
-                <a href="#/dashboard" class="flex items-center gap-2.5 group">
-                  <img src="assets/images/logo-icon.png" alt="A" class="w-8 h-8 object-contain" />
+                <a href="#/dashboard" class="flex items-center gap-3 group">
+                  <img src="assets/images/logo-icon.png" alt="A" class="w-9 h-9 object-contain" />
                   <div class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                     <h2 class="font-extrabold text-[#002B49] text-sm tracking-tight leading-tight flex items-center gap-1.5">
                       <span>ASKRINDO</span>
@@ -150,9 +150,9 @@ class AskrindoApp {
               </div>
 
               <!-- Navigation Links -->
-              <nav class="space-y-2.5 text-xs font-semibold">
+              <nav class="space-y-3 text-xs font-semibold">
                 <!-- Section 1: Utama -->
-                <div class="space-y-0.5">
+                <div class="space-y-1">
                   <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">Portal Utama</p>
                   <a href="#/dashboard" id="nav-dashboard" title="Beranda Terpadu" class="flex items-center gap-3 px-3 py-1.5 rounded-xl transition text-slate-600 hover:text-slate-900 hover:bg-slate-100">
                     <i data-lucide="layout-dashboard" class="w-4 h-4 text-slate-500 shrink-0"></i>
@@ -161,64 +161,64 @@ class AskrindoApp {
                 </div>
 
                 <!-- Section 2: Aplikasi Askrindo SATU -->
-                <div class="space-y-0.5">
+                <div class="space-y-1">
                   <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">Aplikasi-Aplikasi Terpadu</p>
                   
                   <!-- KABAR -->
-                  <a href="#/kabar" id="nav-kabar" title="KABAR (Kalkulator Asuransi Kebakaran)" class="flex items-center justify-between gap-2 px-3 py-1 rounded-xl transition text-slate-600 hover:text-orange-600 hover:bg-orange-50">
-                    <div class="flex items-center gap-2.5 min-w-0">
+                  <a href="#/kabar" id="nav-kabar" title="KABAR (Kalkulator Asuransi Kebakaran)" class="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl transition text-slate-600 hover:text-orange-600 hover:bg-orange-50">
+                    <div class="flex items-center gap-3 min-w-0">
                       <i data-lucide="flame" class="w-4 h-4 text-orange-500 shrink-0"></i>
                       <div class="sidebar-text min-w-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">KABAR</span>
-                        <span class="text-[10px] block font-normal text-slate-400 leading-tight truncate">Kalkulator Asuransi Kebakaran</span>
+                        <span class="text-[10px] block font-normal text-slate-400 leading-snug truncate">Kalkulator Asuransi Kebakaran</span>
                       </div>
                     </div>
                     <span id="nav-badge-kabar" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('kabar') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('kabar') ? 'Aktif' : 'Terkunci'}</span>
                   </a>
 
                   <!-- AKUR -->
-                  <a href="#/akur" id="nav-akur" title="AKUR (Analisis Kredit Usaha Rakyat)" class="flex items-center justify-between gap-2 px-3 py-1 rounded-xl transition text-slate-600 hover:text-blue-600 hover:bg-blue-50">
-                    <div class="flex items-center gap-2.5 min-w-0">
+                  <a href="#/akur" id="nav-akur" title="AKUR (Analisis Kredit Usaha Rakyat)" class="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl transition text-slate-600 hover:text-blue-600 hover:bg-blue-50">
+                    <div class="flex items-center gap-3 min-w-0">
                       <i data-lucide="help-circle" class="w-4 h-4 text-blue-500 shrink-0"></i>
                       <div class="sidebar-text min-w-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">AKUR</span>
-                        <span class="text-[10px] block font-normal text-slate-400 leading-tight truncate">Analisis Kredit Usaha Rakyat</span>
+                        <span class="text-[10px] block font-normal text-slate-400 leading-snug truncate">Analisis Kredit Usaha Rakyat</span>
                       </div>
                     </div>
                     <span id="nav-badge-akur" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('akur') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('akur') ? 'Aktif' : 'Terkunci'}</span>
                   </a>
 
                   <!-- SEDIA -->
-                  <a href="#/sedia" id="nav-sedia" title="SEDIA (Sistem Elektronik Dokumen dan Informasi Asuransi)" class="flex items-center justify-between gap-2 px-3 py-1 rounded-xl transition text-slate-600 hover:text-emerald-600 hover:bg-emerald-50">
-                    <div class="flex items-center gap-2.5 min-w-0">
+                  <a href="#/sedia" id="nav-sedia" title="SEDIA (Sistem Elektronik Dokumen dan Informasi Asuransi)" class="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl transition text-slate-600 hover:text-emerald-600 hover:bg-emerald-50">
+                    <div class="flex items-center gap-3 min-w-0">
                       <i data-lucide="file-text" class="w-4 h-4 text-emerald-500 shrink-0"></i>
                       <div class="sidebar-text min-w-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">SEDIA</span>
-                        <span class="text-[10px] block font-normal text-slate-400 leading-tight truncate">Dokumen & Info Asuransi</span>
+                        <span class="text-[10px] block font-normal text-slate-400 leading-snug truncate">Dokumen &amp; Info Asuransi</span>
                       </div>
                     </div>
                     <span id="nav-badge-sedia" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('sedia') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('sedia') ? 'Aktif' : 'Terkunci'}</span>
                   </a>
 
                   <!-- CEPAT -->
-                  <a href="#/cepat" id="nav-cepat" title="CEPAT (Cover Note Pertanggungan Asuransi Terintegrasi)" class="flex items-center justify-between gap-2 px-3 py-1 rounded-xl transition text-slate-600 hover:text-cyan-600 hover:bg-cyan-50">
-                    <div class="flex items-center gap-2.5 min-w-0">
+                  <a href="#/cepat" id="nav-cepat" title="CEPAT (Cover Note Pertanggungan Asuransi Terintegrasi)" class="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl transition text-slate-600 hover:text-cyan-600 hover:bg-cyan-50">
+                    <div class="flex items-center gap-3 min-w-0">
                       <i data-lucide="file-check-2" class="w-4 h-4 text-cyan-500 shrink-0"></i>
                       <div class="sidebar-text min-w-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">CEPAT</span>
-                        <span class="text-[10px] block font-normal text-slate-400 leading-tight truncate">Cover Note Terintegrasi</span>
+                        <span class="text-[10px] block font-normal text-slate-400 leading-snug truncate">Cover Note Terintegrasi</span>
                       </div>
                     </div>
                     <span id="nav-badge-cepat" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('cepat') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('cepat') ? 'Aktif' : 'Terkunci'}</span>
                   </a>
 
                   <!-- LAPOR -->
-                  <a href="#/lapor" id="nav-lapor" title="LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)" class="flex items-center justify-between gap-2 px-3 py-1 rounded-xl transition text-slate-600 hover:text-purple-600 hover:bg-purple-50">
-                    <div class="flex items-center gap-2.5 min-w-0">
+                  <a href="#/lapor" id="nav-lapor" title="LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)" class="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl transition text-slate-600 hover:text-purple-600 hover:bg-purple-50">
+                    <div class="flex items-center gap-3 min-w-0">
                       <i data-lucide="calculator" class="w-4 h-4 text-purple-500 shrink-0"></i>
                       <div class="sidebar-text min-w-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">LAPOR</span>
-                        <span class="text-[10px] block font-normal text-slate-400 leading-tight truncate">Analisis Rasio Keuangan</span>
+                        <span class="text-[10px] block font-normal text-slate-400 leading-snug truncate">Analisis Rasio Keuangan</span>
                       </div>
                     </div>
                     <span id="nav-badge-lapor" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('lapor') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('lapor') ? 'Aktif' : 'Terkunci'}</span>
@@ -227,8 +227,8 @@ class AskrindoApp {
 
                 <!-- Section 3: Administrasi -->
                 ${canAdmin ? `
-                  <div class="space-y-0.5">
-                    <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">Administrasi & User</p>
+                  <div class="space-y-1">
+                    <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">Administrasi &amp; User</p>
                     <a href="#/admin" id="nav-admin" title="Web Admin Portal" class="flex items-center gap-3 px-3 py-1.5 rounded-xl transition text-slate-600 hover:text-amber-700 hover:bg-amber-50">
                       <i data-lucide="shield-check" class="w-4 h-4 text-amber-500 shrink-0"></i>
                       <span class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">Web Admin Portal</span>
@@ -239,8 +239,8 @@ class AskrindoApp {
             </div>
 
             <!-- Bottom User Profile Card -->
-            <div class="p-2.5 border-t border-slate-200 shrink-0">
-              <div class="p-2 rounded-xl bg-slate-50 flex items-center gap-2.5">
+            <div class="p-3 border-t border-slate-200 shrink-0">
+              <div class="p-2.5 rounded-2xl bg-slate-50 flex items-center gap-2.5">
                 <img src="${window.DEFAULT_AVATAR || 'assets/images/default-avatar.svg'}" onerror="this.src='assets/images/default-avatar.svg'" alt="${user.name}" class="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0 bg-slate-100" />
                 <div class="min-w-0 sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                   <p class="text-xs font-bold text-slate-800 truncate">${user.name}</p>
@@ -253,14 +253,14 @@ class AskrindoApp {
           <!-- Main Layout Column -->
           <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
             <!-- Topbar -->
-            <header id="app-topbar" class="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-slate-200 px-5 py-2 flex items-center justify-between gap-3 no-print">
-              <div class="flex items-center gap-2.5 min-w-0">
-                <button onclick="window.askrindoApp.toggleSidebar()" class="p-1.5 rounded-xl text-slate-500 hover:bg-slate-100 transition shrink-0">
+            <header id="app-topbar" class="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-slate-200 px-6 py-2.5 flex items-center justify-between gap-4 no-print">
+              <div class="flex items-center gap-3 min-w-0">
+                <button onclick="window.askrindoApp.toggleSidebar()" class="p-2 rounded-xl text-slate-500 hover:bg-slate-100 transition shrink-0">
                   <i data-lucide="menu" class="w-5 h-5"></i>
                 </button>
 
                 <!-- Breadcrumb -->
-                <div id="app-breadcrumb" class="hidden sm:flex items-center gap-1.5 text-xs font-medium text-slate-500 min-w-0 whitespace-nowrap">
+                <div id="app-breadcrumb" class="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-500 min-w-0 whitespace-nowrap">
                   <span>Askrindo SATU</span>
                   <span>/</span>
                   <span id="breadcrumb-current" class="text-slate-800 font-bold truncate max-w-[260px] lg:max-w-xs">Beranda</span>
@@ -268,7 +268,7 @@ class AskrindoApp {
               </div>
 
               <!-- Center: Command Palette Trigger Button -->
-              <button onclick="window.askrindoApp.openCommandPalette()" class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-xs text-slate-500 transition w-56 lg:w-64 justify-between shrink-0 whitespace-nowrap">
+              <button onclick="window.askrindoApp.openCommandPalette()" class="hidden md:flex items-center gap-3 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-xs text-slate-500 transition w-64 lg:w-72 justify-between shrink-0 whitespace-nowrap">
                 <div class="flex items-center gap-2">
                   <i data-lucide="search" class="w-3.5 h-3.5 shrink-0"></i>
                   <span>Pencarian Cepat Modul...</span>
@@ -277,17 +277,17 @@ class AskrindoApp {
               </button>
 
               <!-- Right: Alerts, Unit Kerja, User Profile -->
-              <div class="flex items-center gap-2 shrink-0">
+              <div class="flex items-center gap-2.5 shrink-0">
                 <!-- Unit Kerja Pill -->
-                <div class="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-[11px] font-semibold text-slate-700 max-w-[210px]" title="${window.askrindoDB.getUserUnitKerja(user)}">
+                <div class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-[11px] font-semibold text-slate-700 max-w-[230px]" title="${window.askrindoDB.getUserUnitKerja(user)}">
                   <i data-lucide="map-pin" class="w-3.5 h-3.5 text-orange-500 shrink-0"></i>
                   <span class="truncate">${window.askrindoDB.getUserUnitKerja(user)}</span>
                 </div>
 
                 <!-- Notifications Button -->
-                <button onclick="window.askrindoApp.showNotificationsModal()" class="p-1.5 rounded-xl text-slate-500 hover:bg-slate-100 relative transition">
+                <button onclick="window.askrindoApp.showNotificationsModal()" class="p-2 rounded-xl text-slate-500 hover:bg-slate-100 relative transition">
                   <i data-lucide="bell" class="w-5 h-5"></i>
-                  <span class="w-2 h-2 rounded-full bg-orange-500 absolute top-1.5 right-1.5"></span>
+                  <span class="w-2 h-2 rounded-full bg-orange-500 absolute top-2 right-2"></span>
                 </button>
 
                 <!-- Profile Dropdown Trigger & Menu -->
@@ -368,7 +368,7 @@ class AskrindoApp {
             </main>
 
             <!-- Footer -->
-            <footer class="bg-white border-t border-slate-200 py-2.5 px-5 text-center text-xs text-slate-500 no-print flex flex-col sm:flex-row items-center justify-between gap-2">
+            <footer class="bg-white border-t border-slate-200 py-2.5 px-6 text-center text-xs text-slate-500 no-print flex flex-col sm:flex-row items-center justify-between gap-2">
               <div class="flex items-center gap-2">
                 <span class="font-extrabold text-[#002B49]">Askrindo SATU</span>
                 <span>— PT Asuransi Kredit Indonesia</span>
