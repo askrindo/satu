@@ -11,11 +11,11 @@ Aplikasi ini mengadopsi arsitektur modular di mana seluruh sub-aplikasi berada d
 1. **🔐 Login & Autentikasi Multi-Peran**:
    - Sistem Single Sign-On (SSO) internal dengan NIP atau email resmi Askrindo.
    - Sesi terproteksi (*route guard*): Pengguna yang belum login otomatis diarahkan ke halaman login.
-   - *Quick Demo Login*: Tombol akses cepat 1-klik untuk menguji berbagai peran (Super Admin, Underwriter, Account Officer KUR, Marketing, dan Trainee).
+   - *Quick Demo Login*: Tombol akses cepat 1-klik untuk menguji berbagai peran (Super Admin, Underwriter, Relationship Manager, Business Head, dan Branch Support).
 
 2. **🛡️ Portal Web Admin (`#/admin`)**:
    - **Manajemen Pengguna**: Tambah user baru, edit profil/divisi/cabang, aktifkan/nonaktifkan akun, dan hapus user.
-   - **Matriks Hak Akses Sub-Aplikasi (Live Matrix)**: Atur secara spesifik aplikasi mana saja yang boleh diakses oleh tiap pegawai (KABAR, TTK, BUSET, PELAKU, dan Admin) dengan saklar interaktif *real-time*.
+   - **Matriks Hak Akses Sub-Aplikasi (Live Matrix)**: Atur secara spesifik aplikasi mana saja yang boleh diakses oleh tiap pegawai (LAPOR, KABAR, AKUR, SEDIA, CEPAT, dan Admin) dengan saklar interaktif *real-time*.
    - **Audit Trail & Log Aktivitas**: Perekaman jejak seluruh aktivitas (login, kalkulasi premi, penerbitan SPPA, analisis laporan keuangan) untuk kepatuhan tata kelola (*Governance, Risk, and Compliance*).
    - **Backup & Konfigurasi**: Ekspor basis data ke JSON/CSV dan kustomisasi pengumuman *ticker*.
 
@@ -24,16 +24,16 @@ Aplikasi ini mengadopsi arsitektur modular di mana seluruh sub-aplikasi berada d
    - Parameter lengkap: Okupasi (Rumah Tinggal, Ruko, Kantor, Hotel, Pabrik Garmen, Gudang, dll.) & Kelas Konstruksi (1, 2, 3).
    - Komponen TSI: Bangunan, Mesin, Stok Dagangan, dan Perabot.
    - Perluasan Jaminan: RSMDCC 4.1A, Terorisme & Sabotase, Banjir TSFWD, Gempa Bumi EQVET Zona 3, Tertimpa Pesawat, Pembersihan Puing.
-   - Cetak *Slip Penawaran / Quotation PDF* resmi & tombol teruskan langsung ke modul BUSET.
+   - Cetak *Slip Penawaran / Quotation PDF* resmi & tombol teruskan langsung ke modul SEDIA.
 
-4. **💬 TTK (Tanya-Tanya KUR) (`#/ttk`)**:
+4. **💬 AKUR (Analisis Kredit Usaha Rakyat) (`#/akur`)**:
    - Pusat konsultasi dan simulasi penjaminan Kredit Usaha Rakyat (KUR).
    - Kalkulator Angsuran Bulanan untuk skema **KUR Super Mikro** (3%), **KUR Mikro** (6%), dan **KUR Kecil** (6%).
    - Jadwal Amortisasi Angsuran interaktif per bulan & estimasi porsi Imbal Jasa Penjaminan (IJP) Askrindo.
    - Wizard Uji Kelayakan Calon Debitur (Lama usaha, status SLIK/BI Checking, kepemilikan kredit komersial, legalitas NIB/SKU).
    - Pusat Pengetahuan & Aturan Operasional KUR (Permenko Perekonomian).
 
-5. **📄 BUSET (Buat SPPA Elektronik Terpadu) (`#/buset` / `#/bus`)**:
+5. **📄 SEDIA (Sistem Elektronik Dokumen dan Informasi Asuransi) (`#/sedia`)**:
    - Generator Surat Permohonan Penutupan Asuransi digital dengan *wizard* 4 langkah.
    - Mendukung lini produk: Asuransi Kebakaran (FLEXAS/PAR), Kendaraan Bermotor, Penjaminan Kontrak (Surety Bond - Jaminan Pelaksanaan/Uang Muka), Kontra Bank Garansi (KBG), dan KUR.
    - Terintegrasi langsung dengan modul KABAR (data simulasi otomatis masuk).
@@ -45,9 +45,9 @@ Aplikasi ini mengadopsi arsitektur modular di mana seluruh sub-aplikasi berada d
    - Dibuat khusus untuk kebutuhan mendesak penjaminan kredit perbankan (*Banker's Clause QQ Bank Mandiri, BRI, BNI, BTN, BSI, BPD, dll.*) sebelum polis definitif terbit.
    - *Wizard* penerbitan kilat 4 langkah: Data Tertanggung & Bank Rekanan, Objek Risiko & Kalkulator Masa Berlaku (14, 30, 60, 90 hari), Klausula Banker's Clause & Pejabat Berwenang, serta Pratinjau Dokumen.
    - Dokumen formal berstandar Askrindo lengkap dengan Kop Surat resmi, Nomor Registrasi Cover Note unik (`CN/ASK-.../2026/11/...`), stempel digital resmi Askrindo, QR code verifikasi keabsahan, dan tombol cetak/unduh PDF.
-   - Fitur Arsip & Riwayat Cover Note terbit, serta tombol 1-klik konversi Cover Note langsung ke formulir SPPA modul BUSET untuk penerbitan Polis Definitif.
+   - Fitur Arsip & Riwayat Cover Note terbit, serta tombol 1-klik konversi Cover Note langsung ke formulir SPPA modul SEDIA untuk penerbitan Polis Definitif.
 
-7. **📊 PELAKU (Perhitungan Laporan Keuangan) (`#/pelaku`)**:
+7. **📊 LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan) (`#/lapor`)**:
    - Modul analisis rasio keuangan calon debitur atau rekanan penjaminan.
    - **🏛️ Model Finansial 27 Pos Neraca & Laba Rugi Komparatif 2 Tahun Buku (Standar Penuh ASCA)**:
      - Mengadopsi struktur akuntansi komprehensif 27 pos finansial persis seperti aplikasi ASCA:
@@ -109,13 +109,13 @@ Untuk memudahkan pengujian fungsionalitas dan matriks hak akses, Anda dapat meng
 
 | Nama Pengguna | NIP / Email | Peran (Role) | Akses Sub-Aplikasi |
 | :--- | :--- | :--- | :--- |
-| **Ahmad Faisal, S.E.** | `19850101` / `admin.satu@askrindo.co.id` | **Super Administrator** | Akses Penuh: PELAKU (Aktif), Pratinjau KABAR, TTK, BUSET, CEPAT (Segera Hadir), Web Admin |
-| **Budi Santoso, AAIJ** | `19900315` / `budi.santoso@askrindo.co.id` | **Senior Underwriter** | PELAKU (Modul Aktif Operasional) |
-| **Siti Rahmawati, S.E.** | `19940722` / `siti.rahma@askrindo.co.id` | **Account Officer KUR** | PELAKU (Modul Aktif Operasional) |
-| **Dian Permana, S.Kom.** | `19971105` / `dian.permana@askrindo.co.id` | **Marketing Officer** | PELAKU (Modul Aktif Operasional) |
-| **Rizky Pratama** | `20010910` / `rizky.pratama@askrindo.co.id` | **Staff Operasional** | PELAKU (Modul Aktif Operasional) |
+| **Ahmad Faisal, S.E.** | `19850101` / `admin.satu@askrindo.co.id` | **Super Administrator** | Akses Penuh: LAPOR (Aktif), Pratinjau KABAR, AKUR, SEDIA, CEPAT (Segera Hadir), Web Admin |
+| **Budi Santoso, AAIJ** | `19900315` / `budi.santoso@askrindo.co.id` | **Underwriter** | LAPOR (Modul Aktif Operasional) |
+| **Siti Rahmawati, S.E.** | `19940722` / `siti.rahma@askrindo.co.id` | **Relationship Manager** | LAPOR (Modul Aktif Operasional) |
+| **Dian Permana, S.Kom.** | `19971105` / `dian.permana@askrindo.co.id` | **Business Head** | LAPOR (Modul Aktif Operasional) |
+| **Rizky Pratama** | `20010910` / `rizky.pratama@askrindo.co.id` | **Branch Support** | KABAR (Pratinjau) |
 
-> **Tahap Peluncuran Bertahap**: Saat ini modul **PELAKU** telah rilis penuh untuk operasional. Modul **KABAR, TTK, BUSET, CEPAT, dan SURETY** berstatus **Segera Hadir**. Pengguna yang membuka modul tersebut akan diarahkan ke layar informasi Segera Hadir.
+> **Tahap Peluncuran Bertahap**: Saat ini modul **LAPOR** telah rilis penuh untuk operasional. Modul **KABAR, AKUR, SEDIA, CEPAT, dan SURETY** berstatus **Segera Hadir**. Pengguna yang membuka modul tersebut akan diarahkan ke layar informasi Segera Hadir.
 
 ---
 
@@ -142,10 +142,10 @@ G:\My Drive\Personal\Project\ASKRINDO SATU\
     │       ├── dashboard.js        # Modul Beranda Terpadu & launcher aplikasi
     │       ├── admin.js            # Modul Web Admin (kelola user & matriks hak akses)
     │       ├── kabar.js            # Modul Kalkulator Asuransi Kebakaran OJK
-    │       ├── ttk.js              # Modul Tanya-Tanya KUR & cek kelayakan debitur
-    │       ├── bus.js              # Modul BUSET (Buat SPPA Elektronik Terpadu)
+    │       ├── akur.js             # Modul Analisis Kredit Usaha Rakyat & cek kelayakan debitur
+    │       ├── sedia.js            # Modul Sistem Elektronik Dokumen dan Informasi Asuransi (SPPA)
 │       ├── cepat.js            # Modul CEPAT (Cover Note Pertanggungan Asuransi Terintegrasi)
-    │       └── pelaku.js           # Modul Perhitungan Laporan Keuangan & rasio
+    │       └── lapor.js            # Modul Layanan Analisis dan Perhitungan Rasio Keuangan
     └── images\                     # Aset logo resmi Askrindo SATU
         ├── logo-corporate.png
         ├── logo-icon.png

@@ -21,8 +21,8 @@ class AskrindoApp {
     window.addEventListener('askrindo:db-synced', () => {
       if (window.authService) window.authService.init();
       this.updateActiveNavs();
-      if ((this.currentRoute.startsWith('#/lapor') || this.currentRoute.startsWith('#/pelaku')) && window.PelakuModule?.handleDbSynced) {
-        window.PelakuModule.handleDbSynced();
+      if (this.currentRoute.startsWith('#/lapor') && window.LaporModule?.handleDbSynced) {
+        window.LaporModule.handleDbSynced();
       } else {
         this.renderCurrentRoute();
       }
@@ -35,9 +35,9 @@ class AskrindoApp {
         this.openCommandPalette();
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
-        if ((this.currentRoute.startsWith('#/lapor') || this.currentRoute.startsWith('#/pelaku')) && window.PelakuModule?.currentTab === 'workspace') {
+        if (this.currentRoute.startsWith('#/lapor') && window.LaporModule?.currentTab === 'workspace') {
           e.preventDefault();
-          window.PelakuModule.saveCurrentAnalysis();
+          window.LaporModule.saveCurrentAnalysis();
         }
       }
       if (e.key === 'Escape') {
@@ -80,11 +80,21 @@ class AskrindoApp {
       return;
     }
 
+    // Normalize legacy route hashes transparently
+    if (hash.startsWith('#/pelaku')) hash = hash.replace(/^#\/pelaku/, '#/lapor');
+    else if (hash.startsWith('#/ttk')) hash = hash.replace(/^#\/ttk/, '#/akur');
+    else if (hash.startsWith('#/buset')) hash = hash.replace(/^#\/buset/, '#/sedia');
+    else if (hash.startsWith('#/bus')) hash = hash.replace(/^#\/bus/, '#/sedia');
+    if (hash !== (window.location.hash || '#/dashboard')) {
+      window.location.hash = hash;
+      return;
+    }
+
     const prevRoute = this.currentRoute;
     this.currentRoute = hash;
     this.previousRoute = prevRoute;
-    if ((this.currentRoute.startsWith('#/lapor') || this.currentRoute.startsWith('#/pelaku')) && (!prevRoute || (!prevRoute.startsWith('#/lapor') && !prevRoute.startsWith('#/pelaku')))) {
-      if (window.PelakuModule) window.PelakuModule.currentTab = 'archive';
+    if (this.currentRoute.startsWith('#/lapor') && (!prevRoute || !prevRoute.startsWith('#/lapor'))) {
+      if (window.LaporModule) window.LaporModule.currentTab = 'archive';
     }
     this.renderAppShell();
     this.renderCurrentRoute();
@@ -166,7 +176,7 @@ class AskrindoApp {
                     <span id="nav-badge-kabar" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('kabar') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('kabar') ? 'Aktif' : 'Terkunci'}</span>
                   </a>
 
-                  <!-- AKUR (formerly TTK) -->
+                  <!-- AKUR -->
                   <a href="#/akur" id="nav-akur" title="AKUR (Analisis Kredit Usaha Rakyat)" class="flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-blue-600 hover:bg-blue-50">
                     <div class="flex items-center gap-3 min-w-0">
                       <i data-lucide="help-circle" class="w-4 h-4 text-blue-500 shrink-0"></i>
@@ -178,7 +188,7 @@ class AskrindoApp {
                     <span id="nav-badge-akur" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('akur') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('akur') ? 'Aktif' : 'Terkunci'}</span>
                   </a>
 
-                  <!-- SEDIA (formerly BUSET) -->
+                  <!-- SEDIA -->
                   <a href="#/sedia" id="nav-sedia" title="SEDIA (Sistem Elektronik Dokumen dan Informasi Asuransi)" class="flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-emerald-600 hover:bg-emerald-50">
                     <div class="flex items-center gap-3 min-w-0">
                       <i data-lucide="file-text" class="w-4 h-4 text-emerald-500 shrink-0"></i>
@@ -202,7 +212,7 @@ class AskrindoApp {
                     <span id="nav-badge-cepat" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('cepat') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('cepat') ? 'Aktif' : 'Terkunci'}</span>
                   </a>
 
-                  <!-- LAPOR (formerly PELAKU) -->
+                  <!-- LAPOR -->
                   <a href="#/lapor" id="nav-lapor" title="LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)" class="flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-purple-600 hover:bg-purple-50">
                     <div class="flex items-center gap-3 min-w-0">
                       <i data-lucide="calculator" class="w-4 h-4 text-purple-500 shrink-0"></i>
@@ -386,15 +396,15 @@ class AskrindoApp {
     const navItems = [
       { id: 'nav-dashboard', hashes: ['#/dashboard'], title: 'Beranda Terpadu' },
       { id: 'nav-kabar', hashes: ['#/kabar'], title: 'KABAR (Kalkulator Asuransi Kebakaran)' },
-      { id: 'nav-akur', altId: 'nav-ttk', hashes: ['#/akur', '#/ttk'], title: 'AKUR (Analisis Kredit Usaha Rakyat)' },
-      { id: 'nav-sedia', altId: 'nav-bus', hashes: ['#/sedia', '#/buset', '#/bus'], title: 'SEDIA (Sistem Elektronik Dokumen dan Informasi Asuransi)' },
+      { id: 'nav-akur', hashes: ['#/akur'], title: 'AKUR (Analisis Kredit Usaha Rakyat)' },
+      { id: 'nav-sedia', hashes: ['#/sedia'], title: 'SEDIA (Sistem Elektronik Dokumen dan Informasi Asuransi)' },
       { id: 'nav-cepat', hashes: ['#/cepat'], title: 'CEPAT (Cover Note Pertanggungan Asuransi Terintegrasi)' },
-      { id: 'nav-lapor', altId: 'nav-pelaku', hashes: ['#/lapor', '#/pelaku'], title: 'LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)' },
+      { id: 'nav-lapor', hashes: ['#/lapor'], title: 'LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)' },
       { id: 'nav-admin', hashes: ['#/admin'], title: 'Web Admin Portal' }
     ];
 
     navItems.forEach(item => {
-      const el = document.getElementById(item.id) || (item.altId ? document.getElementById(item.altId) : null);
+      const el = document.getElementById(item.id);
       if (!el) return;
       const isMatch = item.hashes.some(h => route.startsWith(h));
       if (isMatch) {
@@ -430,17 +440,17 @@ class AskrindoApp {
     } else if (route.startsWith('#/kabar')) {
       main.innerHTML = window.KabarModule.render();
       window.KabarModule.calculate();
-    } else if (route.startsWith('#/akur') || route.startsWith('#/ttk')) {
-      main.innerHTML = window.TtkModule.render();
-      if (window.TtkModule.currentTab === 'calc') window.TtkModule.calcInstallment();
-    } else if (route.startsWith('#/sedia') || route.startsWith('#/bus') || route.startsWith('#/buset')) {
-      main.innerHTML = window.BusModule.render();
+    } else if (route.startsWith('#/akur')) {
+      main.innerHTML = window.AkurModule.render();
+      if (window.AkurModule.currentTab === 'calc') window.AkurModule.calcInstallment();
+    } else if (route.startsWith('#/sedia')) {
+      main.innerHTML = window.SediaModule.render();
     } else if (route.startsWith('#/cepat')) {
       main.innerHTML = window.CepatModule.render();
-    } else if (route.startsWith('#/lapor') || route.startsWith('#/pelaku')) {
-      main.innerHTML = window.PelakuModule.render();
-      window.PelakuModule.updateYearLabels();
-      window.PelakuModule.calculateRatios();
+    } else if (route.startsWith('#/lapor')) {
+      main.innerHTML = window.LaporModule.render();
+      window.LaporModule.updateYearLabels();
+      window.LaporModule.calculateRatios();
     } else if (route.startsWith('#/admin')) {
       main.innerHTML = window.AdminModule.render();
     } else {
@@ -872,13 +882,9 @@ class AskrindoApp {
 
   renderUnauthorized(appName) {
     const user = window.authService.getCurrentUser() || { name: 'Pengguna', role: '-', allowedApps: [] };
-    const canonicalApps = [...new Set((user.allowedApps || []).map(a => {
-      const k = String(a).toLowerCase();
-      if (k === 'ttk') return 'akur';
-      if (k === 'bus' || k === 'buset') return 'sedia';
-      if (k === 'pelaku') return 'lapor';
-      return k;
-    }))];
+    const canonicalApps = window.askrindoDB
+      ? window.askrindoDB.normalizeAllowedApps(user.allowedApps)
+      : [...new Set(user.allowedApps || [])];
 
     return `
       <div class="max-w-md mx-auto my-12 bg-white p-8 rounded-3xl border border-slate-200 shadow-xl text-center space-y-4 animate-fadeIn">

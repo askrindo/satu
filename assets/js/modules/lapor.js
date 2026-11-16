@@ -90,9 +90,9 @@ const FIN_STATEMENT_STRUCTURE = [
   { type: 'calc_monthly', code: 'z/bln', label: 'Laba Bersih Rata-rata Perbulan', id: 'calc_eatMo', source: 'eat' }
 ];
 
-const PELAKU_DRAFT_KEY = 'askrindo_satu_pelaku_draft_v1';
+const LAPOR_DRAFT_KEY = 'askrindo_satu_lapor_draft_v1';
 
-window.PelakuModule = {
+window.LaporModule = {
   currentTab: 'archive', // 'archive' | 'workspace' - Default landing page is project list
   archiveScope: 'mine', // 'mine' (default: user's projects) | 'all' (all projects in organization)
   archiveSearch: '',
@@ -219,7 +219,7 @@ window.PelakuModule = {
   },
 
   openAddYearModal() {
-    const modal = document.getElementById('pelaku-modal-container');
+    const modal = document.getElementById('lapor-modal-container');
     if (!modal) return;
 
     const years = this.getActiveYears();
@@ -234,7 +234,7 @@ window.PelakuModule = {
               <i data-lucide="calendar-plus" class="w-4 h-4"></i>
               <span>Tambah Kolom Periode Baru</span>
             </div>
-            <button onclick="document.getElementById('pelaku-modal-container').innerHTML=''" class="w-8 h-8 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center text-lg font-bold transition">&times;</button>
+            <button onclick="document.getElementById('lapor-modal-container').innerHTML=''" class="w-8 h-8 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center text-lg font-bold transition">&times;</button>
           </div>
           <div class="space-y-3 text-xs">
             <p class="text-slate-600 leading-relaxed">
@@ -254,8 +254,8 @@ window.PelakuModule = {
             </div>
           </div>
           <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-            <button type="button" onclick="document.getElementById('pelaku-modal-container').innerHTML=''" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Batal</button>
-            <button type="button" onclick="window.PelakuModule.submitAddYearModal()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 shadow-md shadow-purple-500/20 transition flex items-center gap-1.5">
+            <button type="button" onclick="document.getElementById('lapor-modal-container').innerHTML=''" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Batal</button>
+            <button type="button" onclick="window.LaporModule.submitAddYearModal()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 shadow-md shadow-purple-500/20 transition flex items-center gap-1.5">
               <i data-lucide="plus" class="w-4 h-4"></i>
               <span>Tambahkan Kolom Tahun</span>
             </button>
@@ -274,7 +274,7 @@ window.PelakuModule = {
       window.askrindoApp.showToast('Masukkan tahun yang valid (4 digit angka, misal: 2026).', 'error');
       return;
     }
-    document.getElementById('pelaku-modal-container').innerHTML = '';
+    document.getElementById('lapor-modal-container').innerHTML = '';
     this.addYearColumn(val, copyPrev);
   },
 
@@ -372,7 +372,7 @@ window.PelakuModule = {
   initWorkspaceState() {
     if (this.workspaceState) return;
     try {
-      const rawDraft = localStorage.getItem(PELAKU_DRAFT_KEY);
+      const rawDraft = localStorage.getItem(LAPOR_DRAFT_KEY);
       if (rawDraft) {
         const parsed = JSON.parse(rawDraft);
         if (parsed && parsed.workspaceState) {
@@ -388,7 +388,7 @@ window.PelakuModule = {
           this.formSourceMode = parsed.formSourceMode || 'blank';
           this.loadedCompanyId = parsed.loadedCompanyId || null;
           if (this.loadedCompanyId) {
-            const match = window.askrindoDB?.getPelakuAnalysis(this.loadedCompanyId);
+            const match = window.askrindoDB?.getLaporAnalysis(this.loadedCompanyId);
             if (match) {
               this.historyBannerMatch = match;
               this.historyBannerAutoLoaded = true;
@@ -406,7 +406,7 @@ window.PelakuModule = {
   saveWorkspaceDraft() {
     if (!this.workspaceState) return;
     try {
-      localStorage.setItem(PELAKU_DRAFT_KEY, JSON.stringify({
+      localStorage.setItem(LAPOR_DRAFT_KEY, JSON.stringify({
         workspaceState: this.workspaceState,
         formSourceMode: this.formSourceMode,
         loadedCompanyId: this.loadedCompanyId
@@ -415,7 +415,7 @@ window.PelakuModule = {
   },
 
   captureWorkspaceFromDom() {
-    const compEl = document.getElementById('pelaku-company');
+    const compEl = document.getElementById('lapor-company');
     if (!compEl) return this.workspaceState;
 
     const years = this.getActiveYears();
@@ -442,14 +442,14 @@ window.PelakuModule = {
 
     return {
       companyName: compEl.value || '',
-      sector: document.getElementById('pelaku-sector')?.value || 'konstruksi',
+      sector: document.getElementById('lapor-sector')?.value || 'konstruksi',
       years: years,
       year1: y1,
       year2: y2,
-      auditStatus: document.getElementById('pelaku-audit-status')?.value || '',
-      opinion: document.getElementById('pelaku-opinion')?.value || '',
+      auditStatus: document.getElementById('lapor-audit-status')?.value || '',
+      opinion: document.getElementById('lapor-opinion')?.value || '',
       projectVal: projRaw === '' ? '' : this.parseFormattedNumber(projRaw),
-      kapName: document.getElementById('pelaku-kap-name')?.value || '',
+      kapName: document.getElementById('lapor-kap-name')?.value || '',
       yearlyData: yearlyData,
       d1: yearlyData[y1] || readAcc(y1),
       d2: yearlyData[y2] || readAcc(y2)
@@ -457,7 +457,7 @@ window.PelakuModule = {
   },
 
   syncWorkspaceFromDom() {
-    if (!document.getElementById('pelaku-company')) return;
+    if (!document.getElementById('lapor-company')) return;
     this.workspaceState = this.captureWorkspaceFromDom();
     this.saveWorkspaceDraft();
   },
@@ -466,8 +466,8 @@ window.PelakuModule = {
     if (this.outsideClickBound) return;
     this.outsideClickBound = true;
     document.addEventListener('click', (e) => {
-      const wrap = document.getElementById('pelaku-company-autocomplete-wrap');
-      const dd = document.getElementById('pelaku-company-dropdown');
+      const wrap = document.getElementById('lapor-company-autocomplete-wrap');
+      const dd = document.getElementById('lapor-company-dropdown');
       if (dd && wrap && !wrap.contains(e.target)) {
         dd.classList.add('hidden');
       }
@@ -612,7 +612,7 @@ window.PelakuModule = {
 
   render() {
     const user = window.authService.getCurrentUser();
-    if (!user || (!window.authService.hasAccess('lapor') && !window.authService.hasAccess('pelaku'))) {
+    if (!user || !window.authService.hasAccess('lapor')) {
       return window.askrindoApp.renderUnauthorized('LAPOR');
     }
 
@@ -620,8 +620,8 @@ window.PelakuModule = {
     this.bindGlobalDropdownClose();
 
     const currentUser = user || (window.authService ? window.authService.getCurrentUser() : null) || (window.askrindoDB ? window.askrindoDB.getCurrentSession() : null);
-    const allSavedList = window.askrindoDB ? window.askrindoDB.getPelakuAnalyses() : [];
-    const userSavedList = window.askrindoDB ? window.askrindoDB.getUserPelakuAnalyses(currentUser) : [];
+    const allSavedList = window.askrindoDB ? window.askrindoDB.getLaporAnalyses() : [];
+    const userSavedList = window.askrindoDB ? window.askrindoDB.getUserLaporAnalyses(currentUser) : [];
     const displayList = this.archiveScope === 'all' ? allSavedList : userSavedList;
     const savedCount = this.archiveScope === 'all' ? allSavedList.length : userSavedList.length;
     const ws = this.workspaceState;
@@ -632,7 +632,7 @@ window.PelakuModule = {
 
     return `
       <div class="space-y-6 animate-fadeIn">
-        <div class="pelaku-screen-content space-y-6">
+        <div class="lapor-screen-content space-y-6">
         <!-- Module Header with Tabs & Actions -->
         <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 border-l-4 border-l-purple-600">
           <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
@@ -660,39 +660,39 @@ window.PelakuModule = {
             <div class="flex items-center gap-2 flex-wrap">
               <!-- Mode Tabs -->
               <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
-                <button onclick="window.PelakuModule.setTab('archive')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${this.currentTab === 'archive' ? 'bg-purple-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}">
+                <button onclick="window.LaporModule.setTab('archive')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${this.currentTab === 'archive' ? 'bg-purple-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}">
                   <i data-lucide="folder-archive" class="w-3.5 h-3.5"></i>
                   <span>Daftar Proyek</span>
-                  <span id="pelaku-archive-count-badge" class="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${this.currentTab === 'archive' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-800'}">${savedCount}</span>
+                  <span id="lapor-archive-count-badge" class="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${this.currentTab === 'archive' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-800'}">${savedCount}</span>
                 </button>
-                <button onclick="window.PelakuModule.setTab('workspace')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${this.currentTab === 'workspace' ? 'bg-purple-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}">
+                <button onclick="window.LaporModule.setTab('workspace')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${this.currentTab === 'workspace' ? 'bg-purple-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}">
                   <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
                   <span>Lembar Analisa</span>
                 </button>
               </div>
 
               ${this.currentTab === 'workspace' ? `
-                <button onclick="window.PelakuModule.setTab('archive')" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 shadow-sm transition flex items-center gap-1.5" title="Kembali ke Daftar Proyek / Arsip">
+                <button onclick="window.LaporModule.setTab('archive')" class="px-3 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 shadow-sm transition flex items-center gap-1.5" title="Kembali ke Daftar Proyek / Arsip">
                   <i data-lucide="arrow-left" class="w-4 h-4 text-purple-600"></i>
                   <span>Daftar Proyek</span>
                 </button>
-                <button onclick="window.PelakuModule.openNewAnalysisModal()" class="px-3.5 py-2 rounded-xl text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 transition flex items-center gap-1.5" title="Mulai analisa proyek baru (pop-up & unggah berkas)">
+                <button onclick="window.LaporModule.openNewAnalysisModal()" class="px-3.5 py-2 rounded-xl text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 transition flex items-center gap-1.5" title="Mulai analisa proyek baru (pop-up & unggah berkas)">
                   <i data-lucide="plus-circle" class="w-4 h-4"></i>
                   <span>Analisa Baru</span>
                 </button>
-                <button id="btn-pelaku-save-top" onclick="window.PelakuModule.saveCurrentAnalysis()" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-600/20 transition flex items-center gap-1.5" title="Simpan analisa ke arsip perusahaan (Ctrl+S)">
+                <button id="btn-lapor-save-top" onclick="window.LaporModule.saveCurrentAnalysis()" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-600/20 transition flex items-center gap-1.5" title="Simpan analisa ke arsip perusahaan (Ctrl+S)">
                   <i data-lucide="save" class="w-4 h-4"></i>
                   <span>Simpan Analisa</span>
                 </button>
-                <button onclick="window.PelakuModule.openAiFinUploadModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-800 hover:from-purple-800 hover:to-indigo-700 shadow-md shadow-purple-500/25 transition flex items-center gap-1.5 group" title="Pindai Laporan Keuangan dengan AI Vision">
+                <button onclick="window.LaporModule.openAiFinUploadModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-800 hover:from-purple-800 hover:to-indigo-700 shadow-md shadow-purple-500/25 transition flex items-center gap-1.5 group" title="Pindai Laporan Keuangan dengan AI Vision">
                   <i data-lucide="scan-line" class="w-4 h-4 text-amber-300 group-hover:scale-110 transition-transform"></i>
                   <span>Pindai AI OCR Vision</span>
                 </button>
-                <button onclick="window.PelakuModule.resetForm()" class="px-3 py-2 rounded-xl text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 transition" title="Kosongkan angka pada form">
+                <button onclick="window.LaporModule.resetForm()" class="px-3 py-2 rounded-xl text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 transition" title="Kosongkan angka pada form">
                   Kosongkan
                 </button>
               ` : `
-                <button onclick="window.PelakuModule.openNewAnalysisModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 shadow-md shadow-purple-500/20 transition flex items-center gap-1.5">
+                <button onclick="window.LaporModule.openNewAnalysisModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 shadow-md shadow-purple-500/20 transition flex items-center gap-1.5">
                   <i data-lucide="plus-circle" class="w-4 h-4"></i>
                   <span>+ Buat Analisa Baru</span>
                 </button>
@@ -721,7 +721,7 @@ window.PelakuModule = {
               <span id="badge_balance_yr2" class="hidden"></span>
             </div>
             <div class="flex items-center gap-2">
-              <button onclick="window.PelakuModule.autoBalanceAllYears()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-amber-300 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 transition flex items-center gap-1.5">
+              <button onclick="window.LaporModule.autoBalanceAllYears()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-amber-300 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 transition flex items-center gap-1.5">
                 <i data-lucide="scale" class="w-3.5 h-3.5"></i>
                 <span>Seimbangkan Neraca Otomatis</span>
               </button>
@@ -741,36 +741,36 @@ window.PelakuModule = {
                     <i data-lucide="building-2" class="w-4 h-4 text-purple-600"></i>
                     <span>1. Profil Calon Debitur / Rekanan</span>
                   </h3>
-                  <button type="button" onclick="window.PelakuModule.setTab('archive')" class="text-xs text-purple-700 hover:text-purple-900 font-semibold flex items-center gap-1 transition">
+                  <button type="button" onclick="window.LaporModule.setTab('archive')" class="text-xs text-purple-700 hover:text-purple-900 font-semibold flex items-center gap-1 transition">
                     <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
                     <span>Kembali ke Daftar Proyek</span>
                   </button>
                 </div>
 
                 <!-- Baris 1: Nama Perusahaan Rekanan (Full Width) -->
-                <div id="pelaku-company-autocomplete-wrap" class="relative text-xs">
+                <div id="lapor-company-autocomplete-wrap" class="relative text-xs">
                   <div class="flex items-center justify-between gap-2 mb-1">
-                    <label for="pelaku-company" class="font-semibold text-slate-700">Nama Perusahaan / Rekanan <span class="text-purple-600 font-bold">(ID)</span></label>
-                    <span id="pelaku-company-id-badge" class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200 truncate max-w-[180px]">
+                    <label for="lapor-company" class="font-semibold text-slate-700">Nama Perusahaan / Rekanan <span class="text-purple-600 font-bold">(ID)</span></label>
+                    <span id="lapor-company-id-badge" class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-200 truncate max-w-[180px]">
                       ID: -
                     </span>
                   </div>
                   <div class="relative">
                     <input
                       type="text"
-                      id="pelaku-company"
+                      id="lapor-company"
                       value="${this.escapeHtml(ws.companyName)}"
                       placeholder="Ketik Nama Perusahaan (jika pernah dibuat, data otomatis muncul)..."
                       autocomplete="off"
-                      onfocus="window.PelakuModule.openCompanyAutocomplete()"
-                      oninput="window.PelakuModule.handleCompanyInput(this.value)"
-                      onblur="window.PelakuModule.handleCompanyBlur()"
-                      onkeydown="window.PelakuModule.handleCompanyKeydown(event)"
+                      onfocus="window.LaporModule.openCompanyAutocomplete()"
+                      oninput="window.LaporModule.handleCompanyInput(this.value)"
+                      onblur="window.LaporModule.handleCompanyBlur()"
+                      onkeydown="window.LaporModule.handleCompanyKeydown(event)"
                       class="w-full pl-3 pr-9 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 font-semibold text-slate-800 bg-white"
                     />
                     <button
                       type="button"
-                      onmousedown="event.preventDefault(); window.PelakuModule.toggleCompanyAutocomplete();"
+                      onmousedown="event.preventDefault(); window.LaporModule.toggleCompanyAutocomplete();"
                       title="Lihat daftar perusahaan tersimpan"
                       class="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg text-slate-400 hover:text-purple-700 hover:bg-purple-50 flex items-center justify-center transition"
                     >
@@ -778,25 +778,25 @@ window.PelakuModule = {
                     </button>
                   </div>
                   <!-- Smart Company Autocomplete Dropdown -->
-                  <div id="pelaku-company-dropdown" class="hidden absolute left-0 right-0 mt-1.5 bg-white rounded-2xl border border-slate-200 shadow-2xl z-40 max-h-64 overflow-y-auto divide-y divide-slate-100"></div>
+                  <div id="lapor-company-dropdown" class="hidden absolute left-0 right-0 mt-1.5 bg-white rounded-2xl border border-slate-200 shadow-2xl z-40 max-h-64 overflow-y-auto divide-y divide-slate-100"></div>
                 </div>
 
                 <!-- Dynamic Inline Banner when Existing Company ID is Detected -->
-                <div id="pelaku-company-history-banner" class="hidden"></div>
+                <div id="lapor-company-history-banner" class="hidden"></div>
 
                 <!-- Baris 2: Periode Finansial, Status Audit & Nilai Proyek (Sejajar & Rapi) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs items-end">
                   <div class="flex flex-col justify-end">
                     <label class="block font-semibold text-slate-700 mb-1.5 leading-tight min-h-[28px] flex items-end">Tahun 1 (Sebelumnya)</label>
-                    <input type="text" inputmode="numeric" maxlength="4" id="inp_year1" value="${this.escapeHtml(ws.year1 || '')}" placeholder="Contoh: 2024" oninput="this.value=this.value.replace(/[^0-9]/g,''); window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios(); window.PelakuModule.onMetaFieldChanged();" onchange="window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios(); window.PelakuModule.onMetaFieldChanged();" onblur="window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios();" class="w-full h-10 px-3 rounded-xl border border-slate-200 text-center font-bold font-mono focus:border-purple-500 focus:outline-none bg-white transition" />
+                    <input type="text" inputmode="numeric" maxlength="4" id="inp_year1" value="${this.escapeHtml(ws.year1 || '')}" placeholder="Contoh: 2024" oninput="this.value=this.value.replace(/[^0-9]/g,''); window.LaporModule.updateYearLabels(); window.LaporModule.calculateRatios(); window.LaporModule.onMetaFieldChanged();" onchange="window.LaporModule.updateYearLabels(); window.LaporModule.calculateRatios(); window.LaporModule.onMetaFieldChanged();" onblur="window.LaporModule.updateYearLabels(); window.LaporModule.calculateRatios();" class="w-full h-10 px-3 rounded-xl border border-slate-200 text-center font-bold font-mono focus:border-purple-500 focus:outline-none bg-white transition" />
                   </div>
                   <div class="flex flex-col justify-end">
                     <label class="block font-semibold text-slate-700 mb-1.5 leading-tight min-h-[28px] flex items-end">Tahun 2 (Terakhir)</label>
-                    <input type="text" inputmode="numeric" maxlength="4" id="inp_year2" value="${this.escapeHtml(ws.year2 || '')}" placeholder="Contoh: 2025" oninput="this.value=this.value.replace(/[^0-9]/g,''); window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios(); window.PelakuModule.onMetaFieldChanged();" onchange="window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios(); window.PelakuModule.onMetaFieldChanged();" onblur="window.PelakuModule.updateYearLabels(); window.PelakuModule.calculateRatios();" class="w-full h-10 px-3 rounded-xl border border-slate-200 text-center font-bold font-mono focus:border-purple-500 focus:outline-none bg-white transition" />
+                    <input type="text" inputmode="numeric" maxlength="4" id="inp_year2" value="${this.escapeHtml(ws.year2 || '')}" placeholder="Contoh: 2025" oninput="this.value=this.value.replace(/[^0-9]/g,''); window.LaporModule.updateYearLabels(); window.LaporModule.calculateRatios(); window.LaporModule.onMetaFieldChanged();" onchange="window.LaporModule.updateYearLabels(); window.LaporModule.calculateRatios(); window.LaporModule.onMetaFieldChanged();" onblur="window.LaporModule.updateYearLabels(); window.LaporModule.calculateRatios();" class="w-full h-10 px-3 rounded-xl border border-slate-200 text-center font-bold font-mono focus:border-purple-500 focus:outline-none bg-white transition" />
                   </div>
                   <div class="flex flex-col justify-end">
                     <label class="block font-semibold text-slate-700 mb-1.5 leading-tight min-h-[28px] flex items-end">Status Audit</label>
-                    <select id="pelaku-audit-status" onchange="window.PelakuModule.onMetaFieldChanged()" class="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white font-medium focus:border-purple-500 focus:outline-none text-xs transition">
+                    <select id="lapor-audit-status" onchange="window.LaporModule.onMetaFieldChanged()" class="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white font-medium focus:border-purple-500 focus:outline-none text-xs transition">
                       <option value="" ${!ws.auditStatus ? 'selected' : ''}>-- Status Audit --</option>
                       <option value="audited" ${ws.auditStatus === 'audited' ? 'selected' : ''}>Audited KAP</option>
                       <option value="unaudited" ${ws.auditStatus === 'unaudited' ? 'selected' : ''}>In-House / Unaudited</option>
@@ -804,7 +804,7 @@ window.PelakuModule = {
                   </div>
                   <div class="flex flex-col justify-end">
                     <label class="block font-semibold text-slate-700 mb-1.5 leading-tight min-h-[28px] flex items-end">Nilai Proyek yang Dijamin (Rp)</label>
-                    <input type="text" id="inp_projectValue" value="${projFormatted}" oninput="window.PelakuModule.handleDotInput(this); window.PelakuModule.onMetaFieldChanged();" onblur="window.PelakuModule.handleDotBlur(this); window.PelakuModule.calculateRatios();" class="w-full h-10 px-3 rounded-xl border border-purple-200 font-bold font-mono focus:border-purple-500 focus:outline-none bg-white transition" placeholder="Contoh: 15.000.000.000" />
+                    <input type="text" id="inp_projectValue" value="${projFormatted}" oninput="window.LaporModule.handleDotInput(this); window.LaporModule.onMetaFieldChanged();" onblur="window.LaporModule.handleDotBlur(this); window.LaporModule.calculateRatios();" class="w-full h-10 px-3 rounded-xl border border-purple-200 font-bold font-mono focus:border-purple-500 focus:outline-none bg-white transition" placeholder="Contoh: 15.000.000.000" />
                   </div>
                 </div>
               </div>
@@ -831,7 +831,7 @@ window.PelakuModule = {
                     </p>
                   </div>
                   <div class="flex items-center gap-2 shrink-0">
-                    <button type="button" onclick="window.PelakuModule.openAddYearModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 shadow-sm transition flex items-center gap-1.5" title="Tambah kolom periode tahun baru (misal 2026)">
+                    <button type="button" onclick="window.LaporModule.openAddYearModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 shadow-sm transition flex items-center gap-1.5" title="Tambah kolom periode tahun baru (misal 2026)">
                       <i data-lucide="calendar-plus" class="w-3.5 h-3.5"></i>
                       <span>+ Tambah Kolom Tahun</span>
                     </button>
@@ -853,7 +853,7 @@ window.PelakuModule = {
                             <div class="flex items-center justify-end gap-1.5">
                               <span class="font-bold text-slate-800">Tahun ${this.escapeHtml(yr)}</span>
                               ${activeYearsList.length > 2 ? `
-                                <button type="button" onclick="window.PelakuModule.removeYearColumn('${yr}')" title="Hapus kolom Tahun ${yr}" class="w-4 h-4 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center text-xs transition">
+                                <button type="button" onclick="window.LaporModule.removeYearColumn('${yr}')" title="Hapus kolom Tahun ${yr}" class="w-4 h-4 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center text-xs transition">
                                   &times;
                                 </button>
                               ` : ''}
@@ -883,7 +883,7 @@ window.PelakuModule = {
                     <span class="text-[10px] font-bold uppercase tracking-wider text-purple-600">Evaluasi Finansial Askrindo</span>
                     <h3 class="text-base font-black text-slate-800">Scoring &amp; Kelayakan Rekanan</h3>
                   </div>
-                  <div id="pelaku-grade-badge" class="px-3.5 py-1.5 rounded-xl font-black text-xs bg-slate-100 text-slate-500 border border-slate-200">
+                  <div id="lapor-grade-badge" class="px-3.5 py-1.5 rounded-xl font-black text-xs bg-slate-100 text-slate-500 border border-slate-200">
                     BELUM DIANALISIS
                   </div>
                 </div>
@@ -892,17 +892,17 @@ window.PelakuModule = {
                 <div class="p-5 rounded-2xl bg-gradient-to-br from-[#002B49] via-indigo-900 to-[#0A3D62] text-white shadow-lg space-y-2">
                   <div class="flex items-center justify-between text-xs text-indigo-200">
                     <span>Skor Finansial Komposit:</span>
-                    <span id="pelaku-score-num" class="font-mono font-bold text-slate-300 text-sm">- / 100</span>
+                    <span id="lapor-score-num" class="font-mono font-bold text-slate-300 text-sm">- / 100</span>
                   </div>
                   <div class="w-full h-2.5 bg-white/20 rounded-full overflow-hidden">
-                    <div id="pelaku-score-bar" class="h-full bg-gradient-to-r from-amber-400 to-emerald-400 rounded-full" style="width: 0%;"></div>
+                    <div id="lapor-score-bar" class="h-full bg-gradient-to-r from-amber-400 to-emerald-400 rounded-full" style="width: 0%;"></div>
                   </div>
-                  <p id="pelaku-short-summary" class="text-[11px] text-slate-200 pt-1 leading-relaxed">
+                  <p id="lapor-short-summary" class="text-[11px] text-slate-200 pt-1 leading-relaxed">
                     Belum ada data laporan keuangan yang dimasukkan untuk dianalisis.
                   </p>
-                  <div id="pelaku-score-coverage-wrap" class="hidden pt-2 mt-1 border-t border-white/10 flex items-center justify-between gap-2 text-[10px]">
-                    <span id="pelaku-score-coverage" class="text-emerald-300 font-semibold">Basis: Seluruh 27 Rasio + Kapasitas &amp; Tren</span>
-                    <button type="button" onclick="window.PelakuModule.openScoreBreakdownModal()" class="px-2 py-0.5 rounded-md bg-white/15 hover:bg-white/25 text-white font-bold transition cursor-pointer shrink-0">
+                  <div id="lapor-score-coverage-wrap" class="hidden pt-2 mt-1 border-t border-white/10 flex items-center justify-between gap-2 text-[10px]">
+                    <span id="lapor-score-coverage" class="text-emerald-300 font-semibold">Basis: Seluruh 27 Rasio + Kapasitas &amp; Tren</span>
+                    <button type="button" onclick="window.LaporModule.openScoreBreakdownModal()" class="px-2 py-0.5 rounded-md bg-white/15 hover:bg-white/25 text-white font-bold transition cursor-pointer shrink-0">
                       Rincian Skor
                     </button>
                   </div>
@@ -924,7 +924,7 @@ window.PelakuModule = {
 
                   <!-- Quick Search Filter -->
                   <div class="relative">
-                    <input type="text" id="filter_ratio_input" placeholder="Cari rasio (CR, ROA, EBITDA, dll)..." oninput="window.PelakuModule.filterRatios(this.value)" class="w-full pl-8 pr-3 py-1.5 text-[11px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-purple-500 transition">
+                    <input type="text" id="filter_ratio_input" placeholder="Cari rasio (CR, ROA, EBITDA, dll)..." oninput="window.LaporModule.filterRatios(this.value)" class="w-full pl-8 pr-3 py-1.5 text-[11px] bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-purple-500 transition">
                     <i data-lucide="search" class="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400"></i>
                   </div>
 
@@ -939,9 +939,9 @@ window.PelakuModule = {
                   </div>
 
                   <!-- 27 Ratio Rows Container (Menjalar ke bawah tanpa scroll internal) -->
-                  <div id="pelaku-ratio-list-container" class="space-y-1">
+                  <div id="lapor-ratio-list-container" class="space-y-1">
                     <!-- 1. Current Ratio% x -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Current Ratio % x</span>
                         <span class="block text-[10px] text-slate-400">Standar: &ge; 100%</span>
@@ -954,7 +954,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 2. Quick Ratio % x -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Quick Ratio % x</span>
                         <span class="block text-[10px] text-slate-400">Acid Test &bull; Standar: &gt; 100%</span>
@@ -967,7 +967,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 3. Working Capital To Total Asset% -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Working Capital To Total Asset%</span>
                         <span class="block text-[10px] text-slate-400">Modal Kerja Bersih / Total Aktiva &bull; Standar: &gt; 0%</span>
@@ -980,7 +980,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 4. DER% x -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">DER% x</span>
                         <span class="block text-[10px] text-slate-400">Debt to Equity &bull; Standar: &lt; 200%</span>
@@ -993,7 +993,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 5. DAR% x -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">DAR% x</span>
                         <span class="block text-[10px] text-slate-400">Debt to Asset &bull; Batas Toleransi: &lt; 70%</span>
@@ -1006,7 +1006,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 6. Long Term Debt to Equity% -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Long Term Debt to Equity%</span>
                         <span class="block text-[10px] text-slate-400">Hutang Jk. Panjang / Modal Sendiri &bull; Standar: &lt; 100%</span>
@@ -1019,7 +1019,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 7. Total Asset Turnover x -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Total Asset Turnover x</span>
                         <span class="block text-[10px] text-slate-400">Penjualan / Total Aset &bull; Standar: &ge; 1.0x</span>
@@ -1032,7 +1032,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 8. Working Capital Turnover x -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Working Capital Turnover x</span>
                         <span class="block text-[10px] text-slate-400">Penjualan / Modal Kerja Bersih (NWC)</span>
@@ -1045,7 +1045,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 9. Receivable Turnover x -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Receivable Turnover x</span>
                         <span class="block text-[10px] text-slate-400">Penjualan / Piutang Usaha &bull; Standar: &ge; 4.0x</span>
@@ -1058,7 +1058,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 10. Day account Recieveable /Average Collection Period(hari) -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Day account Recieveable /Average Collection Period(hari)</span>
                         <span class="block text-[10px] text-slate-400">Rata-rata Waktu Penagihan Piutang &bull; Batas: &le; 90 hari</span>
@@ -1071,7 +1071,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 11. Inventory Turnover Ratio X -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Inventory Turnover Ratio X</span>
                         <span class="block text-[10px] text-slate-400">HPP / Persediaan Barang &bull; Standar: &ge; 4.0x</span>
@@ -1084,7 +1084,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 12. Day Inventory (hari) -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Day Inventory (hari)</span>
                         <span class="block text-[10px] text-slate-400">Rata-rata Hari Persediaan Tersimpan &bull; Batas: &le; 90 hari</span>
@@ -1097,7 +1097,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 13. Day account payable (hari) -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Day account payable (hari)</span>
                         <span class="block text-[10px] text-slate-400">Rata-rata Pembayaran Utang Usaha</span>
@@ -1110,7 +1110,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 14. ROA % x -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">ROA % x</span>
                         <span class="block text-[10px] text-slate-400">Return on Asset &bull; Standar: &ge; 1,0%</span>
@@ -1123,7 +1123,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 15. ROE % x -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">ROE % x</span>
                         <span class="block text-[10px] text-slate-400">Return on Equity &bull; Standar: &ge; 5,0%</span>
@@ -1136,7 +1136,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 16. ROI % -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">ROI %</span>
                         <span class="block text-[10px] text-slate-400">Return on Investment (EBIT / Aktiva) &bull; Standar: &gt; 0%</span>
@@ -1149,7 +1149,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 17. Gross Profit Margin % -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Gross Profit Margin %</span>
                         <span class="block text-[10px] text-slate-400">Laba Kotor / Penjualan &bull; Standar: &gt; 0%</span>
@@ -1162,7 +1162,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 18. Net Profit Margin % x -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Net Profit Margin % x</span>
                         <span class="block text-[10px] text-slate-400">Laba Bersih / Penjualan &bull; Standar: &gt; 10%</span>
@@ -1175,7 +1175,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 19. Operating Income Ratio % -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Operating Income Ratio %</span>
                         <span class="block text-[10px] text-slate-400">EBIT / Penjualan (Net Operating Margin)</span>
@@ -1188,7 +1188,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 20. Operating Ratio % -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Operating Ratio %</span>
                         <span class="block text-[10px] text-slate-400">(HPP + Beban Usaha) / Penjualan &bull; Batas: &le; 95%</span>
@@ -1201,7 +1201,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 21. Cash Ratio % x -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Cash Ratio % x</span>
                         <span class="block text-[10px] text-slate-400">Kas &amp; Bank / Hutang Lancar &bull; Standar: &gt; 40%</span>
@@ -1214,7 +1214,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 22. Sales Growth % -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Sales Growth %</span>
                         <span class="block text-[10px] text-slate-400">Tren Kondisi Keuangan (YoY) &bull; Standar: Positif</span>
@@ -1227,7 +1227,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 23. Operating Profit Margin % -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Operating Profit Margin %</span>
                         <span class="block text-[10px] text-slate-400">Laba Bruto Operasi / Penjualan</span>
@@ -1240,7 +1240,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 24. Ebitda -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Ebitda</span>
                         <span class="block text-[10px] text-slate-400">Laba Usaha (EBIT) + Akum. Penyusutan</span>
@@ -1253,7 +1253,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 25. Ebitda to interest % -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Ebitda to interest %</span>
                         <span class="block text-[10px] text-slate-400">Interest Coverage (EBITDA / Bunga) &bull; Standar: &ge; 2.0x</span>
@@ -1266,7 +1266,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 26. Ebitda to debt % -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Ebitda to debt %</span>
                         <span class="block text-[10px] text-slate-400">EBITDA / Total Hutang &bull; Standar: &ge; 20%</span>
@@ -1279,7 +1279,7 @@ window.PelakuModule = {
                     </div>
 
                     <!-- 27. Net Working Capital -->
-                    <div class="pelaku-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
+                    <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Net Working Capital</span>
                         <span class="block text-[10px] text-slate-400">Modal Kerja Bersih &bull; Standar: &gt; 40% Nilai Proyek</span>
@@ -1299,24 +1299,24 @@ window.PelakuModule = {
                     <i data-lucide="shield-check" class="w-4 h-4 text-purple-600"></i>
                     Rekomendasi Komite Underwriting
                   </span>
-                  <p id="pelaku-narrative" class="text-xs text-slate-500 leading-relaxed font-normal">
+                  <p id="lapor-narrative" class="text-xs text-slate-500 leading-relaxed font-normal">
                     Silakan lengkapi pos-pos Laporan Keuangan pada tabel di sebelah kiri untuk melihat evaluasi finansial dan rekomendasi underwriting otomatis.
                   </p>
                 </div>
 
                 <!-- Save Status Strip -->
-                <div id="pelaku-save-status-strip" class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-[11px]">
+                <div id="lapor-save-status-strip" class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-[11px]">
                   <span class="text-slate-500 font-medium">Status Arsip:</span>
-                  <span id="pelaku-save-status-text" class="font-bold text-slate-700">Belum disimpan</span>
+                  <span id="lapor-save-status-text" class="font-bold text-slate-700">Belum disimpan</span>
                 </div>
 
                 <!-- Tombol Aksi -->
                 <div class="space-y-2">
-                  <button id="btn-pelaku-save-side" onclick="window.PelakuModule.saveCurrentAnalysis()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-600/25 transition">
+                  <button id="btn-lapor-save-side" onclick="window.LaporModule.saveCurrentAnalysis()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-600/25 transition">
                     <i data-lucide="save" class="w-4 h-4"></i>
                     <span>Simpan Analisa Perusahaan</span>
                   </button>
-                  <button onclick="window.PelakuModule.printAnalysis()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-purple-600 hover:bg-purple-700 shadow-md shadow-purple-600/30 transition">
+                  <button onclick="window.LaporModule.printAnalysis()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-purple-600 hover:bg-purple-700 shadow-md shadow-purple-600/30 transition">
                     <i data-lucide="printer" class="w-4 h-4"></i>
                     <span>Cetak Hasil Evaluasi PDF</span>
                   </button>
@@ -1332,7 +1332,7 @@ window.PelakuModule = {
         </div>
 
         <!-- Print & Modal Containers -->
-        <div id="pelaku-modal-container"></div>
+        <div id="lapor-modal-container"></div>
       </div>
     `;
   },
@@ -1436,8 +1436,8 @@ window.PelakuModule = {
                   data-year="${yr}"
                   data-key="${row.k}"
                   value="${strVal}"
-                  oninput="window.PelakuModule.handleDotInput(this); window.PelakuModule.onFinancialInputChanged();"
-                  onblur="window.PelakuModule.handleDotBlur(this); window.PelakuModule.calculateRatios();"
+                  oninput="window.LaporModule.handleDotInput(this); window.LaporModule.onFinancialInputChanged();"
+                  onblur="window.LaporModule.handleDotBlur(this); window.LaporModule.calculateRatios();"
                   class="w-full px-2 py-1 rounded-lg border border-slate-200 text-right font-mono text-xs font-semibold focus:border-purple-500 focus:outline-none bg-white transition"
                   placeholder="0,00"
                 />
@@ -1483,7 +1483,7 @@ window.PelakuModule = {
     document.querySelectorAll('[id$="-1"]').forEach(el => {
       if (el.id.startsWith('ratio-')) el.title = yr1Title;
     });
-    document.querySelectorAll('.pelaku-ratio-row').forEach(row => {
+    document.querySelectorAll('.lapor-ratio-row').forEach(row => {
       const el2 = row.querySelector('.font-bold[id^="ratio-"]');
       if (el2) el2.title = yr2Title;
     });
@@ -1491,7 +1491,7 @@ window.PelakuModule = {
 
   calculateRatios() {
     // Jangan timpa state saat tab arsip aktif (elemen input tidak dirender)
-    if (!document.getElementById('pelaku-company') || !document.getElementById('finStatementInputTable')) {
+    if (!document.getElementById('lapor-company') || !document.getElementById('finStatementInputTable')) {
       return;
     }
 
@@ -1711,11 +1711,11 @@ window.PelakuModule = {
         bFail.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500 border border-slate-200';
       }
 
-      const elBadge = document.getElementById('pelaku-grade-badge');
-      const elScoreNum = document.getElementById('pelaku-score-num');
-      const elScoreBar = document.getElementById('pelaku-score-bar');
-      const elSumm = document.getElementById('pelaku-short-summary');
-      const elNarr = document.getElementById('pelaku-narrative');
+      const elBadge = document.getElementById('lapor-grade-badge');
+      const elScoreNum = document.getElementById('lapor-score-num');
+      const elScoreBar = document.getElementById('lapor-score-bar');
+      const elSumm = document.getElementById('lapor-short-summary');
+      const elNarr = document.getElementById('lapor-narrative');
 
       if (elBadge) {
         elBadge.className = 'px-3.5 py-1.5 rounded-xl font-black text-xs bg-slate-100 text-slate-500 border border-slate-200';
@@ -1725,12 +1725,12 @@ window.PelakuModule = {
       if (elScoreBar) elScoreBar.style.width = '0%';
       if (elSumm) elSumm.textContent = 'Belum ada data laporan keuangan yang dimasukkan untuk dianalisis.';
       if (elNarr) elNarr.textContent = 'Silakan lengkapi pos-pos Laporan Keuangan pada tabel di sebelah kiri untuk melihat evaluasi finansial dan scoring otomatis.';
-      const elCovWrap = document.getElementById('pelaku-score-coverage-wrap');
+      const elCovWrap = document.getElementById('lapor-score-coverage-wrap');
       if (elCovWrap) elCovWrap.classList.add('hidden');
 
-      const companyRaw = document.getElementById('pelaku-company')?.value.trim() || '';
+      const companyRaw = document.getElementById('lapor-company')?.value.trim() || '';
       const companyId = window.askrindoDB ? window.askrindoDB.normalizeCompanyId(companyRaw) : '';
-      const auditStatus = document.getElementById('pelaku-audit-status')?.value || '';
+      const auditStatus = document.getElementById('lapor-audit-status')?.value || '';
       const projectVal = this.parseFormattedNumber(document.getElementById('inp_projectValue')?.value) || 0;
 
       const emptyRac = this.computeRacMatrix(
@@ -2111,7 +2111,7 @@ window.PelakuModule = {
     updateText1('ratio-nwc', nwcTxt1, (nwcToProject1 > 40 || (projectVal === 0 && nwcVal1 >= 0)) ? 'text-emerald-600' : (nwcToProject1 > 10 ? 'text-amber-600' : 'text-rose-600'));
 
     // 5. Composite Scoring & Grade Askrindo (Seluruh 27 Indikator Rasio + Kapasitas & Tren)
-    const auditStatus = document.getElementById('pelaku-audit-status')?.value || '';
+    const auditStatus = document.getElementById('lapor-audit-status')?.value || '';
     const isAudited = auditStatus === 'audited';
 
     const scores = {};
@@ -2261,13 +2261,13 @@ window.PelakuModule = {
       narrative = 'Layak diberikan fasilitas penjaminan dengan syarat dan pemantauan standar komite kredit.';
     }
 
-    const elBadge = document.getElementById('pelaku-grade-badge');
-    const elScoreNum = document.getElementById('pelaku-score-num');
-    const elScoreBar = document.getElementById('pelaku-score-bar');
-    const elSumm = document.getElementById('pelaku-short-summary');
-    const elNarr = document.getElementById('pelaku-narrative');
-    const elCovWrap = document.getElementById('pelaku-score-coverage-wrap');
-    const elCovText = document.getElementById('pelaku-score-coverage');
+    const elBadge = document.getElementById('lapor-grade-badge');
+    const elScoreNum = document.getElementById('lapor-score-num');
+    const elScoreBar = document.getElementById('lapor-score-bar');
+    const elSumm = document.getElementById('lapor-short-summary');
+    const elNarr = document.getElementById('lapor-narrative');
+    const elCovWrap = document.getElementById('lapor-score-coverage-wrap');
+    const elCovText = document.getElementById('lapor-score-coverage');
 
     if (elBadge) {
       elBadge.className = `px-3.5 py-1.5 rounded-xl font-black text-xs ${gradeCls}`;
@@ -2347,19 +2347,19 @@ window.PelakuModule = {
     ];
 
     // Simpan objek analisis untuk lembar cetak
-    const companyRaw = document.getElementById('pelaku-company')?.value.trim() || '';
+    const companyRaw = document.getElementById('lapor-company')?.value.trim() || '';
     const companyId = window.askrindoDB ? window.askrindoDB.normalizeCompanyId(companyRaw) : '';
     this.currentAnalysis = {
       hasData: true,
       companyId: companyId || '-',
       company: companyRaw || 'PT Rekanan',
-      sector: document.getElementById('pelaku-sector')?.value || 'konstruksi',
+      sector: document.getElementById('lapor-sector')?.value || 'konstruksi',
       year1: y1,
       year2: y2,
       projectVal,
       auditStatus: isAudited ? 'Audited KAP' : 'In-House / Unaudited',
-      kapName: document.getElementById('pelaku-kap-name')?.value || '-',
-      opinion: document.getElementById('pelaku-opinion')?.value || '-',
+      kapName: document.getElementById('lapor-kap-name')?.value || '-',
+      opinion: document.getElementById('lapor-opinion')?.value || '-',
       score,
       baseAvgScore: Math.round(baseAvgScore * 10) / 10,
       auditBonus: isAudited ? 2 : 0,
@@ -2398,7 +2398,7 @@ window.PelakuModule = {
 
   filterRatios(query) {
     const q = (query || '').toLowerCase().trim();
-    const rows = document.querySelectorAll('.pelaku-ratio-row');
+    const rows = document.querySelectorAll('.lapor-ratio-row');
     rows.forEach(r => {
       const text = (r.textContent || '').toLowerCase();
       r.style.display = (!q || text.includes(q)) ? '' : 'none';
@@ -2407,7 +2407,7 @@ window.PelakuModule = {
 
   openScoreBreakdownModal() {
     const c = this.currentAnalysis;
-    const modal = document.getElementById('pelaku-modal-container');
+    const modal = document.getElementById('lapor-modal-container');
     if (!modal || !c || !c.hasData) return;
 
     const allItems = [
@@ -2442,7 +2442,7 @@ window.PelakuModule = {
               <h3 class="text-sm font-black text-slate-800">Rincian Perhitungan Skor Finansial Komposit</h3>
               <p class="text-[11px] text-slate-500">Seluruh 27 indikator rasio finansial + Self Financing + Tren 2 tahun (${allItems.length} komponen)</p>
             </div>
-            <button type="button" onclick="document.getElementById('pelaku-modal-container').innerHTML=''" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+            <button type="button" onclick="document.getElementById('lapor-modal-container').innerHTML=''" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
               <i data-lucide="x" class="w-4 h-4"></i>
             </button>
           </div>
@@ -2484,7 +2484,7 @@ window.PelakuModule = {
           </div>
 
           <div class="flex justify-end pt-2 border-t border-slate-100 shrink-0">
-            <button type="button" onclick="document.getElementById('pelaku-modal-container').innerHTML=''" class="px-4 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition">
+            <button type="button" onclick="document.getElementById('lapor-modal-container').innerHTML=''" class="px-4 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition">
               Tutup
             </button>
           </div>
@@ -2712,12 +2712,12 @@ window.PelakuModule = {
     if (y1Inp) y1Inp.value = '';
     if (y2Inp) y2Inp.value = '';
 
-    const auditSel = document.getElementById('pelaku-audit-status');
+    const auditSel = document.getElementById('lapor-audit-status');
     if (auditSel) auditSel.value = '';
 
-    const kapInp = document.getElementById('pelaku-kap-name');
+    const kapInp = document.getElementById('lapor-kap-name');
     if (kapInp) kapInp.value = '';
-    const opInp = document.getElementById('pelaku-opinion');
+    const opInp = document.getElementById('lapor-opinion');
     if (opInp) opInp.value = '';
     const projInp = document.getElementById('inp_projectValue');
     if (projInp) projInp.value = '';
@@ -2735,7 +2735,7 @@ window.PelakuModule = {
   },
 
   openNewAnalysisModal() {
-    const container = document.getElementById('pelaku-modal-container');
+    const container = document.getElementById('lapor-modal-container');
     if (!container) return;
 
     this.selectedAiFinFiles = [];
@@ -2756,7 +2756,7 @@ window.PelakuModule = {
                 <p class="text-[11px] text-slate-500">Lengkapi profil debitur &amp; nilai proyek atau unggah berkas untuk dipindai otomatis oleh AI OCR Vision.</p>
               </div>
             </div>
-            <button onclick="window.PelakuModule.closeNewAnalysisModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition shrink-0" title="Tutup">
+            <button onclick="window.LaporModule.closeNewAnalysisModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition shrink-0" title="Tutup">
               <i data-lucide="x" class="w-4 h-4"></i>
             </button>
           </div>
@@ -2784,7 +2784,7 @@ window.PelakuModule = {
                   type="text"
                   id="modal_new_companyName"
                   placeholder="Ketik Nama Perusahaan (Contoh: PT Tri Cipta Karya)..."
-                  oninput="window.PelakuModule.handleNewModalCompanyNameChange(this.value)"
+                  oninput="window.LaporModule.handleNewModalCompanyNameChange(this.value)"
                   class="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white font-semibold text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
                 />
                 <div id="modal_new_companyExistsAlert" class="hidden mt-1.5 p-2 rounded-lg bg-purple-50 border border-purple-200 text-[11px] text-purple-900 font-medium flex items-center gap-2">
@@ -2828,7 +2828,7 @@ window.PelakuModule = {
                     id="modal_new_projectVal"
                     value=""
                     placeholder="Contoh: 15.000.000.000"
-                    oninput="window.PelakuModule.handleDotInput(this)"
+                    oninput="window.LaporModule.handleDotInput(this)"
                     class="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white text-xs font-bold font-mono placeholder-slate-300 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
                   />
                 </div>
@@ -2858,7 +2858,7 @@ window.PelakuModule = {
               id="modal_new_dropzone"
               ondragover="event.preventDefault(); this.classList.add('border-purple-500', 'bg-purple-50/40');"
               ondragleave="this.classList.remove('border-purple-500', 'bg-purple-50/40');"
-              ondrop="event.preventDefault(); this.classList.remove('border-purple-500', 'bg-purple-50/40'); window.PelakuModule.handleDropNewAnalysisFiles(event);"
+              ondrop="event.preventDefault(); this.classList.remove('border-purple-500', 'bg-purple-50/40'); window.LaporModule.handleDropNewAnalysisFiles(event);"
               onclick="document.getElementById('modal_new_fileInput').click()"
               class="border-2 border-dashed border-slate-300 rounded-xl p-3.5 text-center cursor-pointer hover:border-purple-500 hover:bg-purple-50/20 transition group flex flex-col sm:flex-row items-center justify-center gap-3"
             >
@@ -2868,7 +2868,7 @@ window.PelakuModule = {
                 multiple
                 accept=".pdf,image/png,image/jpeg,image/webp"
                 class="hidden"
-                onchange="window.PelakuModule.handleSelectNewAnalysisFiles(this)"
+                onchange="window.LaporModule.handleSelectNewAnalysisFiles(this)"
               />
               <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform shadow-inner shrink-0">
                 <i data-lucide="upload-cloud" class="w-5 h-5"></i>
@@ -2906,7 +2906,7 @@ window.PelakuModule = {
           <div class="flex flex-col sm:flex-row items-center justify-between gap-2.5 pt-2.5 border-t border-slate-100">
             <button
               type="button"
-              onclick="window.PelakuModule.closeNewAnalysisModal()"
+              onclick="window.LaporModule.closeNewAnalysisModal()"
               class="w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition order-3 sm:order-1"
             >
               Batal
@@ -2915,7 +2915,7 @@ window.PelakuModule = {
               <button
                 type="button"
                 id="btn_submit_manual"
-                onclick="window.PelakuModule.submitNewAnalysisManual()"
+                onclick="window.LaporModule.submitNewAnalysisManual()"
                 class="w-full sm:w-auto px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition flex items-center justify-center gap-1.5"
                 title="Buka form lembar kerja analisa untuk input angka secara langsung"
               >
@@ -2925,7 +2925,7 @@ window.PelakuModule = {
               <button
                 type="button"
                 id="btn_submit_ai_ocr"
-                onclick="window.PelakuModule.submitNewAnalysisAiOcr()"
+                onclick="window.LaporModule.submitNewAnalysisAiOcr()"
                 class="w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-800 hover:from-purple-800 hover:to-indigo-700 shadow-md shadow-purple-600/30 transition flex items-center justify-center gap-1.5 group"
                 title="Pindai dokumen yang diunggah dengan AI Vision"
               >
@@ -2946,7 +2946,7 @@ window.PelakuModule = {
   },
 
   closeNewAnalysisModal() {
-    const container = document.getElementById('pelaku-modal-container');
+    const container = document.getElementById('lapor-modal-container');
     if (container) container.innerHTML = '';
   },
 
@@ -2957,7 +2957,7 @@ window.PelakuModule = {
 
     const alertEl = document.getElementById('modal_new_companyExistsAlert');
     const alertText = document.getElementById('modal_new_companyExistsText');
-    const existing = normId && window.askrindoDB ? window.askrindoDB.getPelakuAnalysis(normId) : null;
+    const existing = normId && window.askrindoDB ? window.askrindoDB.getLaporAnalysis(normId) : null;
 
     if (existing && alertEl && alertText) {
       alertEl.classList.remove('hidden');
@@ -3045,7 +3045,7 @@ window.PelakuModule = {
                 <span class="truncate font-medium text-slate-800 text-[11px]">${this.escapeHtml(f.name)}</span>
                 <span class="text-[10px] text-slate-400 shrink-0 font-mono">(${(f.size / 1024).toFixed(1)} KB)</span>
               </div>
-              <button type="button" onclick="window.PelakuModule.removeNewAnalysisFile(${i})" class="text-slate-400 hover:text-rose-600 p-0.5 transition" title="Hapus berkas">
+              <button type="button" onclick="window.LaporModule.removeNewAnalysisFile(${i})" class="text-slate-400 hover:text-rose-600 p-0.5 transition" title="Hapus berkas">
                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
               </button>
             </div>
@@ -3066,7 +3066,7 @@ window.PelakuModule = {
     }
 
     const normId = window.askrindoDB ? window.askrindoDB.normalizeCompanyId(compName) : '';
-    const existing = normId && window.askrindoDB ? window.askrindoDB.getPelakuAnalysis(normId) : null;
+    const existing = normId && window.askrindoDB ? window.askrindoDB.getLaporAnalysis(normId) : null;
 
     let y1 = (document.getElementById('modal_new_year1')?.value || '').trim();
     let y2 = (document.getElementById('modal_new_year2')?.value || '').trim();
@@ -3173,16 +3173,16 @@ window.PelakuModule = {
 
   handleDbSynced() {
     const list = this.getActiveArchiveList();
-    const badge = document.getElementById('pelaku-archive-count-badge');
+    const badge = document.getElementById('lapor-archive-count-badge');
     if (badge) badge.textContent = list.length;
 
     if (this.currentTab === 'archive') {
-      const container = document.getElementById('pelaku-archive-root');
+      const container = document.getElementById('lapor-archive-root');
       if (container) {
         window.askrindoApp.renderCurrentRoute();
       }
     } else {
-      const compEl = document.getElementById('pelaku-company');
+      const compEl = document.getElementById('lapor-company');
       if (compEl) {
         if (this.formSourceMode === 'blank' && compEl.value.trim()) {
           this.resolveCompanyMatch(compEl.value, 'sync');
@@ -3232,19 +3232,19 @@ window.PelakuModule = {
       }
     }
 
-    const comp = document.getElementById('pelaku-company');
+    const comp = document.getElementById('lapor-company');
     if (comp && !preserveCompanyText) comp.value = state.companyName || '';
-    const sec = document.getElementById('pelaku-sector');
+    const sec = document.getElementById('lapor-sector');
     if (sec) sec.value = state.sector || 'konstruksi';
     const y1Inp = document.getElementById('inp_year1');
     const y2Inp = document.getElementById('inp_year2');
     if (y1Inp) y1Inp.value = state.year1 || '';
     if (y2Inp) y2Inp.value = state.year2 || '';
-    const auditSel = document.getElementById('pelaku-audit-status');
+    const auditSel = document.getElementById('lapor-audit-status');
     if (auditSel) auditSel.value = state.auditStatus || '';
-    const kapInp = document.getElementById('pelaku-kap-name');
+    const kapInp = document.getElementById('lapor-kap-name');
     if (kapInp) kapInp.value = state.kapName || '';
-    const opInp = document.getElementById('pelaku-opinion');
+    const opInp = document.getElementById('lapor-opinion');
     if (opInp) opInp.value = state.opinion || '';
     const projInp = document.getElementById('inp_projectValue');
     if (projInp) {
@@ -3286,12 +3286,12 @@ window.PelakuModule = {
   // COMPANY ID AUTO-LOOKUP, AUTOCOMPLETE & PERSISTENT ARCHIVE
   // =========================================================================
   openCompanyAutocomplete() {
-    const val = document.getElementById('pelaku-company')?.value || '';
+    const val = document.getElementById('lapor-company')?.value || '';
     this.renderCompanyAutocomplete(val);
   },
 
   toggleCompanyAutocomplete() {
-    const dd = document.getElementById('pelaku-company-dropdown');
+    const dd = document.getElementById('lapor-company-dropdown');
     if (!dd) return;
     if (dd.classList.contains('hidden')) {
       this.openCompanyAutocomplete();
@@ -3301,17 +3301,17 @@ window.PelakuModule = {
   },
 
   renderCompanyAutocomplete(query) {
-    const dd = document.getElementById('pelaku-company-dropdown');
+    const dd = document.getElementById('lapor-company-dropdown');
     if (!dd || !window.askrindoDB) return;
 
-    const allSaved = window.askrindoDB.getPelakuAnalyses();
+    const allSaved = window.askrindoDB.getLaporAnalyses();
     if (allSaved.length === 0) {
       dd.classList.add('hidden');
       return;
     }
 
     const q = (query || '').trim();
-    const matches = q ? window.askrindoDB.searchPelakuAnalyses(q) : allSaved.slice(0, 8);
+    const matches = q ? window.askrindoDB.searchLaporAnalyses(q) : allSaved.slice(0, 8);
 
     if (matches.length === 0) {
       const normNew = window.askrindoDB.normalizeCompanyId(q);
@@ -3336,7 +3336,7 @@ window.PelakuModule = {
       ${matches.slice(0, 10).map(rec => `
         <button
           type="button"
-          onmousedown="event.preventDefault(); window.PelakuModule.selectCompanyFromAutocomplete('${this.escapeHtml(rec.id)}');"
+          onmousedown="event.preventDefault(); window.LaporModule.selectCompanyFromAutocomplete('${this.escapeHtml(rec.id)}');"
           class="w-full text-left px-3.5 py-2.5 hover:bg-purple-50/80 transition flex items-start justify-between gap-3 group"
         >
           <div class="min-w-0">
@@ -3365,10 +3365,10 @@ window.PelakuModule = {
   },
 
   selectCompanyFromAutocomplete(companyId) {
-    const dd = document.getElementById('pelaku-company-dropdown');
+    const dd = document.getElementById('lapor-company-dropdown');
     if (dd) dd.classList.add('hidden');
 
-    const rec = window.askrindoDB?.getPelakuAnalysis(companyId);
+    const rec = window.askrindoDB?.getLaporAnalysis(companyId);
     if (!rec) return;
 
     if ((this.formSourceMode === 'dirty' || this.formSourceMode === 'ocr') && this.loadedCompanyId !== rec.id) {
@@ -3402,29 +3402,29 @@ window.PelakuModule = {
     if (e.key === 'Enter') {
       e.preventDefault();
       if (this.companyLookupTimer) clearTimeout(this.companyLookupTimer);
-      const dd = document.getElementById('pelaku-company-dropdown');
+      const dd = document.getElementById('lapor-company-dropdown');
       if (dd) dd.classList.add('hidden');
       this.resolveCompanyMatch(e.target.value, 'enter');
     } else if (e.key === 'Escape') {
-      const dd = document.getElementById('pelaku-company-dropdown');
+      const dd = document.getElementById('lapor-company-dropdown');
       if (dd) dd.classList.add('hidden');
     }
   },
 
   handleCompanyBlur() {
     setTimeout(() => {
-      const dd = document.getElementById('pelaku-company-dropdown');
+      const dd = document.getElementById('lapor-company-dropdown');
       if (dd) dd.classList.add('hidden');
-      const val = document.getElementById('pelaku-company')?.value || '';
+      const val = document.getElementById('lapor-company')?.value || '';
       this.resolveCompanyMatch(val, 'blur');
     }, 180);
   },
 
   resolveCompanyMatch(rawName, source = 'typing') {
-    if (!window.askrindoDB || !document.getElementById('pelaku-company')) return;
+    if (!window.askrindoDB || !document.getElementById('lapor-company')) return;
 
     const normId = window.askrindoDB.normalizeCompanyId(rawName);
-    const existing = normId ? window.askrindoDB.getPelakuAnalysis(normId) : null;
+    const existing = normId ? window.askrindoDB.getLaporAnalysis(normId) : null;
 
     if (!existing) {
       if (source === 'typing' && this.preAutoMatchState && this.autoLoadedCompanyId) {
@@ -3551,11 +3551,11 @@ window.PelakuModule = {
   },
 
   updateCompanyIdBadgeAndBanner() {
-    const compRaw = document.getElementById('pelaku-company')?.value.trim() || '';
+    const compRaw = document.getElementById('lapor-company')?.value.trim() || '';
     const normId = window.askrindoDB ? window.askrindoDB.normalizeCompanyId(compRaw) : '';
-    const existing = normId && window.askrindoDB ? window.askrindoDB.getPelakuAnalysis(normId) : null;
+    const existing = normId && window.askrindoDB ? window.askrindoDB.getLaporAnalysis(normId) : null;
 
-    const badgeEl = document.getElementById('pelaku-company-id-badge');
+    const badgeEl = document.getElementById('lapor-company-id-badge');
     if (badgeEl) {
       if (!normId) {
         badgeEl.className = 'px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 text-slate-500 border border-slate-200 truncate max-w-[200px]';
@@ -3572,7 +3572,7 @@ window.PelakuModule = {
       }
     }
 
-    const bannerEl = document.getElementById('pelaku-company-history-banner');
+    const bannerEl = document.getElementById('lapor-company-history-banner');
     if (!bannerEl) return;
 
     const match = this.historyBannerMatch || existing;
@@ -3603,17 +3603,17 @@ window.PelakuModule = {
           </div>
         </div>
         <div class="flex items-center gap-1.5 flex-wrap shrink-0">
-          <button type="button" onclick="window.PelakuModule.rollForwardYear2ToYear1('${this.escapeHtml(match.id)}')" class="px-2.5 py-1.5 rounded-xl bg-white hover:bg-emerald-100 text-emerald-800 font-bold border border-emerald-300 text-[11px] transition flex items-center gap-1" title="Pindahkan data Th ${this.escapeHtml(match.year2)} ke Kolom Tahun 1 untuk perbandingan tahun ${nextYr}">
+          <button type="button" onclick="window.LaporModule.rollForwardYear2ToYear1('${this.escapeHtml(match.id)}')" class="px-2.5 py-1.5 rounded-xl bg-white hover:bg-emerald-100 text-emerald-800 font-bold border border-emerald-300 text-[11px] transition flex items-center gap-1" title="Pindahkan data Th ${this.escapeHtml(match.year2)} ke Kolom Tahun 1 untuk perbandingan tahun ${nextYr}">
             <i data-lucide="arrow-right-left" class="w-3.5 h-3.5"></i>
             <span>Lanjut Periode ${this.escapeHtml(match.year2)}&ndash;${nextYr}</span>
           </button>
           ${snapCount > 1 ? `
-            <button type="button" onclick="window.PelakuModule.openCompanySnapshotsModal('${this.escapeHtml(match.id)}')" class="px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-semibold border border-slate-300 text-[11px] transition flex items-center gap-1">
+            <button type="button" onclick="window.LaporModule.openCompanySnapshotsModal('${this.escapeHtml(match.id)}')" class="px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-semibold border border-slate-300 text-[11px] transition flex items-center gap-1">
               <i data-lucide="layers" class="w-3.5 h-3.5"></i>
               <span>Riwayat (${snapCount})</span>
             </button>
           ` : ''}
-          <button type="button" onclick="window.PelakuModule.dismissHistoryBanner('${this.escapeHtml(match.id)}')" class="p-1.5 rounded-lg text-emerald-700 hover:bg-emerald-100 transition" title="Tutup info">
+          <button type="button" onclick="window.LaporModule.dismissHistoryBanner('${this.escapeHtml(match.id)}')" class="p-1.5 rounded-lg text-emerald-700 hover:bg-emerald-100 transition" title="Tutup info">
             <i data-lucide="x" class="w-3.5 h-3.5"></i>
           </button>
         </div>
@@ -3636,13 +3636,13 @@ window.PelakuModule = {
           </div>
         </div>
         <div class="flex items-center gap-1.5 flex-wrap shrink-0">
-          <button type="button" onclick="window.PelakuModule.populateFormFromAnalysisRecord(window.askrindoDB.getPelakuAnalysis('${this.escapeHtml(match.id)}'), { toast: true })" class="px-2.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] transition">
+          <button type="button" onclick="window.LaporModule.populateFormFromAnalysisRecord(window.askrindoDB.getLaporAnalysis('${this.escapeHtml(match.id)}'), { toast: true })" class="px-2.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] transition">
             Muat Data Sebelumnya
           </button>
-          <button type="button" onclick="window.PelakuModule.rollForwardIntoYear1KeepingYear2('${this.escapeHtml(match.id)}')" class="px-2.5 py-1.5 rounded-xl bg-white hover:bg-amber-100 text-amber-900 font-bold border border-amber-300 text-[11px] transition" title="Ambil data Th ${this.escapeHtml(match.year2)} sebelumnya ke Kolom Tahun 1 tanpa menghapus angka Tahun 2 saat ini">
+          <button type="button" onclick="window.LaporModule.rollForwardIntoYear1KeepingYear2('${this.escapeHtml(match.id)}')" class="px-2.5 py-1.5 rounded-xl bg-white hover:bg-amber-100 text-amber-900 font-bold border border-amber-300 text-[11px] transition" title="Ambil data Th ${this.escapeHtml(match.year2)} sebelumnya ke Kolom Tahun 1 tanpa menghapus angka Tahun 2 saat ini">
             Isi Th ${this.escapeHtml(match.year2)} ke Kolom Th 1
           </button>
-          <button type="button" onclick="window.PelakuModule.dismissHistoryBanner('${this.escapeHtml(match.id)}')" class="px-2 py-1.5 rounded-xl text-amber-800 hover:bg-amber-100 font-semibold text-[11px] transition">
+          <button type="button" onclick="window.LaporModule.dismissHistoryBanner('${this.escapeHtml(match.id)}')" class="px-2 py-1.5 rounded-xl text-amber-800 hover:bg-amber-100 font-semibold text-[11px] transition">
             Abaikan
           </button>
         </div>
@@ -3653,7 +3653,7 @@ window.PelakuModule = {
 
   dismissHistoryBanner(companyId) {
     this.dismissedBannerForId = companyId;
-    const bannerEl = document.getElementById('pelaku-company-history-banner');
+    const bannerEl = document.getElementById('lapor-company-history-banner');
     if (bannerEl) {
       bannerEl.classList.add('hidden');
       bannerEl.innerHTML = '';
@@ -3661,7 +3661,7 @@ window.PelakuModule = {
   },
 
   rollForwardYear2ToYear1(companyId) {
-    const rec = window.askrindoDB?.getPelakuAnalysis(companyId);
+    const rec = window.askrindoDB?.getLaporAnalysis(companyId);
     if (!rec) return;
 
     const prevYr2 = String(rec.year2 || '2025');
@@ -3694,7 +3694,7 @@ window.PelakuModule = {
   },
 
   rollForwardIntoYear1KeepingYear2(companyId) {
-    const rec = window.askrindoDB?.getPelakuAnalysis(companyId);
+    const rec = window.askrindoDB?.getLaporAnalysis(companyId);
     if (!rec) return;
 
     const prevYr2 = String(rec.year2 || '2025');
@@ -3715,14 +3715,14 @@ window.PelakuModule = {
   },
 
   updateSaveIndicators() {
-    const compRaw = document.getElementById('pelaku-company')?.value.trim() || '';
+    const compRaw = document.getElementById('lapor-company')?.value.trim() || '';
     const normId = window.askrindoDB ? window.askrindoDB.normalizeCompanyId(compRaw) : '';
-    const existing = normId && window.askrindoDB ? window.askrindoDB.getPelakuAnalysis(normId) : null;
+    const existing = normId && window.askrindoDB ? window.askrindoDB.getLaporAnalysis(normId) : null;
 
-    const topBtn = document.getElementById('btn-pelaku-save-top');
-    const sideBtn = document.getElementById('btn-pelaku-save-side');
-    const stripTxt = document.getElementById('pelaku-save-status-text');
-    const archiveBadge = document.getElementById('pelaku-archive-count-badge');
+    const topBtn = document.getElementById('btn-lapor-save-top');
+    const sideBtn = document.getElementById('btn-lapor-save-side');
+    const stripTxt = document.getElementById('lapor-save-status-text');
+    const archiveBadge = document.getElementById('lapor-archive-count-badge');
 
     if (archiveBadge) {
       archiveBadge.textContent = this.getActiveArchiveList().length;
@@ -3769,7 +3769,7 @@ window.PelakuModule = {
   },
 
   saveCurrentAnalysis(silent = false) {
-    const compEl = document.getElementById('pelaku-company');
+    const compEl = document.getElementById('lapor-company');
     const companyName = compEl ? compEl.value.trim() : '';
     const companyId = window.askrindoDB ? window.askrindoDB.normalizeCompanyId(companyName) : '';
 
@@ -3806,7 +3806,7 @@ window.PelakuModule = {
     const payload = {
       companyName,
       sector: c.sector,
-      auditStatus: document.getElementById('pelaku-audit-status')?.value || '',
+      auditStatus: document.getElementById('lapor-audit-status')?.value || '',
       kapName: c.kapName,
       opinion: c.opinion,
       years,
@@ -3835,7 +3835,7 @@ window.PelakuModule = {
       }
     };
 
-    const res = window.askrindoDB.savePelakuAnalysis(payload);
+    const res = window.askrindoDB.saveLaporAnalysis(payload);
     if (!res) return null;
 
     this.formSourceMode = 'saved';
@@ -3866,7 +3866,7 @@ window.PelakuModule = {
   },
 
   loadCompanyAnalysisById(companyId, snapshotId = null) {
-    const rec = window.askrindoDB?.getPelakuAnalysis(companyId);
+    const rec = window.askrindoDB?.getLaporAnalysis(companyId);
     if (!rec) {
       window.askrindoApp.showToast('Data analisa perusahaan tidak ditemukan.', 'error');
       return;
@@ -3933,12 +3933,12 @@ window.PelakuModule = {
   },
 
   deleteSavedCompany(companyId) {
-    const rec = window.askrindoDB?.getPelakuAnalysis(companyId);
+    const rec = window.askrindoDB?.getLaporAnalysis(companyId);
     if (!rec) return;
     if (!confirm(`Hapus permanen seluruh arsip analisa perusahaan "${rec.companyName}" (ID: ${rec.id}) beserta ${rec.snapshots?.length || 1} riwayat periodenya?`)) {
       return;
     }
-    window.askrindoDB.deletePelakuAnalysis(rec.id);
+    window.askrindoDB.deleteLaporAnalysis(rec.id);
     window.askrindoDB.logActivity('LAPOR', 'Hapus Arsip Perusahaan', `Menghapus arsip analisa ${rec.companyName} (ID: ${rec.id})`);
 
     if (this.loadedCompanyId === rec.id) {
@@ -3954,8 +3954,8 @@ window.PelakuModule = {
   },
 
   openCompanySnapshotsModal(companyId) {
-    const rec = window.askrindoDB?.getPelakuAnalysis(companyId);
-    const modal = document.getElementById('pelaku-modal-container');
+    const rec = window.askrindoDB?.getLaporAnalysis(companyId);
+    const modal = document.getElementById('lapor-modal-container');
     if (!rec || !modal) return;
 
     const snaps = Array.isArray(rec.snapshots) && rec.snapshots.length > 0
@@ -3986,7 +3986,7 @@ window.PelakuModule = {
                 <p class="text-xs text-slate-500 font-mono">ID Perusahaan: <strong>${this.escapeHtml(rec.id)}</strong> &bull; ${snaps.length} Riwayat Analisa Tersimpan</p>
               </div>
             </div>
-            <button onclick="document.getElementById('pelaku-modal-container').innerHTML=''" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+            <button onclick="document.getElementById('lapor-modal-container').innerHTML=''" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
               <i data-lucide="x" class="w-4 h-4"></i>
             </button>
           </div>
@@ -4013,7 +4013,7 @@ window.PelakuModule = {
                       Disimpan pada ${this.formatDateTimeId(s.savedAt)} oleh <strong>${this.escapeHtml(s.savedBy || '-')}</strong> &bull; ${this.escapeHtml(s.grade || '-')} (Skor ${Number(s.score || 0).toFixed(1)})
                     </p>
                   </div>
-                  <button onclick="document.getElementById('pelaku-modal-container').innerHTML=''; window.PelakuModule.loadCompanyAnalysisById('${this.escapeHtml(rec.id)}', '${idx === 0 ? '' : this.escapeHtml(s.snapshotId)}');" class="px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs transition shrink-0 flex items-center gap-1.5">
+                  <button onclick="document.getElementById('lapor-modal-container').innerHTML=''; window.LaporModule.loadCompanyAnalysisById('${this.escapeHtml(rec.id)}', '${idx === 0 ? '' : this.escapeHtml(s.snapshotId)}');" class="px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs transition shrink-0 flex items-center gap-1.5">
                     <i data-lucide="folder-open" class="w-3.5 h-3.5"></i>
                     <span>Buka Versi Ini</span>
                   </button>
@@ -4023,7 +4023,7 @@ window.PelakuModule = {
           </div>
 
           <div class="flex items-center justify-end pt-2 border-t border-slate-100">
-            <button onclick="document.getElementById('pelaku-modal-container').innerHTML=''" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+            <button onclick="document.getElementById('lapor-modal-container').innerHTML=''" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
               Tutup
             </button>
           </div>
@@ -4057,7 +4057,7 @@ window.PelakuModule = {
       try {
         const parsed = JSON.parse(reader.result);
         const arr = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.records) ? parsed.records : []);
-        const count = window.askrindoDB.importPelakuAnalyses(arr);
+        const count = window.askrindoDB.importLaporAnalyses(arr);
         window.askrindoApp.showToast(`${count} data analisa perusahaan berhasil diimpor & digabungkan!`, 'success');
         window.askrindoApp.renderCurrentRoute();
       } catch (e) {
@@ -4069,9 +4069,9 @@ window.PelakuModule = {
   },
 
   openCloudSqlModal() {
-    const modal = document.getElementById('pelaku-modal-container');
+    const modal = document.getElementById('lapor-modal-container');
     if (!modal) return;
-    const sqlSnippet = `CREATE TABLE IF NOT EXISTS public.pelaku_analyses (
+    const sqlSnippet = `CREATE TABLE IF NOT EXISTS public.lapor_analyses (
   id TEXT PRIMARY KEY,
   company_name TEXT NOT NULL,
   sector TEXT,
@@ -4092,15 +4092,15 @@ window.PelakuModule = {
   created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()),
   updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW())
 );
-ALTER TABLE public.pelaku_analyses ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_analyses FOR ALL USING (true) WITH CHECK (true);`;
+ALTER TABLE public.lapor_analyses ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public all access on lapor_analyses" ON public.lapor_analyses FOR ALL USING (true) WITH CHECK (true);`;
 
     modal.innerHTML = `
       <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
         <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 space-y-4">
           <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 class="text-base font-extrabold text-slate-800">Aktifkan Sinkronisasi Cloud Supabase (Opsional)</h3>
-            <button onclick="document.getElementById('pelaku-modal-container').innerHTML=''" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center">
+            <button onclick="document.getElementById('lapor-modal-container').innerHTML=''" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center">
               <i data-lucide="x" class="w-4 h-4"></i>
             </button>
           </div>
@@ -4112,7 +4112,7 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
             <button onclick="navigator.clipboard?.writeText(this.dataset.sql); window.askrindoApp.showToast('SQL berhasil disalin ke clipboard!', 'success');" data-sql="${this.escapeHtml(sqlSnippet)}" class="px-4 py-2 rounded-xl text-xs font-bold bg-purple-700 text-white hover:bg-purple-800 transition">
               Salin Script SQL
             </button>
-            <button onclick="document.getElementById('pelaku-modal-container').innerHTML=''" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
+            <button onclick="document.getElementById('lapor-modal-container').innerHTML=''" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
               Tutup
             </button>
           </div>
@@ -4128,14 +4128,14 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
   getActiveArchiveList() {
     const currentUser = window.authService?.getCurrentUser() || (window.askrindoDB ? window.askrindoDB.getCurrentSession() : null);
     if (this.archiveScope === 'all') {
-      return window.askrindoDB ? window.askrindoDB.getPelakuAnalyses() : [];
+      return window.askrindoDB ? window.askrindoDB.getLaporAnalyses() : [];
     }
-    return window.askrindoDB ? window.askrindoDB.getUserPelakuAnalyses(currentUser) : [];
+    return window.askrindoDB ? window.askrindoDB.getUserLaporAnalyses(currentUser) : [];
   },
 
   setArchiveScope(scope) {
     this.archiveScope = scope;
-    const badge = document.getElementById('pelaku-archive-count-badge');
+    const badge = document.getElementById('lapor-archive-count-badge');
     if (badge) {
       badge.textContent = this.getActiveArchiveList().length;
     }
@@ -4165,7 +4165,7 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
 
   setArchiveSearch(val) {
     this.archiveSearch = val;
-    const tbody = document.getElementById('pelaku-archive-tbody');
+    const tbody = document.getElementById('lapor-archive-tbody');
     if (tbody && window.askrindoDB) {
       const list = this.getActiveArchiveList();
       tbody.innerHTML = this.renderArchiveRowsHtml(this.getFilteredArchiveList(list));
@@ -4214,7 +4214,7 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
           </td>
           <td class="py-3.5 px-4">
             <span class="font-bold text-slate-800 font-mono">Th ${item.years && item.years.length > 2 ? this.escapeHtml(item.years.join(', ')) : (this.escapeHtml(item.year1) + ' &ndash; ' + this.escapeHtml(item.year2))}</span>
-            <button onclick="window.PelakuModule.openCompanySnapshotsModal('${this.escapeHtml(item.id)}')" class="mt-1 flex items-center gap-1 text-[10px] font-bold text-indigo-700 hover:underline">
+            <button onclick="window.LaporModule.openCompanySnapshotsModal('${this.escapeHtml(item.id)}')" class="mt-1 flex items-center gap-1 text-[10px] font-bold text-indigo-700 hover:underline">
               <i data-lucide="history" class="w-3 h-3"></i>
               <span>${snapCount} Riwayat Periode</span>
             </button>
@@ -4244,14 +4244,14 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
           </td>
           <td class="py-3.5 px-4 text-right">
             <div class="flex items-center justify-end gap-1.5">
-              <button onclick="window.PelakuModule.loadCompanyAnalysisById('${this.escapeHtml(item.id)}')" class="px-3 py-1.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-[11px] transition flex items-center gap-1 shadow-sm" title="Buka kembali analisa ini">
+              <button onclick="window.LaporModule.loadCompanyAnalysisById('${this.escapeHtml(item.id)}')" class="px-3 py-1.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-[11px] transition flex items-center gap-1 shadow-sm" title="Buka kembali analisa ini">
                 <i data-lucide="folder-open" class="w-3.5 h-3.5"></i>
                 <span>Buka</span>
               </button>
-              <button onclick="window.PelakuModule.openCompanySnapshotsModal('${this.escapeHtml(item.id)}')" class="p-1.5 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition" title="Lihat Semua Riwayat Versi">
+              <button onclick="window.LaporModule.openCompanySnapshotsModal('${this.escapeHtml(item.id)}')" class="p-1.5 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition" title="Lihat Semua Riwayat Versi">
                 <i data-lucide="layers" class="w-4 h-4"></i>
               </button>
-              <button onclick="window.PelakuModule.deleteSavedCompany('${this.escapeHtml(item.id)}')" class="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition" title="Hapus Arsip Perusahaan">
+              <button onclick="window.LaporModule.deleteSavedCompany('${this.escapeHtml(item.id)}')" class="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition" title="Hapus Arsip Perusahaan">
                 <i data-lucide="trash-2" class="w-4 h-4"></i>
               </button>
             </div>
@@ -4263,14 +4263,14 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
 
   renderArchiveView(list, userList = [], allList = [], currentUser = null) {
     const safeUserList = Array.isArray(userList) ? userList : list;
-    const safeAllList = Array.isArray(allList) ? allList : (window.askrindoDB ? window.askrindoDB.getPelakuAnalyses() : list);
+    const safeAllList = Array.isArray(allList) ? allList : (window.askrindoDB ? window.askrindoDB.getLaporAnalyses() : list);
     const filtered = this.getFilteredArchiveList(list);
     const totalPassAll = list.filter(i => Number(i.racFailCount) === 0).length;
     const totalProjVal = list.reduce((acc, c) => acc + (Number(c.projectVal) || 0), 0);
-    const cloudStatus = window.askrindoDB?.pelakuCloudStatus || 'unknown';
+    const cloudStatus = window.askrindoDB?.laporCloudStatus || 'unknown';
 
     return `
-      <div id="pelaku-archive-root" class="space-y-6">
+      <div id="lapor-archive-root" class="space-y-6">
         <!-- Summary KPI Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
@@ -4314,7 +4314,7 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
             <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80 shrink-0">
               <button
                 type="button"
-                onclick="window.PelakuModule.setArchiveScope('mine')"
+                onclick="window.LaporModule.setArchiveScope('mine')"
                 class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${this.archiveScope === 'mine' ? 'bg-purple-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
                 title="Tampilkan hanya arsip analisa proyek yang dibuat/disimpan oleh Anda"
               >
@@ -4323,7 +4323,7 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
               </button>
               <button
                 type="button"
-                onclick="window.PelakuModule.setArchiveScope('all')"
+                onclick="window.LaporModule.setArchiveScope('all')"
                 class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${this.archiveScope === 'all' ? 'bg-purple-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}"
                 title="Tampilkan seluruh arsip analisa proyek dari semua pengguna"
               >
@@ -4336,39 +4336,39 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
               <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5"></i>
               <input
                 type="text"
-                id="pelaku-archive-search"
+                id="lapor-archive-search"
                 placeholder="Cari Perusahaan, ID, KAP..."
                 value="${this.escapeHtml(this.archiveSearch)}"
-                oninput="window.PelakuModule.setArchiveSearch(this.value)"
+                oninput="window.LaporModule.setArchiveSearch(this.value)"
                 class="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 text-xs"
               />
             </div>
           </div>
 
           <div class="flex items-center gap-2 flex-wrap">
-            <button onclick="window.PelakuModule.setArchiveFilter('all')" class="px-3 py-1.5 rounded-xl font-semibold transition ${this.archiveFilter === 'all' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+            <button onclick="window.LaporModule.setArchiveFilter('all')" class="px-3 py-1.5 rounded-xl font-semibold transition ${this.archiveFilter === 'all' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
               Semua (${list.length})
             </button>
-            <button onclick="window.PelakuModule.setArchiveFilter('rac_pass')" class="px-3 py-1.5 rounded-xl font-semibold transition ${this.archiveFilter === 'rac_pass' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+            <button onclick="window.LaporModule.setArchiveFilter('rac_pass')" class="px-3 py-1.5 rounded-xl font-semibold transition ${this.archiveFilter === 'rac_pass' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
               Lulus RAC (${totalPassAll})
             </button>
-            <button onclick="window.PelakuModule.setArchiveFilter('rac_fail')" class="px-3 py-1.5 rounded-xl font-semibold transition ${this.archiveFilter === 'rac_fail' ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+            <button onclick="window.LaporModule.setArchiveFilter('rac_fail')" class="px-3 py-1.5 rounded-xl font-semibold transition ${this.archiveFilter === 'rac_fail' ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
               Tidak Lulus (${list.length - totalPassAll})
             </button>
 
             <div class="h-4 w-px bg-slate-200 hidden sm:block mx-1"></div>
 
-            <button onclick="window.PelakuModule.exportArchiveJson()" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1" title="Unduh backup JSON proyek yang ditampilkan">
+            <button onclick="window.LaporModule.exportArchiveJson()" class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1" title="Unduh backup JSON proyek yang ditampilkan">
               <i data-lucide="download" class="w-3.5 h-3.5"></i>
               <span>Ekspor JSON</span>
             </button>
             <label class="px-3 py-1.5 rounded-xl font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1 cursor-pointer" title="Muat backup JSON dari perangkat lain">
               <i data-lucide="upload" class="w-3.5 h-3.5"></i>
               <span>Impor JSON</span>
-              <input type="file" accept=".json,application/json" class="hidden" onchange="window.PelakuModule.handleImportArchiveFile(this)" />
+              <input type="file" accept=".json,application/json" class="hidden" onchange="window.LaporModule.handleImportArchiveFile(this)" />
             </label>
             ${cloudStatus === 'missing_table' ? `
-              <button onclick="window.PelakuModule.openCloudSqlModal()" class="px-3 py-1.5 rounded-xl font-semibold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition flex items-center gap-1" title="Aktifkan sinkronisasi Cloud Supabase">
+              <button onclick="window.LaporModule.openCloudSqlModal()" class="px-3 py-1.5 rounded-xl font-semibold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition flex items-center gap-1" title="Aktifkan sinkronisasi Cloud Supabase">
                 <i data-lucide="database" class="w-3.5 h-3.5"></i>
                 <span>Setup Cloud SQL</span>
               </button>
@@ -4394,7 +4394,7 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
                   <th class="py-3.5 px-4 text-right">Aksi</th>
                 </tr>
               </thead>
-              <tbody id="pelaku-archive-tbody" class="divide-y divide-slate-100">
+              <tbody id="lapor-archive-tbody" class="divide-y divide-slate-100">
                 ${this.renderArchiveRowsHtml(filtered)}
               </tbody>
             </table>
@@ -4408,7 +4408,7 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
   // AI OCR VISION ENGINE & UPLOAD MODAL (Gemini Multimodal Vision API)
   // =========================================================================
   openAiFinUploadModal(isReviewOnly = false) {
-    let container = document.getElementById('pelaku-modal-container');
+    let container = document.getElementById('lapor-modal-container');
     if (!container) return;
 
     if (isReviewOnly && this.currentExtractedFinData) {
@@ -4435,7 +4435,7 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
                 <p class="text-xs text-slate-500">Pindai berkas PDF / Gambar Neraca &amp; Laba Rugi Berbasis Gemini Vision</p>
               </div>
             </div>
-            <button onclick="window.PelakuModule.closeAiFinUploadModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+            <button onclick="window.LaporModule.closeAiFinUploadModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
               <i data-lucide="x" class="w-4 h-4"></i>
             </button>
           </div>
@@ -4459,11 +4459,11 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
           <div id="aiFinDropZone" 
                ondragover="event.preventDefault(); this.classList.add('border-purple-500', 'bg-purple-50/40');" 
                ondragleave="this.classList.remove('border-purple-500', 'bg-purple-50/40');" 
-               ondrop="event.preventDefault(); this.classList.remove('border-purple-500', 'bg-purple-50/40'); window.PelakuModule.handleDropAiFinFiles(event);"
+               ondrop="event.preventDefault(); this.classList.remove('border-purple-500', 'bg-purple-50/40'); window.LaporModule.handleDropAiFinFiles(event);"
                class="border-2 border-dashed border-slate-300 rounded-3xl p-6 sm:p-8 text-center space-y-3 cursor-pointer hover:border-purple-500 hover:bg-purple-50/20 transition-all group"
                onclick="document.getElementById('aiFinFileInput').click()">
             
-            <input type="file" id="aiFinFileInput" multiple accept=".pdf,image/png,image/jpeg,image/webp" class="hidden" onchange="window.PelakuModule.handleSelectAiFinFiles(this)" />
+            <input type="file" id="aiFinFileInput" multiple accept=".pdf,image/png,image/jpeg,image/webp" class="hidden" onchange="window.LaporModule.handleSelectAiFinFiles(this)" />
             
             <div class="w-14 h-14 mx-auto rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
               <i data-lucide="upload-cloud" class="w-7 h-7"></i>
@@ -4501,10 +4501,10 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
 
           <!-- Tombol Aksi Modal -->
           <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-            <button type="button" onclick="window.PelakuModule.closeAiFinUploadModal()" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+            <button type="button" onclick="window.LaporModule.closeAiFinUploadModal()" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
               Batal
             </button>
-            <button type="button" id="btnStartAiFinExtraction" onclick="window.PelakuModule.runGeminiFinExtraction()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-700 to-indigo-600 hover:from-purple-800 hover:to-indigo-700 shadow-md shadow-purple-600/30 transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+            <button type="button" id="btnStartAiFinExtraction" onclick="window.LaporModule.runGeminiFinExtraction()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-700 to-indigo-600 hover:from-purple-800 hover:to-indigo-700 shadow-md shadow-purple-600/30 transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
               <i data-lucide="sparkles" class="w-4 h-4 text-amber-300"></i>
               <span>Mulai Ekstraksi AI Vision</span>
             </button>
@@ -4519,7 +4519,7 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
   },
 
   closeAiFinUploadModal() {
-    const container = document.getElementById('pelaku-modal-container');
+    const container = document.getElementById('lapor-modal-container');
     if (container) container.innerHTML = '';
   },
 
@@ -4582,7 +4582,7 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
                 <span class="truncate font-medium text-slate-800">${f.name}</span>
                 <span class="text-[10px] text-slate-400 shrink-0 font-mono">(${(f.size / 1024).toFixed(1)} KB)</span>
               </div>
-              <button onclick="window.PelakuModule.removeAiFinFile(${i})" class="text-slate-400 hover:text-rose-600 p-1 transition" title="Hapus">
+              <button onclick="window.LaporModule.removeAiFinFile(${i})" class="text-slate-400 hover:text-rose-600 p-1 transition" title="Hapus">
                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
               </button>
             </div>
@@ -4859,7 +4859,7 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
   },
 
   renderAiFinReviewTable() {
-    const container = document.getElementById('pelaku-modal-container');
+    const container = document.getElementById('lapor-modal-container');
     if (!container || !this.currentExtractedFinData) return;
 
     const data = this.currentExtractedFinData;
@@ -4931,7 +4931,7 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
                 <p class="text-xs text-slate-500">Tinjau 27 pos keuangan Neraca &amp; Laba Rugi sebelum diterapkan ke modul LAPOR</p>
               </div>
             </div>
-            <button onclick="window.PelakuModule.closeAiFinUploadModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+            <button onclick="window.LaporModule.closeAiFinUploadModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
               <i data-lucide="x" class="w-4 h-4"></i>
             </button>
           </div>
@@ -4962,7 +4962,7 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
           ${(() => {
             const compRaw = (data.company_name || '').trim();
             const nId = compRaw && window.askrindoDB ? window.askrindoDB.normalizeCompanyId(compRaw) : '';
-            const exRec = nId && window.askrindoDB ? window.askrindoDB.getPelakuAnalysis(nId) : null;
+            const exRec = nId && window.askrindoDB ? window.askrindoDB.getLaporAnalysis(nId) : null;
             if (!exRec) return '';
             const exYears = exRec.years || [exRec.year1, exRec.year2].filter(Boolean);
             return `
@@ -5025,10 +5025,10 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
                         ${r.label}
                       </td>
                       <td class="p-1.5">
-                        <input type="text" id="ai_rev_${r.k}_1" value="${this.formatNumberWithDots(v1, true)}" oninput="window.PelakuModule.recalculateAiReviewBalances()" class="w-full px-2 py-1 rounded border border-slate-200 text-right font-mono text-xs focus:border-purple-500" />
+                        <input type="text" id="ai_rev_${r.k}_1" value="${this.formatNumberWithDots(v1, true)}" oninput="window.LaporModule.recalculateAiReviewBalances()" class="w-full px-2 py-1 rounded border border-slate-200 text-right font-mono text-xs focus:border-purple-500" />
                       </td>
                       <td class="p-1.5">
-                        <input type="text" id="ai_rev_${r.k}_2" value="${this.formatNumberWithDots(v2, true)}" oninput="window.PelakuModule.recalculateAiReviewBalances()" class="w-full px-2 py-1 rounded border border-slate-200 text-right font-mono text-xs focus:border-purple-500" />
+                        <input type="text" id="ai_rev_${r.k}_2" value="${this.formatNumberWithDots(v2, true)}" oninput="window.LaporModule.recalculateAiReviewBalances()" class="w-full px-2 py-1 rounded border border-slate-200 text-right font-mono text-xs focus:border-purple-500" />
                       </td>
                     </tr>
                   `;
@@ -5045,19 +5045,19 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
             </label>
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div class="flex items-center gap-2">
-                <button type="button" onclick="window.PelakuModule.openAiFinUploadModal()" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
+                <button type="button" onclick="window.LaporModule.openAiFinUploadModal()" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
                   &larr; Pindai Berkas Lain
                 </button>
-                <button type="button" onclick="window.PelakuModule.autoBalanceAiReviewRetainedEarnings()" class="px-3.5 py-2 rounded-xl text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 transition flex items-center gap-1.5" title="Seimbangkan Saldo Laba Otomatis">
+                <button type="button" onclick="window.LaporModule.autoBalanceAiReviewRetainedEarnings()" class="px-3.5 py-2 rounded-xl text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 transition flex items-center gap-1.5" title="Seimbangkan Saldo Laba Otomatis">
                   <i data-lucide="scale" class="w-3.5 h-3.5"></i>
                   <span>Seimbangkan Neraca Otomatis</span>
                 </button>
               </div>
               <div class="flex items-center gap-2">
-                <button type="button" onclick="window.PelakuModule.closeAiFinUploadModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+                <button type="button" onclick="window.LaporModule.closeAiFinUploadModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
                   Batal
                 </button>
-                <button type="button" onclick="window.PelakuModule.applyExtractedFinDataToForm()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-600/30 transition flex items-center gap-2">
+                <button type="button" onclick="window.LaporModule.applyExtractedFinDataToForm()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-600/30 transition flex items-center gap-2">
                   <i data-lucide="check" class="w-4 h-4"></i>
                   <span>Terapkan ke Form Laporan Keuangan</span>
                 </button>
@@ -5187,9 +5187,9 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
     const modalProjVal = this.modalPreEnteredData?.projectVal;
 
     const detectedComp = (this.currentExtractedFinData.company_name || '').trim();
-    const companyName = modalComp || (detectedComp && detectedComp !== 'Rekanan Terdeteksi' ? detectedComp : '') || (document.getElementById('pelaku-company')?.value || '').trim() || 'PT Debitur Baru';
+    const companyName = modalComp || (detectedComp && detectedComp !== 'Rekanan Terdeteksi' ? detectedComp : '') || (document.getElementById('lapor-company')?.value || '').trim() || 'PT Debitur Baru';
     const normId = companyName && window.askrindoDB ? window.askrindoDB.normalizeCompanyId(companyName) : '';
-    const existingBeforeSave = normId && window.askrindoDB ? window.askrindoDB.getPelakuAnalysis(normId) : null;
+    const existingBeforeSave = normId && window.askrindoDB ? window.askrindoDB.getLaporAnalysis(normId) : null;
 
     // Gabungkan riwayat tahun dari existing record (misal 2024) dengan hasil scan OCR (misal 2025 & 2026)
     const existingYears = existingBeforeSave?.years || this.workspaceState?.years || [];
@@ -5273,7 +5273,7 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
       return;
     }
 
-    const modal = document.getElementById('pelaku-modal-container');
+    const modal = document.getElementById('lapor-modal-container');
     if (!modal) return;
 
     modal.innerHTML = `
@@ -5390,7 +5390,7 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
 
           <!-- Tombol Aksi Bawah -->
           <div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-100 no-print">
-            <button onclick="document.getElementById('pelaku-modal-container').innerHTML=''" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold transition text-xs">
+            <button onclick="document.getElementById('lapor-modal-container').innerHTML=''" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold transition text-xs">
               Tutup
             </button>
             <button onclick="window.print()" class="px-5 py-2 rounded-xl text-white font-semibold bg-purple-600 hover:bg-purple-700 transition text-xs flex items-center gap-1.5 shadow-md">
@@ -5405,5 +5405,3 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
     if (window.lucide) window.lucide.createIcons();
   }
 };
-
-window.LaporModule = window.PelakuModule;

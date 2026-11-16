@@ -95,8 +95,8 @@ CREATE TABLE IF NOT EXISTS public.cover_notes (
     created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW())
 );
 
--- 6. TABEL ANALISA LAPORAN KEUANGAN PERUSAHAAN (pelaku_analyses)
-CREATE TABLE IF NOT EXISTS public.pelaku_analyses (
+-- 6. TABEL ANALISA LAPORAN KEUANGAN PERUSAHAAN (lapor_analyses)
+CREATE TABLE IF NOT EXISTS public.lapor_analyses (
     id TEXT PRIMARY KEY,
     company_name TEXT NOT NULL,
     sector TEXT,
@@ -127,7 +127,7 @@ ALTER TABLE public.sppa_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cover_notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.system_settings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.pelaku_analyses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.lapor_analyses ENABLE ROW LEVEL SECURITY;
 
 -- Policy untuk public/anon access
 DROP POLICY IF EXISTS "Allow public all access on users" ON public.users;
@@ -145,18 +145,18 @@ CREATE POLICY "Allow public all access on audit_logs" ON public.audit_logs FOR A
 DROP POLICY IF EXISTS "Allow public all access on system_settings" ON public.system_settings;
 CREATE POLICY "Allow public all access on system_settings" ON public.system_settings FOR ALL USING (true) WITH CHECK (true);
 
-DROP POLICY IF EXISTS "Allow public all access on pelaku_analyses" ON public.pelaku_analyses;
-CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_analyses FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Allow public all access on lapor_analyses" ON public.lapor_analyses;
+CREATE POLICY "Allow public all access on lapor_analyses" ON public.lapor_analyses FOR ALL USING (true) WITH CHECK (true);
 
 -- ========================================================
 -- SEED DATA AWAL (Pengguna & Data SPPA Bawaan Askrindo SATU)
 -- ========================================================
 INSERT INTO public.users (id, nip, name, email, password, role, division, branch, avatar, allowed_apps, status)
 VALUES
-('USR-001', '19850101', 'Ahmad Faisal, S.E., M.M.', 'admin.satu@askrindo.co.id', 'password123', 'Super Administrator', 'Divisi Teknologi Informasi (Technology Information Division)', 'Divisi Teknologi Informasi (Technology Information Division)', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80', ARRAY['kabar', 'ttk', 'bus', 'pelaku', 'cepat', 'admin'], 'active'),
-('USR-002', '19900315', 'Budi Santoso, AAIJ', 'budi.santoso@askrindo.co.id', 'password123', 'Underwriter', 'Main Branch Office (Kantor Cabang Utama)', 'Main Branch Office (Kantor Cabang Utama)', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80', ARRAY['kabar', 'bus', 'pelaku', 'cepat'], 'active'),
-('USR-003', '19940722', 'Siti Rahmawati, S.E.', 'siti.rahma@askrindo.co.id', 'password123', 'Relationship Manager', 'Branch Office Surabaya', 'Branch Office Surabaya', 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=256&q=80', ARRAY['ttk', 'pelaku'], 'active'),
-('USR-004', '19971105', 'Dian Permana, S.Kom.', 'dian.permana@askrindo.co.id', 'password123', 'Business Head', 'Branch Office Medan', 'Branch Office Medan', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&q=80', ARRAY['kabar', 'bus', 'cepat'], 'active'),
+('USR-001', '19850101', 'Ahmad Faisal, S.E., M.M.', 'admin.satu@askrindo.co.id', 'password123', 'Super Administrator', 'Divisi Teknologi Informasi (Technology Information Division)', 'Divisi Teknologi Informasi (Technology Information Division)', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80', ARRAY['kabar', 'akur', 'sedia', 'lapor', 'cepat', 'admin'], 'active'),
+('USR-002', '19900315', 'Budi Santoso, AAIJ', 'budi.santoso@askrindo.co.id', 'password123', 'Underwriter', 'Main Branch Office (Kantor Cabang Utama)', 'Main Branch Office (Kantor Cabang Utama)', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80', ARRAY['kabar', 'sedia', 'lapor', 'cepat'], 'active'),
+('USR-003', '19940722', 'Siti Rahmawati, S.E.', 'siti.rahma@askrindo.co.id', 'password123', 'Relationship Manager', 'Branch Office Surabaya', 'Branch Office Surabaya', 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=256&q=80', ARRAY['akur', 'lapor'], 'active'),
+('USR-004', '19971105', 'Dian Permana, S.Kom.', 'dian.permana@askrindo.co.id', 'password123', 'Business Head', 'Branch Office Medan', 'Branch Office Medan', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&q=80', ARRAY['kabar', 'sedia', 'cepat'], 'active'),
 ('USR-005', '20010910', 'Rizky Pratama', 'rizky.pratama@askrindo.co.id', 'password123', 'Branch Support', 'Branch Office Bandung', 'Branch Office Bandung', 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=256&q=80', ARRAY['kabar'], 'active')
 ON CONFLICT (id) DO NOTHING;
 
@@ -171,7 +171,7 @@ INSERT INTO public.audit_logs (id, timestamp, user_name, role, sub_app, action, 
 VALUES
 ('LOG-1001', '2026-11-12 09:35:10+00', 'Ahmad Faisal, S.E., M.M.', 'Super Administrator', 'ADMIN', 'Konfigurasi Hak Akses', 'Memperbarui hak akses aplikasi untuk user Rizky Pratama (NIP 20010910)'),
 ('LOG-1002', '2026-11-12 09:12:44+00', 'Budi Santoso, AAIJ', 'Underwriter', 'KABAR', 'Simulasi Premi Kebakaran', 'Melakukan kalkulasi tarif kebakaran okupasi Industri Garmen TSI Rp 12.000.000.000'),
-('LOG-1003', '2026-11-12 08:45:20+00', 'Siti Rahmawati, S.E.', 'Relationship Manager', 'TTK', 'Simulasi Angsuran KUR', 'Simulasi KUR Mikro Rp 50.000.000 tenor 36 bulan suku bunga subsidi 6%')
+('LOG-1003', '2026-11-12 08:45:20+00', 'Siti Rahmawati, S.E.', 'Relationship Manager', 'AKUR', 'Simulasi Angsuran KUR', 'Simulasi KUR Mikro Rp 50.000.000 tenor 36 bulan suku bunga subsidi 6%')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.system_settings (id, app_name, company_name, member_of, maintenance_mode, notification_banner)

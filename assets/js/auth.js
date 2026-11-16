@@ -106,20 +106,24 @@ class AuthService {
     window.location.hash = '#/login';
   }
 
-  isAppInDevelopment(appId) {
-    const rawKey = (appId || '').toLowerCase();
+  normalizeAppId(appId) {
+    const rawKey = String(appId || '').toLowerCase().trim();
     const aliasMap = {
       'buset': 'sedia',
       'bus': 'sedia',
       'ttk': 'akur',
       'pelaku': 'lapor'
     };
-    const key = aliasMap[rawKey] || rawKey;
+    return aliasMap[rawKey] || rawKey;
+  }
+
+  isAppInDevelopment(appId) {
+    const key = this.normalizeAppId(appId);
     const devMap = window.APP_DEPLOYMENT_STATUS;
     if (devMap && devMap[key]) {
       return devMap[key].status === 'coming_soon' || devMap[key].status === 'development';
     }
-    return ['kabar', 'akur', 'ttk', 'sedia', 'bus', 'cepat'].includes(key);
+    return ['kabar', 'akur', 'sedia', 'cepat'].includes(key);
   }
 
   isAppComingSoon(appId) {
@@ -133,23 +137,12 @@ class AuthService {
     // Super Administrator memiliki akses universal
     if (this.canAccessAdmin()) return true;
 
-    const rawKey = (appId || '').toLowerCase().trim();
-    const aliasGroups = {
-      kabar: ['kabar'],
-      akur: ['akur', 'ttk'],
-      ttk: ['akur', 'ttk'],
-      sedia: ['sedia', 'bus', 'buset'],
-      bus: ['sedia', 'bus', 'buset'],
-      buset: ['sedia', 'bus', 'buset'],
-      cepat: ['cepat'],
-      lapor: ['lapor', 'pelaku'],
-      pelaku: ['lapor', 'pelaku'],
-      admin: ['admin']
-    };
-    const validKeys = aliasGroups[rawKey] || [rawKey];
-    const allowed = Array.isArray(user.allowedApps) ? user.allowedApps.map(a => String(a).toLowerCase().trim()) : [];
+    const targetKey = this.normalizeAppId(appId);
+    const allowed = Array.isArray(user.allowedApps)
+      ? user.allowedApps.map(a => this.normalizeAppId(a))
+      : [];
 
-    return validKeys.some(k => allowed.includes(k));
+    return allowed.includes(targetKey);
   }
 
   canAccessAdmin() {

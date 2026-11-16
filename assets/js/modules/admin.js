@@ -253,20 +253,14 @@ window.AdminModule = {
                         const appBadgeColors = {
                           kabar: 'bg-orange-100 text-orange-800 border-orange-200',
                           akur: 'bg-blue-100 text-blue-800 border-blue-200',
-                          ttk: 'bg-blue-100 text-blue-800 border-blue-200',
                           sedia: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-                          bus: 'bg-emerald-100 text-emerald-800 border-emerald-200',
                           cepat: 'bg-cyan-100 text-cyan-800 border-cyan-200',
                           lapor: 'bg-purple-100 text-purple-800 border-purple-200',
-                          pelaku: 'bg-purple-100 text-purple-800 border-purple-200',
                           admin: 'bg-amber-100 text-amber-800 border-amber-200'
                         };
-                        const canonicalApps = [...new Set((user.allowedApps || []).map(a => {
-                          if (a === 'ttk') return 'akur';
-                          if (a === 'bus' || a === 'buset') return 'sedia';
-                          if (a === 'pelaku') return 'lapor';
-                          return a;
-                        }))];
+                        const canonicalApps = window.askrindoDB
+                          ? window.askrindoDB.normalizeAllowedApps(user.allowedApps)
+                          : [...new Set(user.allowedApps || [])];
                         return canonicalApps.map(app => `
                           <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase border whitespace-nowrap ${appBadgeColors[app] || 'bg-slate-100 text-slate-600'}">
                             ${app}
@@ -307,12 +301,12 @@ window.AdminModule = {
 
   renderMatrixTab(allUsers) {
     const appsList = [
-      { id: 'lapor', altId: 'pelaku', name: 'LAPOR', label: 'Layanan Analisis dan Perhitungan Rasio Keuangan', color: 'text-purple-600' },
-      { id: 'kabar', altId: null, name: 'KABAR', label: 'Kalkulator Asuransi Kebakaran', color: 'text-orange-600' },
-      { id: 'akur', altId: 'ttk', name: 'AKUR', label: 'Analisis Kredit Usaha Rakyat', color: 'text-blue-600' },
-      { id: 'sedia', altId: 'bus', name: 'SEDIA', label: 'Sistem Elektronik Dokumen dan Informasi Asuransi', color: 'text-emerald-600' },
-      { id: 'cepat', altId: null, name: 'CEPAT', label: 'Cover Note Pertanggungan Asuransi Terintegrasi', color: 'text-cyan-600' },
-      { id: 'admin', altId: null, name: 'ADMIN', label: 'Web Admin Portal', color: 'text-amber-600' }
+      { id: 'lapor', name: 'LAPOR', label: 'Layanan Analisis dan Perhitungan Rasio Keuangan', color: 'text-purple-600' },
+      { id: 'kabar', name: 'KABAR', label: 'Kalkulator Asuransi Kebakaran', color: 'text-orange-600' },
+      { id: 'akur', name: 'AKUR', label: 'Analisis Kredit Usaha Rakyat', color: 'text-blue-600' },
+      { id: 'sedia', name: 'SEDIA', label: 'Sistem Elektronik Dokumen dan Informasi Asuransi', color: 'text-emerald-600' },
+      { id: 'cepat', name: 'CEPAT', label: 'Cover Note Pertanggungan Asuransi Terintegrasi', color: 'text-cyan-600' },
+      { id: 'admin', name: 'ADMIN', label: 'Web Admin Portal', color: 'text-amber-600' }
     ];
 
     return `
@@ -525,37 +519,24 @@ window.AdminModule = {
     const user = window.askrindoDB.getUser(userId);
     if (!user) return;
 
-    const aliases = {
-      akur: ['akur', 'ttk'],
-      ttk: ['akur', 'ttk'],
-      sedia: ['sedia', 'bus', 'buset'],
-      bus: ['sedia', 'bus', 'buset'],
-      lapor: ['lapor', 'pelaku'],
-      pelaku: ['lapor', 'pelaku']
-    };
-    const affected = aliases[appId] || [appId];
+    const canonicalId = window.authService ? window.authService.normalizeAppId(appId) : appId;
+    let apps = window.askrindoDB.normalizeAllowedApps(user.allowedApps);
 
-    let apps = [...user.allowedApps];
     if (isChecked) {
-      affected.forEach(a => {
-        if (!apps.includes(a)) apps.push(a);
-      });
+      if (!apps.includes(canonicalId)) apps.push(canonicalId);
     } else {
-      apps = apps.filter(a => !affected.includes(a));
+      apps = apps.filter(a => a !== canonicalId);
     }
 
     const displayNames = {
       akur: 'AKUR',
-      ttk: 'AKUR',
       sedia: 'SEDIA',
-      bus: 'SEDIA',
       lapor: 'LAPOR',
-      pelaku: 'LAPOR',
       kabar: 'KABAR',
       cepat: 'CEPAT',
       admin: 'ADMIN'
     };
-    const appDisplayName = displayNames[appId] || appId.toUpperCase();
+    const appDisplayName = displayNames[canonicalId] || canonicalId.toUpperCase();
 
     window.askrindoDB.updateUserPermissions(userId, apps);
     if (window.askrindoApp) window.askrindoApp.updateActiveNavs();
@@ -677,7 +658,7 @@ window.AdminModule = {
               <label class="block font-bold text-slate-800 mb-2">Izin Akses Sub-Aplikasi Terpadu</label>
               <div class="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" id="perm-lapor" value="lapor" ${allowedApps.includes('lapor') || allowedApps.includes('pelaku') ? 'checked' : ''} class="w-4 h-4 text-purple-600 rounded" />
+                  <input type="checkbox" id="perm-lapor" value="lapor" ${window.askrindoDB.normalizeAllowedApps(allowedApps).includes('lapor') ? 'checked' : ''} class="w-4 h-4 text-purple-600 rounded" />
                   <span class="font-semibold text-slate-800">LAPOR</span>
                   <span class="text-slate-500 text-[11px]">— Layanan Analisis dan Perhitungan Rasio Keuangan</span>
                 </label>
@@ -687,12 +668,12 @@ window.AdminModule = {
                   <span class="text-slate-500 text-[11px]">— Kalkulator Asuransi Kebakaran</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" id="perm-akur" value="akur" ${allowedApps.includes('akur') || allowedApps.includes('ttk') ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded" />
+                  <input type="checkbox" id="perm-akur" value="akur" ${window.askrindoDB.normalizeAllowedApps(allowedApps).includes('akur') ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded" />
                   <span class="font-semibold text-slate-800">AKUR</span>
                   <span class="text-slate-500 text-[11px]">— Analisis Kredit Usaha Rakyat</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" id="perm-sedia" value="sedia" ${allowedApps.includes('sedia') || allowedApps.includes('bus') || allowedApps.includes('buset') ? 'checked' : ''} class="w-4 h-4 text-emerald-600 rounded" />
+                  <input type="checkbox" id="perm-sedia" value="sedia" ${window.askrindoDB.normalizeAllowedApps(allowedApps).includes('sedia') ? 'checked' : ''} class="w-4 h-4 text-emerald-600 rounded" />
                   <span class="font-semibold text-slate-800">SEDIA</span>
                   <span class="text-slate-500 text-[11px]">— Sistem Elektronik Dokumen dan Informasi Asuransi</span>
                 </label>
@@ -759,10 +740,10 @@ window.AdminModule = {
     const role = document.getElementById('modal-role').value;
 
     const allowedApps = [];
-    if (document.getElementById('perm-lapor').checked) allowedApps.push('lapor', 'pelaku');
+    if (document.getElementById('perm-lapor').checked) allowedApps.push('lapor');
     if (document.getElementById('perm-kabar').checked) allowedApps.push('kabar');
-    if (document.getElementById('perm-akur').checked) allowedApps.push('akur', 'ttk');
-    if (document.getElementById('perm-sedia').checked) allowedApps.push('sedia', 'bus');
+    if (document.getElementById('perm-akur').checked) allowedApps.push('akur');
+    if (document.getElementById('perm-sedia').checked) allowedApps.push('sedia');
     if (document.getElementById('perm-cepat').checked) allowedApps.push('cepat');
     if (document.getElementById('perm-admin').checked) allowedApps.push('admin');
 

@@ -3,12 +3,12 @@
  * Interactive KUR installment calculator, debtor eligibility checker, and smart knowledge base.
  */
 
-window.TtkModule = {
+window.AkurModule = {
   currentTab: 'calc', // 'calc' | 'eligibility' | 'faq'
 
   render() {
     const user = window.authService.getCurrentUser();
-    if (!user || (!window.authService.hasAccess('akur') && !window.authService.hasAccess('ttk'))) {
+    if (!user || !window.authService.hasAccess('akur')) {
       return window.askrindoApp.renderUnauthorized('AKUR');
     }
 
@@ -34,13 +34,13 @@ window.TtkModule = {
           </div>
 
           <div class="flex items-center gap-2">
-            <button onclick="window.TtkModule.setTab('calc')" class="px-3.5 py-2 rounded-xl text-xs font-semibold transition ${this.currentTab === 'calc' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
+            <button onclick="window.AkurModule.setTab('calc')" class="px-3.5 py-2 rounded-xl text-xs font-semibold transition ${this.currentTab === 'calc' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
               Kalkulator KUR
             </button>
-            <button onclick="window.TtkModule.setTab('eligibility')" class="px-3.5 py-2 rounded-xl text-xs font-semibold transition ${this.currentTab === 'eligibility' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
+            <button onclick="window.AkurModule.setTab('eligibility')" class="px-3.5 py-2 rounded-xl text-xs font-semibold transition ${this.currentTab === 'eligibility' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
               Cek Kelayakan Debitur
             </button>
-            <button onclick="window.TtkModule.setTab('faq')" class="px-3.5 py-2 rounded-xl text-xs font-semibold transition ${this.currentTab === 'faq' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
+            <button onclick="window.AkurModule.setTab('faq')" class="px-3.5 py-2 rounded-xl text-xs font-semibold transition ${this.currentTab === 'faq' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
               Tanya Askrindo KUR
             </button>
           </div>
@@ -77,15 +77,15 @@ window.TtkModule = {
             <div class="space-y-2 text-xs">
               <label class="block font-semibold text-slate-700">Skema Kredit Usaha Rakyat (KUR)</label>
               <div class="grid grid-cols-3 gap-2">
-                <button type="button" onclick="window.TtkModule.setScheme('super_mikro')" id="scheme-super-btn" class="p-3 rounded-xl border border-blue-500 bg-blue-50/50 text-blue-900 font-bold text-center transition">
+                <button type="button" onclick="window.AkurModule.setScheme('super_mikro')" id="scheme-super-btn" class="p-3 rounded-xl border border-blue-500 bg-blue-50/50 text-blue-900 font-bold text-center transition">
                   <span class="block text-xs">Super Mikro</span>
                   <span class="text-[10px] text-blue-600 font-normal">s.d 10 Juta (3%)</span>
                 </button>
-                <button type="button" onclick="window.TtkModule.setScheme('mikro')" id="scheme-mikro-btn" class="p-3 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-center transition hover:border-slate-300">
+                <button type="button" onclick="window.AkurModule.setScheme('mikro')" id="scheme-mikro-btn" class="p-3 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-center transition hover:border-slate-300">
                   <span class="block text-xs">KUR Mikro</span>
                   <span class="text-[10px] text-slate-400 font-normal">10 - 100 Jt (6%)</span>
                 </button>
-                <button type="button" onclick="window.TtkModule.setScheme('kecil')" id="scheme-kecil-btn" class="p-3 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-center transition hover:border-slate-300">
+                <button type="button" onclick="window.AkurModule.setScheme('kecil')" id="scheme-kecil-btn" class="p-3 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-center transition hover:border-slate-300">
                   <span class="block text-xs">KUR Kecil</span>
                   <span class="text-[10px] text-slate-400 font-normal">100 - 500 Jt (6%)</span>
                 </button>
@@ -96,16 +96,16 @@ window.TtkModule = {
             <div class="space-y-2 text-xs">
               <div class="flex items-center justify-between">
                 <label class="font-semibold text-slate-700">Plafon Pinjaman</label>
-                <span id="ttk-plafon-text" class="font-mono font-bold text-blue-600 text-sm">Rp 10.000.000</span>
+                <span id="akur-plafon-text" class="font-mono font-bold text-blue-600 text-sm">Rp 10.000.000</span>
               </div>
               <input 
                 type="range" 
-                id="ttk-plafon-range" 
+                id="akur-plafon-range" 
                 min="1000000" 
                 max="10000000" 
                 step="500000" 
                 value="10000000"
-                oninput="window.TtkModule.handlePlafonChange(this.value)"
+                oninput="window.AkurModule.handlePlafonChange(this.value)"
                 class="w-full accent-blue-600 cursor-pointer"
               />
               <div class="flex justify-between text-[10px] text-slate-400">
@@ -118,7 +118,7 @@ window.TtkModule = {
             <div class="grid grid-cols-2 gap-4 text-xs">
               <div>
                 <label class="block font-semibold text-slate-700 mb-1">Jangka Waktu (Tenor)</label>
-                <select id="ttk-tenor" onchange="window.TtkModule.calcInstallment()" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 bg-white">
+                <select id="akur-tenor" onchange="window.AkurModule.calcInstallment()" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 bg-white">
                   <option value="6">6 Bulan</option>
                   <option value="12" selected>12 Bulan (1 Tahun)</option>
                   <option value="18">18 Bulan</option>
@@ -131,7 +131,7 @@ window.TtkModule = {
 
               <div>
                 <label class="block font-semibold text-slate-700 mb-1">Jenis Keperluan Kredit</label>
-                <select id="ttk-purpose" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 bg-white">
+                <select id="akur-purpose" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 bg-white">
                   <option value="KMK">Kredit Modal Kerja (KMK)</option>
                   <option value="KI">Kredit Investasi (KI)</option>
                 </select>
@@ -141,7 +141,7 @@ window.TtkModule = {
             <!-- Bank Penyalur KUR -->
             <div class="text-xs">
               <label class="block font-semibold text-slate-700 mb-1">Bank Mitra Penyalur KUR</label>
-              <select id="ttk-bank" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 bg-white">
+              <select id="akur-bank" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 bg-white">
                 <option value="BRI">PT Bank Rakyat Indonesia (Persero) Tbk</option>
                 <option value="Mandiri">PT Bank Mandiri (Persero) Tbk</option>
                 <option value="BNI">PT Bank Negara Indonesia (Persero) Tbk</option>
@@ -161,14 +161,14 @@ window.TtkModule = {
                 <h3 class="text-lg font-black text-slate-800">Estimasi Kewajiban Bulanan</h3>
               </div>
               <div class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                Suku Bunga: <span id="ttk-rate-label">3.00%</span>
+                Suku Bunga: <span id="akur-rate-label">3.00%</span>
               </div>
             </div>
 
             <!-- Big Monthly Installment Card -->
             <div class="p-5 rounded-2xl bg-gradient-to-br from-[#002B49] via-blue-900 to-[#0A3D62] text-white shadow-lg space-y-1">
               <span class="text-[11px] font-medium text-cyan-300 uppercase tracking-wider">Total Angsuran Per Bulan</span>
-              <div id="ttk-monthly-install" class="text-3xl font-black font-mono tracking-tight text-white">
+              <div id="akur-monthly-install" class="text-3xl font-black font-mono tracking-tight text-white">
                 Rp 858.333
               </div>
               <p class="text-[10px] text-slate-300">Terdiri dari angsuran pokok dan bunga flat/efektif bersubsidi.</p>
@@ -178,27 +178,27 @@ window.TtkModule = {
             <div class="space-y-3 text-xs">
               <div class="flex items-center justify-between py-1 border-b border-slate-100">
                 <span class="text-slate-500">Angsuran Pokok / Bulan:</span>
-                <span id="ttk-res-pokok" class="font-mono font-bold text-slate-800">Rp 833.333</span>
+                <span id="akur-res-pokok" class="font-mono font-bold text-slate-800">Rp 833.333</span>
               </div>
               <div class="flex items-center justify-between py-1 border-b border-slate-100">
                 <span class="text-slate-500">Angsuran Bunga Debitur / Bulan:</span>
-                <span id="ttk-res-bunga" class="font-mono font-bold text-blue-600">Rp 25.000</span>
+                <span id="akur-res-bunga" class="font-mono font-bold text-blue-600">Rp 25.000</span>
               </div>
               <div class="flex items-center justify-between py-1 border-b border-slate-100">
                 <span class="text-slate-500">Total Bunga Selama Tenor:</span>
-                <span id="ttk-res-total-bunga" class="font-mono font-semibold text-slate-800">Rp 300.000</span>
+                <span id="akur-res-total-bunga" class="font-mono font-semibold text-slate-800">Rp 300.000</span>
               </div>
               <div class="flex items-center justify-between py-1 border-b border-slate-100">
                 <span class="text-slate-500">Estimasi Subsidi Bunga Pemerintah (10%):</span>
-                <span id="ttk-res-subsidi" class="font-mono font-semibold text-emerald-600">Rp 1.000.000</span>
+                <span id="akur-res-subsidi" class="font-mono font-semibold text-emerald-600">Rp 1.000.000</span>
               </div>
               <div class="flex items-center justify-between py-1 border-b border-slate-100">
                 <span class="text-slate-500">Estimasi IJP (Imbal Jasa Penjaminan Askrindo):</span>
-                <span id="ttk-res-ijp" class="font-mono font-bold text-amber-600">Rp 175.000</span>
+                <span id="akur-res-ijp" class="font-mono font-bold text-amber-600">Rp 175.000</span>
               </div>
             </div>
 
-            <button onclick="window.TtkModule.showAmortizationTable()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition">
+            <button onclick="window.AkurModule.showAmortizationTable()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition">
               <i data-lucide="table" class="w-4 h-4"></i>
               <span>Lihat Rincian Jadwal Angsuran (Tabel Amortisasi)</span>
             </button>
@@ -207,7 +207,7 @@ window.TtkModule = {
       </div>
 
       <!-- Amortization Modal Container -->
-      <div id="ttk-amort-modal-container"></div>
+      <div id="akur-amort-modal-container"></div>
     `;
   },
 
@@ -219,10 +219,10 @@ window.TtkModule = {
     const btnSuper = document.getElementById('scheme-super-btn');
     const btnMikro = document.getElementById('scheme-mikro-btn');
     const btnKecil = document.getElementById('scheme-kecil-btn');
-    const range = document.getElementById('ttk-plafon-range');
+    const range = document.getElementById('akur-plafon-range');
     const minLabel = document.getElementById('range-min-label');
     const maxLabel = document.getElementById('range-max-label');
-    const rateLabel = document.getElementById('ttk-rate-label');
+    const rateLabel = document.getElementById('akur-rate-label');
 
     // Reset styles
     [btnSuper, btnMikro, btnKecil].forEach(btn => {
@@ -262,7 +262,7 @@ window.TtkModule = {
   },
 
   handlePlafonChange(val) {
-    const textEl = document.getElementById('ttk-plafon-text');
+    const textEl = document.getElementById('akur-plafon-text');
     if (textEl) {
       textEl.innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
     }
@@ -270,8 +270,8 @@ window.TtkModule = {
   },
 
   calcInstallment() {
-    const plafon = parseFloat(document.getElementById('ttk-plafon-range')?.value || '10000000');
-    const tenor = parseInt(document.getElementById('ttk-tenor')?.value || '12', 10);
+    const plafon = parseFloat(document.getElementById('akur-plafon-range')?.value || '10000000');
+    const tenor = parseInt(document.getElementById('akur-tenor')?.value || '12', 10);
     const annualRate = this.activeScheme === 'super_mikro' ? 0.03 : 0.06;
 
     // Monthly interest & principal
@@ -284,12 +284,12 @@ window.TtkModule = {
 
     const fmt = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
 
-    const elMonth = document.getElementById('ttk-monthly-install');
-    const elPokok = document.getElementById('ttk-res-pokok');
-    const elBunga = document.getElementById('ttk-res-bunga');
-    const elTotalBunga = document.getElementById('ttk-res-total-bunga');
-    const elSubsidi = document.getElementById('ttk-res-subsidi');
-    const elIjp = document.getElementById('ttk-res-ijp');
+    const elMonth = document.getElementById('akur-monthly-install');
+    const elPokok = document.getElementById('akur-res-pokok');
+    const elBunga = document.getElementById('akur-res-bunga');
+    const elTotalBunga = document.getElementById('akur-res-total-bunga');
+    const elSubsidi = document.getElementById('akur-res-subsidi');
+    const elIjp = document.getElementById('akur-res-ijp');
 
     if (elMonth) elMonth.innerText = fmt(totalInstallment);
     if (elPokok) elPokok.innerText = fmt(pokokPerBulan);
@@ -322,7 +322,7 @@ window.TtkModule = {
       `;
     }
 
-    const modal = document.getElementById('ttk-amort-modal-container');
+    const modal = document.getElementById('akur-amort-modal-container');
     if (!modal) return;
 
     modal.innerHTML = `
@@ -333,7 +333,7 @@ window.TtkModule = {
               <h3 class="text-base font-bold text-slate-800">Tabel Jadwal Angsuran KUR (Amortisasi)</h3>
               <p class="text-xs text-slate-500">Plafon: ${fmt(c.plafon)} | Tenor: ${c.tenor} Bulan</p>
             </div>
-            <button onclick="document.getElementById('ttk-amort-modal-container').innerHTML=''" class="p-1 rounded-lg text-slate-400 hover:text-slate-600">
+            <button onclick="document.getElementById('akur-amort-modal-container').innerHTML=''" class="p-1 rounded-lg text-slate-400 hover:text-slate-600">
               <i data-lucide="x" class="w-5 h-5"></i>
             </button>
           </div>
@@ -356,7 +356,7 @@ window.TtkModule = {
           </div>
 
           <div class="flex justify-end pt-2">
-            <button onclick="document.getElementById('ttk-amort-modal-container').innerHTML=''" class="px-5 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-white hover:bg-slate-900 transition">
+            <button onclick="document.getElementById('akur-amort-modal-container').innerHTML=''" class="px-5 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-white hover:bg-slate-900 transition">
               Tutup
             </button>
           </div>
@@ -379,7 +379,7 @@ window.TtkModule = {
           </p>
         </div>
 
-        <form onsubmit="window.TtkModule.checkDebtorEligibility(event)" class="space-y-4 text-xs">
+        <form onsubmit="window.AkurModule.checkDebtorEligibility(event)" class="space-y-4 text-xs">
           <!-- Parameter 1: Usia Usaha -->
           <div class="p-4 rounded-xl border border-slate-200 space-y-2 bg-slate-50/50">
             <label class="block font-bold text-slate-800">1. Lama Usaha Aktif Berjalan</label>
@@ -546,5 +546,3 @@ window.TtkModule = {
     `;
   }
 };
-
-window.AkurModule = window.TtkModule;

@@ -3,7 +3,7 @@
  * Digital Insurance Closing Application Form (SPPA) Generator with QR code and PDF print.
  */
 
-window.BusModule = {
+window.SediaModule = {
   currentTab: 'create', // 'create' | 'list'
   currentStep: 1, // 1 to 4
   formData: {
@@ -26,7 +26,7 @@ window.BusModule = {
 
   render() {
     const user = window.authService.getCurrentUser();
-    if (!user || (!window.authService.hasAccess('sedia') && !window.authService.hasAccess('bus'))) {
+    if (!user || !window.authService.hasAccess('sedia')) {
       return window.askrindoApp.renderUnauthorized('SEDIA');
     }
 
@@ -67,10 +67,10 @@ window.BusModule = {
           </div>
 
           <div class="flex items-center gap-2">
-            <button onclick="window.BusModule.setTab('create')" class="px-3.5 py-2 rounded-xl text-xs font-semibold transition ${this.currentTab === 'create' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
+            <button onclick="window.SediaModule.setTab('create')" class="px-3.5 py-2 rounded-xl text-xs font-semibold transition ${this.currentTab === 'create' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
               + Formulir SPPA Baru
             </button>
-            <button onclick="window.BusModule.setTab('list')" class="px-3.5 py-2 rounded-xl text-xs font-semibold transition ${this.currentTab === 'list' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
+            <button onclick="window.SediaModule.setTab('list')" class="px-3.5 py-2 rounded-xl text-xs font-semibold transition ${this.currentTab === 'list' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
               Daftar Riwayat SPPA (${sppaList.length})
             </button>
           </div>
@@ -159,11 +159,11 @@ window.BusModule = {
             <label class="block font-semibold text-slate-700 mb-1">Kategori Tertanggung</label>
             <div class="flex gap-4">
               <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="insuredType" value="Badan Usaha (PT)" ${this.formData.insuredType.includes('PT') ? 'checked' : ''} onchange="window.BusModule.formData.insuredType=this.value" class="text-emerald-600" />
+                <input type="radio" name="insuredType" value="Badan Usaha (PT)" ${this.formData.insuredType.includes('PT') ? 'checked' : ''} onchange="window.SediaModule.formData.insuredType=this.value" class="text-emerald-600" />
                 <span>Badan Usaha (PT / CV / BUMN / Koperasi)</span>
               </label>
               <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="insuredType" value="Perorangan" ${this.formData.insuredType === 'Perorangan' ? 'checked' : ''} onchange="window.BusModule.formData.insuredType=this.value" class="text-emerald-600" />
+                <input type="radio" name="insuredType" value="Perorangan" ${this.formData.insuredType === 'Perorangan' ? 'checked' : ''} onchange="window.SediaModule.formData.insuredType=this.value" class="text-emerald-600" />
                 <span>Perorangan / Pribadi</span>
               </label>
             </div>
@@ -198,7 +198,7 @@ window.BusModule = {
         </div>
 
         <div class="flex justify-end pt-4 border-t border-slate-100">
-          <button onclick="window.BusModule.saveStep1()" class="px-6 py-2.5 rounded-xl font-semibold text-xs text-white bg-emerald-600 hover:bg-emerald-700 transition flex items-center gap-2">
+          <button onclick="window.SediaModule.saveStep1()" class="px-6 py-2.5 rounded-xl font-semibold text-xs text-white bg-emerald-600 hover:bg-emerald-700 transition flex items-center gap-2">
             <span>Lanjut ke Langkah 2</span>
             <i data-lucide="arrow-right" class="w-4 h-4"></i>
           </button>
@@ -255,10 +255,10 @@ window.BusModule = {
         </div>
 
         <div class="flex justify-between pt-4 border-t border-slate-100">
-          <button onclick="window.BusModule.setStep(1)" class="px-5 py-2.5 rounded-xl font-semibold text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
+          <button onclick="window.SediaModule.setStep(1)" class="px-5 py-2.5 rounded-xl font-semibold text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
             Kembali
           </button>
-          <button onclick="window.BusModule.saveStep2()" class="px-6 py-2.5 rounded-xl font-semibold text-xs text-white bg-emerald-600 hover:bg-emerald-700 transition flex items-center gap-2">
+          <button onclick="window.SediaModule.saveStep2()" class="px-6 py-2.5 rounded-xl font-semibold text-xs text-white bg-emerald-600 hover:bg-emerald-700 transition flex items-center gap-2">
             <span>Lanjut ke Langkah 3</span>
             <i data-lucide="arrow-right" class="w-4 h-4"></i>
           </button>
@@ -319,10 +319,10 @@ window.BusModule = {
         </div>
 
         <div class="flex justify-between pt-4 border-t border-slate-100">
-          <button onclick="window.BusModule.setStep(2)" class="px-5 py-2.5 rounded-xl font-semibold text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
+          <button onclick="window.SediaModule.setStep(2)" class="px-5 py-2.5 rounded-xl font-semibold text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
             Kembali
           </button>
-          <button onclick="window.BusModule.saveStep3()" class="px-6 py-2.5 rounded-xl font-semibold text-xs text-white bg-emerald-600 hover:bg-emerald-700 transition flex items-center gap-2">
+          <button onclick="window.SediaModule.saveStep3()" class="px-6 py-2.5 rounded-xl font-semibold text-xs text-white bg-emerald-600 hover:bg-emerald-700 transition flex items-center gap-2">
             <span>Generate & Preview Dokumen SPPA</span>
             <i data-lucide="file-check" class="w-4 h-4"></i>
           </button>
@@ -358,7 +358,7 @@ window.BusModule = {
               <i data-lucide="printer" class="w-4 h-4"></i>
               <span>Cetak / Download PDF</span>
             </button>
-            <button onclick="window.BusModule.finalizeAndSave('${docNo}')" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-slate-800 hover:bg-slate-900 transition flex items-center gap-1.5 shadow-sm">
+            <button onclick="window.SediaModule.finalizeAndSave('${docNo}')" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-slate-800 hover:bg-slate-900 transition flex items-center gap-1.5 shadow-sm">
               <i data-lucide="save" class="w-4 h-4"></i>
               <span>Simpan ke Database SPPA</span>
             </button>
@@ -454,7 +454,7 @@ window.BusModule = {
         </div>
 
         <div class="flex justify-between pt-2 no-print">
-          <button onclick="window.BusModule.setStep(3)" class="px-5 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
+          <button onclick="window.SediaModule.setStep(3)" class="px-5 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
             Kembali Ubah Data
           </button>
         </div>
@@ -505,7 +505,7 @@ window.BusModule = {
             <h3 class="text-base font-bold text-slate-800">Daftar Arsip & Registrasi SPPA</h3>
             <p class="text-xs text-slate-500">Seluruh berkas permohonan penutupan asuransi yang tersimpan di sistem Askrindo SATU.</p>
           </div>
-          <button onclick="window.BusModule.setStep(1); window.BusModule.setTab('create');" class="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition flex items-center gap-1.5 shadow-sm">
+          <button onclick="window.SediaModule.setStep(1); window.SediaModule.setTab('create');" class="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition flex items-center gap-1.5 shadow-sm">
             <i data-lucide="plus" class="w-4 h-4"></i>
             <span>Buat SPPA Baru</span>
           </button>
@@ -555,7 +555,7 @@ window.BusModule = {
                     </span>
                   </td>
                   <td class="py-3 px-4 text-center">
-                    <button onclick="window.BusModule.viewSavedSppa('${sppa.id}')" title="Lihat Dokumen Lengkap" class="p-1.5 rounded-lg text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 transition">
+                    <button onclick="window.SediaModule.viewSavedSppa('${sppa.id}')" title="Lihat Dokumen Lengkap" class="p-1.5 rounded-lg text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 transition">
                       <i data-lucide="eye" class="w-4 h-4"></i>
                     </button>
                   </td>
@@ -594,5 +594,3 @@ window.BusModule = {
     window.askrindoApp.renderCurrentRoute();
   }
 };
-
-window.SediaModule = window.BusModule;

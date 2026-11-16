@@ -277,7 +277,7 @@ window.KabarModule = {
 
               <!-- Actions inside Quotation Slip -->
               <div class="space-y-2 pt-2">
-                <button onclick="window.KabarModule.forwardToBus()" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 shadow-md transition-all">
+                <button onclick="window.KabarModule.forwardToSedia()" class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 shadow-md transition-all">
                   <i data-lucide="file-plus" class="w-4 h-4"></i>
                   <span>Lanjutkan Terbitkan SPPA (Modul SEDIA)</span>
                 </button>
@@ -402,7 +402,7 @@ window.KabarModule = {
     this.calculate();
   },
 
-  forwardToBus() {
+  forwardToSedia() {
     if (!this.currentCalc) this.calculate();
     // Save to temp storage for SEDIA module
     sessionStorage.setItem('askrindo_pending_sppa_from_kabar', JSON.stringify({

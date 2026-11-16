@@ -16,7 +16,7 @@ const DB_KEYS = {
   SPPA: 'askrindo_satu_sppa_v1',
   COVER_NOTES: 'askrindo_satu_cover_notes_v1',
   KABAR: 'askrindo_satu_kabar_v1',
-  PELAKU: 'askrindo_satu_pelaku_v1',
+  LAPOR: 'askrindo_satu_lapor_v1',
   AUDIT: 'askrindo_satu_audit_v1',
   SETTINGS: 'askrindo_satu_settings_v1',
   USER_OVERRIDES: 'askrindo_satu_user_overrides_v1'
@@ -37,7 +37,7 @@ const INITIAL_USERS = [
     division: 'Divisi Teknologi Informasi (Technology Information Division)',
     branch: 'Divisi Teknologi Informasi (Technology Information Division)',
     avatar: DEFAULT_AVATAR,
-    allowedApps: ['kabar', 'akur', 'ttk', 'sedia', 'bus', 'lapor', 'pelaku', 'cepat', 'admin'],
+    allowedApps: ['kabar', 'akur', 'sedia', 'lapor', 'cepat', 'admin'],
     status: 'active',
     createdAt: '2026-01-10T08:00:00Z',
     lastLogin: '2026-11-12T09:30:00Z'
@@ -52,7 +52,7 @@ const INITIAL_USERS = [
     division: 'Main Branch Office (Kantor Cabang Utama)',
     branch: 'Main Branch Office (Kantor Cabang Utama)',
     avatar: DEFAULT_AVATAR,
-    allowedApps: ['kabar', 'sedia', 'bus', 'lapor', 'pelaku', 'cepat'],
+    allowedApps: ['kabar', 'sedia', 'lapor', 'cepat'],
     status: 'active',
     createdAt: '2026-02-15T09:00:00Z',
     lastLogin: '2026-11-12T08:15:00Z'
@@ -67,7 +67,7 @@ const INITIAL_USERS = [
     division: 'Branch Office Surabaya',
     branch: 'Branch Office Surabaya',
     avatar: DEFAULT_AVATAR,
-    allowedApps: ['akur', 'ttk', 'lapor', 'pelaku'],
+    allowedApps: ['akur', 'lapor'],
     status: 'active',
     createdAt: '2026-03-01T10:00:00Z',
     lastLogin: '2026-11-11T16:45:00Z'
@@ -82,7 +82,7 @@ const INITIAL_USERS = [
     division: 'Branch Office Medan',
     branch: 'Branch Office Medan',
     avatar: DEFAULT_AVATAR,
-    allowedApps: ['kabar', 'sedia', 'bus', 'cepat'],
+    allowedApps: ['kabar', 'sedia', 'cepat'],
     status: 'active',
     createdAt: '2026-05-12T11:00:00Z',
     lastLogin: '2026-11-10T14:20:00Z'
@@ -269,13 +269,6 @@ const APP_DEPLOYMENT_STATUS = {
     badge: 'Aktif',
     isPublic: true
   },
-  pelaku: {
-    status: 'active',
-    label: 'Rilis Penuh (Aktif)',
-    phase: 'Tahap 1 (Live Operasional)',
-    badge: 'Aktif',
-    isPublic: true
-  },
   kabar: {
     status: 'coming_soon',
     label: 'Segera Hadir',
@@ -290,21 +283,7 @@ const APP_DEPLOYMENT_STATUS = {
     badge: 'Segera Hadir',
     isPublic: false
   },
-  ttk: {
-    status: 'coming_soon',
-    label: 'Segera Hadir',
-    phase: 'Roadmap Pengembangan',
-    badge: 'Segera Hadir',
-    isPublic: false
-  },
   sedia: {
-    status: 'coming_soon',
-    label: 'Segera Hadir',
-    phase: 'Roadmap Pengembangan',
-    badge: 'Segera Hadir',
-    isPublic: false
-  },
-  bus: {
     status: 'coming_soon',
     label: 'Segera Hadir',
     phase: 'Roadmap Pengembangan',
@@ -337,7 +316,6 @@ const SUB_APPS_CATALOG = {
   },
   akur: {
     id: 'akur',
-    legacyId: 'ttk',
     name: 'AKUR',
     tagline: 'Analisis Kredit Usaha Rakyat',
     badge: 'Penjaminan KUR & UMKM',
@@ -350,7 +328,6 @@ const SUB_APPS_CATALOG = {
   },
   sedia: {
     id: 'sedia',
-    legacyId: 'bus',
     name: 'SEDIA',
     tagline: 'Sistem Elektronik Dokumen dan Informasi Asuransi',
     badge: 'Operasional & Penerbitan',
@@ -363,7 +340,6 @@ const SUB_APPS_CATALOG = {
   },
   lapor: {
     id: 'lapor',
-    legacyId: 'pelaku',
     name: 'LAPOR',
     tagline: 'Layanan Analisis dan Perhitungan Rasio Keuangan',
     badge: 'Analisis Finansial & Risiko',
@@ -388,18 +364,12 @@ const SUB_APPS_CATALOG = {
   }
 };
 
-// Backward-compatible alias mappings
-SUB_APPS_CATALOG.ttk = SUB_APPS_CATALOG.akur;
-SUB_APPS_CATALOG.bus = SUB_APPS_CATALOG.sedia;
-SUB_APPS_CATALOG.buset = SUB_APPS_CATALOG.sedia;
-SUB_APPS_CATALOG.pelaku = SUB_APPS_CATALOG.lapor;
-
 class AskrindoDB {
   constructor() {
     this.supabase = null;
     this.cloudStatus = 'connecting'; // 'connected' | 'pending_schema' | 'offline'
     this.cloudError = null;
-    this.pelakuCloudStatus = 'unknown'; // 'available' | 'missing_table' | 'offline'
+    this.laporCloudStatus = 'unknown'; // 'available' | 'missing_table' | 'offline'
     this.init();
   }
 
@@ -417,21 +387,10 @@ class AskrindoDB {
   }
 
   normalizeAllowedApps(apps) {
+    const aliasMap = { ttk: 'akur', bus: 'sedia', buset: 'sedia', pelaku: 'lapor' };
     const raw = Array.isArray(apps) ? apps.map(a => String(a).toLowerCase().trim()).filter(Boolean) : [];
-    const set = new Set(raw);
-    if (set.has('akur') || set.has('ttk')) {
-      set.add('akur');
-      set.add('ttk');
-    }
-    if (set.has('sedia') || set.has('bus') || set.has('buset')) {
-      set.add('sedia');
-      set.add('bus');
-    }
-    if (set.has('lapor') || set.has('pelaku')) {
-      set.add('lapor');
-      set.add('pelaku');
-    }
-    return Array.from(set);
+    const normalized = raw.map(a => aliasMap[a] || a);
+    return Array.from(new Set(normalized));
   }
 
   getUserOverrides() {
@@ -472,13 +431,10 @@ class AskrindoDB {
       try {
         const users = JSON.parse(localStorage.getItem(DB_KEYS.USERS)) || [];
         users.forEach(u => {
-          if ((u.id === 'USR-001' || u.id === 'USR-002' || u.id === 'USR-004' || u.role === 'Super Administrator') && !u.allowedApps.includes('cepat')) {
-            u.allowedApps.push('cepat');
+          if ((u.id === 'USR-001' || u.id === 'USR-002' || u.id === 'USR-004' || u.role === 'Super Administrator') && !(u.allowedApps || []).includes('cepat')) {
+            u.allowedApps = [...(u.allowedApps || []), 'cepat'];
           }
-          if (!u.allowedApps) u.allowedApps = [];
-          if (u.allowedApps.includes('ttk') && !u.allowedApps.includes('akur')) u.allowedApps.push('akur');
-          if (u.allowedApps.includes('bus') && !u.allowedApps.includes('sedia')) u.allowedApps.push('sedia');
-          if (u.allowedApps.includes('pelaku') && !u.allowedApps.includes('lapor')) u.allowedApps.push('lapor');
+          u.allowedApps = this.normalizeAllowedApps(u.allowedApps);
           if (u.role) {
             u.role = this.normalizeLegacyRole(u.role);
           }
@@ -497,14 +453,14 @@ class AskrindoDB {
             sess.avatar = DEFAULT_AVATAR;
             sessUpdated = true;
           }
-          if ((sess.id === 'USR-001' || sess.id === 'USR-002' || sess.id === 'USR-004' || sess.role === 'Super Administrator') && !sess.allowedApps.includes('cepat')) {
-            sess.allowedApps.push('cepat');
+          const normalizedApps = this.normalizeAllowedApps(sess.allowedApps);
+          if ((sess.id === 'USR-001' || sess.id === 'USR-002' || sess.id === 'USR-004' || sess.role === 'Super Administrator') && !normalizedApps.includes('cepat')) {
+            normalizedApps.push('cepat');
+          }
+          if (JSON.stringify(normalizedApps) !== JSON.stringify(sess.allowedApps || [])) {
+            sess.allowedApps = normalizedApps;
             sessUpdated = true;
           }
-          if (!sess.allowedApps) sess.allowedApps = [];
-          if (sess.allowedApps.includes('ttk') && !sess.allowedApps.includes('akur')) { sess.allowedApps.push('akur'); sessUpdated = true; }
-          if (sess.allowedApps.includes('bus') && !sess.allowedApps.includes('sedia')) { sess.allowedApps.push('sedia'); sessUpdated = true; }
-          if (sess.allowedApps.includes('pelaku') && !sess.allowedApps.includes('lapor')) { sess.allowedApps.push('lapor'); sessUpdated = true; }
           const normalizedSessRole = this.normalizeLegacyRole(sess.role);
           if (normalizedSessRole !== sess.role) {
             sess.role = normalizedSessRole;
@@ -527,8 +483,11 @@ class AskrindoDB {
     if (!localStorage.getItem(DB_KEYS.COVER_NOTES)) {
       localStorage.setItem(DB_KEYS.COVER_NOTES, JSON.stringify(INITIAL_COVER_NOTES));
     }
-    if (!localStorage.getItem(DB_KEYS.PELAKU)) {
-      localStorage.setItem(DB_KEYS.PELAKU, JSON.stringify([]));
+    if (!localStorage.getItem(DB_KEYS.LAPOR)) {
+      const legacyKey = 'askrindo_satu_' + 'pelaku_v1';
+      const legacyData = localStorage.getItem(legacyKey);
+      localStorage.setItem(DB_KEYS.LAPOR, legacyData || JSON.stringify([]));
+      if (legacyData) localStorage.removeItem(legacyKey);
     }
     if (!localStorage.getItem(DB_KEYS.AUDIT)) {
       localStorage.setItem(DB_KEYS.AUDIT, JSON.stringify(INITIAL_AUDIT));
@@ -598,7 +557,7 @@ class AskrindoDB {
           const ov = overrides[`id:${u.id}`] || (u.nip ? overrides[`nip:${String(u.nip).toLowerCase().trim()}`] : null);
           const resolvedAllowed = ov && Array.isArray(ov.allowedApps)
             ? this.normalizeAllowedApps(ov.allowedApps)
-            : this.normalizeAllowedApps(u.allowed_apps || ['lapor', 'pelaku']);
+            : this.normalizeAllowedApps(u.allowed_apps || ['lapor']);
           return {
             id: u.id,
             nip: ov?.nip || u.nip,
@@ -691,8 +650,8 @@ class AskrindoDB {
         localStorage.setItem(DB_KEYS.AUDIT, JSON.stringify(mappedLogs));
       }
 
-      // Sync PELAKU company financial analyses if cloud table exists
-      await this.syncPelakuWithSupabase();
+      // Sync LAPOR company financial analyses if cloud table exists
+      await this.syncLaporWithSupabase();
 
       // Trigger event update UI
       window.dispatchEvent(new CustomEvent('askrindo:db-synced'));
@@ -1127,7 +1086,7 @@ class AskrindoDB {
     return true;
   }
 
-  // --- PELAKU (Analisa Laporan Keuangan Per Perusahaan) ---
+  // --- LAPOR (Analisa Laporan Keuangan Per Perusahaan) ---
   normalizeCompanyId(companyName) {
     if (!companyName) return '';
     const clean = String(companyName)
@@ -1144,9 +1103,9 @@ class AskrindoDB {
     return clean ? clean.replace(/\s+/g, '-') : '';
   }
 
-  getPelakuAnalyses() {
+  getLaporAnalyses() {
     try {
-      const list = JSON.parse(localStorage.getItem(DB_KEYS.PELAKU)) || [];
+      const list = JSON.parse(localStorage.getItem(DB_KEYS.LAPOR)) || [];
       return Array.isArray(list)
         ? list.sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0))
         : [];
@@ -1155,7 +1114,7 @@ class AskrindoDB {
     }
   }
 
-  isPelakuRecordOwnedByUser(record, user) {
+  isLaporRecordOwnedByUser(record, user) {
     if (!record || !user) return false;
     const uid = user.id ? String(user.id).trim().toLowerCase() : '';
     const nip = user.nip ? String(user.nip).trim().toLowerCase() : '';
@@ -1186,23 +1145,23 @@ class AskrindoDB {
     return false;
   }
 
-  getUserPelakuAnalyses(user) {
+  getUserLaporAnalyses(user) {
     const currentUser = user || this.getCurrentSession();
-    const list = this.getPelakuAnalyses();
+    const list = this.getLaporAnalyses();
     if (!currentUser) return list;
-    return list.filter(item => this.isPelakuRecordOwnedByUser(item, currentUser));
+    return list.filter(item => this.isLaporRecordOwnedByUser(item, currentUser));
   }
 
-  getPelakuAnalysis(companyNameOrId) {
+  getLaporAnalysis(companyNameOrId) {
     if (!companyNameOrId) return null;
     const rawId = String(companyNameOrId).trim();
     const normId = this.normalizeCompanyId(rawId);
-    const list = this.getPelakuAnalyses();
+    const list = this.getLaporAnalyses();
     return list.find(item => item.id === rawId || (normId && item.id === normId)) || null;
   }
 
-  searchPelakuAnalyses(query) {
-    const list = this.getPelakuAnalyses();
+  searchLaporAnalyses(query) {
+    const list = this.getLaporAnalyses();
     if (!query || !query.trim()) return list;
     const q = query.trim().toLowerCase();
     const qNorm = this.normalizeCompanyId(query).toLowerCase();
@@ -1228,14 +1187,14 @@ class AskrindoDB {
       .slice(0, 20);
   }
 
-  savePelakuAnalysis(analysisData) {
+  saveLaporAnalysis(analysisData) {
     const companyName = (analysisData.companyName || '').trim();
     const companyId = this.normalizeCompanyId(companyName);
     if (!companyId) return null;
 
     const session = this.getCurrentSession();
     const nowIso = new Date().toISOString();
-    const list = this.getPelakuAnalyses();
+    const list = this.getLaporAnalyses();
     const existingIdx = list.findIndex(item => item.id === companyId);
     const existing = existingIdx !== -1 ? list[existingIdx] : null;
 
@@ -1364,29 +1323,29 @@ class AskrindoDB {
       list.splice(existingIdx, 1);
     }
     list.unshift(savedRecord);
-    localStorage.setItem(DB_KEYS.PELAKU, JSON.stringify(list));
+    localStorage.setItem(DB_KEYS.LAPOR, JSON.stringify(list));
 
-    this.syncPelakuRecordToCloud(savedRecord);
+    this.syncLaporRecordToCloud(savedRecord);
     return { savedRecord, isNewCompany: !existing, snapshotCount: snapshots.length };
   }
 
-  deletePelakuAnalysis(companyNameOrId) {
+  deleteLaporAnalysis(companyNameOrId) {
     const normId = this.normalizeCompanyId(companyNameOrId) || companyNameOrId;
-    let list = this.getPelakuAnalyses();
+    let list = this.getLaporAnalyses();
     list = list.filter(item => item.id !== companyNameOrId && item.id !== normId);
-    localStorage.setItem(DB_KEYS.PELAKU, JSON.stringify(list));
+    localStorage.setItem(DB_KEYS.LAPOR, JSON.stringify(list));
 
-    if (this.supabase && this.cloudStatus === 'connected' && this.pelakuCloudStatus !== 'missing_table') {
-      this.supabase.from('pelaku_analyses').delete().eq('id', normId).then(({ error }) => {
-        if (error) console.warn('[Supabase Delete PELAKU Error]:', error.message);
+    if (this.supabase && this.cloudStatus === 'connected' && this.laporCloudStatus !== 'missing_table') {
+      this.supabase.from('lapor_analyses').delete().eq('id', normId).then(({ error }) => {
+        if (error) console.warn('[Supabase Delete LAPOR Error]:', error.message);
       });
     }
     return true;
   }
 
-  importPelakuAnalyses(recordsArray) {
+  importLaporAnalyses(recordsArray) {
     if (!Array.isArray(recordsArray)) return 0;
-    const current = this.getPelakuAnalyses();
+    const current = this.getLaporAnalyses();
     const map = new Map(current.map(r => [r.id, r]));
     let importedCount = 0;
 
@@ -1410,21 +1369,21 @@ class AskrindoDB {
         map.set(cid, merged);
         importedCount++;
       }
-      this.syncPelakuRecordToCloud(map.get(cid));
+      this.syncLaporRecordToCloud(map.get(cid));
     });
 
     const result = Array.from(map.values()).sort(
       (a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0)
     );
-    localStorage.setItem(DB_KEYS.PELAKU, JSON.stringify(result));
+    localStorage.setItem(DB_KEYS.LAPOR, JSON.stringify(result));
     return importedCount;
   }
 
-  syncPelakuRecordToCloud(rec) {
-    if (!this.supabase || this.cloudStatus !== 'connected' || this.pelakuCloudStatus === 'missing_table' || !rec) {
+  syncLaporRecordToCloud(rec) {
+    if (!this.supabase || this.cloudStatus !== 'connected' || this.laporCloudStatus === 'missing_table' || !rec) {
       return;
     }
-    this.supabase.from('pelaku_analyses').upsert({
+    this.supabase.from('lapor_analyses').upsert({
       id: rec.id,
       company_name: rec.companyName,
       sector: rec.sector,
@@ -1454,34 +1413,34 @@ class AskrindoDB {
     }).then(({ error }) => {
       if (error) {
         if (error.code === 'PGRST205' || error.code === '42P01' || (error.message || '').includes('does not exist')) {
-          this.pelakuCloudStatus = 'missing_table';
+          this.laporCloudStatus = 'missing_table';
         } else {
-          console.warn('[Supabase Sync PELAKU Error]:', error.message);
+          console.warn('[Supabase Sync LAPOR Error]:', error.message);
         }
       } else {
-        this.pelakuCloudStatus = 'available';
+        this.laporCloudStatus = 'available';
       }
     });
   }
 
-  async syncPelakuWithSupabase() {
+  async syncLaporWithSupabase() {
     if (!this.supabase || this.cloudStatus !== 'connected') return;
     try {
       const { data, error } = await this.supabase
-        .from('pelaku_analyses')
+        .from('lapor_analyses')
         .select('*')
         .order('updated_at', { ascending: false });
 
       if (error) {
         if (error.code === 'PGRST205' || error.code === '42P01' || (error.message || '').includes('does not exist')) {
-          this.pelakuCloudStatus = 'missing_table';
-          console.info('[Supabase] Tabel pelaku_analyses belum dibuat; menggunakan Local Storage Hybrid.');
+          this.laporCloudStatus = 'missing_table';
+          console.info('[Supabase] Tabel lapor_analyses belum dibuat; menggunakan Local Storage Hybrid.');
         }
         return;
       }
 
-      this.pelakuCloudStatus = 'available';
-      const localList = this.getPelakuAnalyses();
+      this.laporCloudStatus = 'available';
+      const localList = this.getLaporAnalyses();
       const mergedMap = new Map(localList.map(r => [r.id, r]));
 
       if (Array.isArray(data)) {
@@ -1529,16 +1488,16 @@ class AskrindoDB {
       const cloudIds = new Set((data || []).map(r => r.id));
       localList.forEach(localRec => {
         if (!cloudIds.has(localRec.id)) {
-          this.syncPelakuRecordToCloud(localRec);
+          this.syncLaporRecordToCloud(localRec);
         }
       });
 
       const mergedList = Array.from(mergedMap.values()).sort(
         (a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0)
       );
-      localStorage.setItem(DB_KEYS.PELAKU, JSON.stringify(mergedList));
+      localStorage.setItem(DB_KEYS.LAPOR, JSON.stringify(mergedList));
     } catch (e) {
-      console.warn('[Supabase PELAKU Sync Error]:', e);
+      console.warn('[Supabase LAPOR Sync Error]:', e);
     }
   }
 
