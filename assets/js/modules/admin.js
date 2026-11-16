@@ -317,12 +317,12 @@ window.AdminModule = {
 
     return `
       <div class="space-y-4">
-        <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-start gap-3">
-          <i data-lucide="info" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5"></i>
+        <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl flex items-start gap-3">
+          <i data-lucide="shield-check" class="w-5 h-5 text-blue-600 shrink-0 mt-0.5"></i>
           <div>
-            <h4 class="text-xs font-bold text-amber-900">Rencana Implementasi Bertahap (Roadmap Ekosistem)</h4>
-            <p class="text-xs text-amber-800 mt-0.5 leading-relaxed">
-              Saat ini modul <b>LAPOR</b> telah aktif untuk operasional. Modul <b>KABAR, AKUR, SEDIA, CEPAT</b> berstatus <b>Segera Hadir</b> dan disiapkan untuk peluncuran bertahap bagi seluruh unit kerja.
+            <h4 class="text-xs font-bold text-blue-900">Pengaturan Matriks Hak Akses Sub-Aplikasi (Real-Time RBAC)</h4>
+            <p class="text-xs text-blue-800 mt-0.5 leading-relaxed">
+              Centang atau hapus centang pada kolom modul (<b>LAPOR, KABAR, AKUR, SEDIA, CEPAT, ADMIN</b>) untuk mengatur hak akses tiap pengguna. Perubahan langsung disimpan dan berlaku seketika saat pengguna mengakses aplikasi.
             </p>
           </div>
         </div>
@@ -558,6 +558,7 @@ window.AdminModule = {
     const appDisplayName = displayNames[appId] || appId.toUpperCase();
 
     window.askrindoDB.updateUserPermissions(userId, apps);
+    if (window.askrindoApp) window.askrindoApp.updateActiveNavs();
     window.askrindoDB.logActivity('ADMIN', 'Update Hak Akses (Matrix)', `Akses modul ${appDisplayName} untuk ${user.name} diubah menjadi: ${isChecked ? 'Diberikan' : 'Dicabut'}`);
     
     window.askrindoApp.showToast(`Hak akses modul ${appDisplayName} berhasil diperbarui!`, 'success');

@@ -14,10 +14,17 @@ class AuthService {
   }
 
   isAuthenticated() {
+    this.currentUser = this.getCurrentUser();
     return !!this.currentUser;
   }
 
   getCurrentUser() {
+    if (window.askrindoDB) {
+      const sess = window.askrindoDB.getCurrentSession();
+      if (sess) {
+        this.currentUser = sess;
+      }
+    }
     return this.currentUser;
   }
 
@@ -120,33 +127,34 @@ class AuthService {
   }
 
   hasAccess(appId) {
-    if (!this.currentUser) return false;
-    const rawKey = (appId || '').toLowerCase();
-    const aliasMap = {
-      'buset': 'sedia',
-      'bus': 'sedia',
-      'ttk': 'akur',
-      'pelaku': 'lapor'
-    };
-    const key = aliasMap[rawKey] || rawKey;
-    const isAdmin = this.canAccessAdmin();
-
-    // Pengaturan Bertahap: Modul KABAR, AKUR, SEDIA, CEPAT berstatus Segera Hadir.
-    // Akun Super Administrator dapat mengakses pratinjau modul.
-    if (this.isAppComingSoon(key)) {
-      return isAdmin;
-    }
+    const user = this.getCurrentUser();
+    if (!user) return false;
 
     // Super Administrator memiliki akses universal
-    if (isAdmin) return true;
+    if (this.canAccessAdmin()) return true;
 
-    // Untuk pengguna umum, periksa daftar hak akses (allowedApps)
-    const allowed = this.currentUser.allowedApps || [];
-    return allowed.includes(key) || allowed.includes(rawKey);
+    const rawKey = (appId || '').toLowerCase().trim();
+    const aliasGroups = {
+      kabar: ['kabar'],
+      akur: ['akur', 'ttk'],
+      ttk: ['akur', 'ttk'],
+      sedia: ['sedia', 'bus', 'buset'],
+      bus: ['sedia', 'bus', 'buset'],
+      buset: ['sedia', 'bus', 'buset'],
+      cepat: ['cepat'],
+      lapor: ['lapor', 'pelaku'],
+      pelaku: ['lapor', 'pelaku'],
+      admin: ['admin']
+    };
+    const validKeys = aliasGroups[rawKey] || [rawKey];
+    const allowed = Array.isArray(user.allowedApps) ? user.allowedApps.map(a => String(a).toLowerCase().trim()) : [];
+
+    return validKeys.some(k => allowed.includes(k));
   }
 
   canAccessAdmin() {
-    return this.currentUser && (this.currentUser.role === 'Super Administrator' || (this.currentUser.allowedApps && this.currentUser.allowedApps.includes('admin')));
+    const user = this.getCurrentUser();
+    return !!(user && (user.role === 'Super Administrator' || (Array.isArray(user.allowedApps) && user.allowedApps.includes('admin'))));
   }
 }
 

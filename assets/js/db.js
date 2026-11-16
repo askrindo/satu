@@ -18,7 +18,8 @@ const DB_KEYS = {
   KABAR: 'askrindo_satu_kabar_v1',
   PELAKU: 'askrindo_satu_pelaku_v1',
   AUDIT: 'askrindo_satu_audit_v1',
-  SETTINGS: 'askrindo_satu_settings_v1'
+  SETTINGS: 'askrindo_satu_settings_v1',
+  USER_OVERRIDES: 'askrindo_satu_user_overrides_v1'
 };
 
 // Standard Default Avatar for All Users
@@ -415,6 +416,53 @@ class AskrindoDB {
     return legacyMap[role] || role;
   }
 
+  normalizeAllowedApps(apps) {
+    const raw = Array.isArray(apps) ? apps.map(a => String(a).toLowerCase().trim()).filter(Boolean) : [];
+    const set = new Set(raw);
+    if (set.has('akur') || set.has('ttk')) {
+      set.add('akur');
+      set.add('ttk');
+    }
+    if (set.has('sedia') || set.has('bus') || set.has('buset')) {
+      set.add('sedia');
+      set.add('bus');
+    }
+    if (set.has('lapor') || set.has('pelaku')) {
+      set.add('lapor');
+      set.add('pelaku');
+    }
+    return Array.from(set);
+  }
+
+  getUserOverrides() {
+    try {
+      return JSON.parse(localStorage.getItem(DB_KEYS.USER_OVERRIDES)) || {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  saveUserOverride(user) {
+    if (!user) return;
+    const overrides = this.getUserOverrides();
+    const payload = {
+      id: user.id,
+      nip: user.nip,
+      name: user.name,
+      email: user.email,
+      password: user.password,
+      role: user.role,
+      division: user.division,
+      branch: user.branch,
+      status: user.status,
+      allowedApps: this.normalizeAllowedApps(user.allowedApps),
+      updatedAt: new Date().toISOString()
+    };
+    if (user.id) overrides[`id:${user.id}`] = payload;
+    if (user.nip) overrides[`nip:${String(user.nip).toLowerCase().trim()}`] = payload;
+    localStorage.setItem(DB_KEYS.USER_OVERRIDES, JSON.stringify(overrides));
+  }
+
   init() {
     // 1. Inisialisasi Cache Lokal jika kosong
     if (!localStorage.getItem(DB_KEYS.USERS)) {
@@ -542,23 +590,56 @@ class AskrindoDB {
       this.cloudError = null;
 
       if (users && users.length > 0) {
-        // Map database columns to app schema
-        const mappedUsers = users.map(u => ({
-          id: u.id,
-          nip: u.nip,
-          name: u.name,
-          email: u.email,
-          password: u.password,
-          role: this.normalizeLegacyRole(u.role),
-          division: this.normalizeLegacyUnitKerja(u.division, u.branch),
-          branch: this.normalizeLegacyUnitKerja(u.division, u.branch),
-          avatar: DEFAULT_AVATAR,
-          allowedApps: u.allowed_apps || ['kabar'],
-          status: u.status,
-          createdAt: u.created_at,
-          lastLogin: u.last_login
-        }));
+        const overrides = this.getUserOverrides();
+        const existingLocalUsers = this.getUsers();
+
+        // Map database columns to app schema, preserving local Admin overrides
+        const mappedUsers = users.map(u => {
+          const ov = overrides[`id:${u.id}`] || (u.nip ? overrides[`nip:${String(u.nip).toLowerCase().trim()}`] : null);
+          const resolvedAllowed = ov && Array.isArray(ov.allowedApps)
+            ? this.normalizeAllowedApps(ov.allowedApps)
+            : this.normalizeAllowedApps(u.allowed_apps || ['lapor', 'pelaku']);
+          return {
+            id: u.id,
+            nip: ov?.nip || u.nip,
+            name: ov?.name || u.name,
+            email: ov?.email || u.email,
+            password: ov?.password || u.password,
+            role: this.normalizeLegacyRole(ov?.role || u.role),
+            division: this.normalizeLegacyUnitKerja(ov?.division || u.division, ov?.branch || u.branch),
+            branch: this.normalizeLegacyUnitKerja(ov?.division || u.division, ov?.branch || u.branch),
+            avatar: DEFAULT_AVATAR,
+            allowedApps: resolvedAllowed,
+            status: ov?.status || u.status || 'active',
+            createdAt: u.created_at,
+            lastLogin: u.last_login
+          };
+        });
+
+        // Preserve any locally created users not yet present in cloud response
+        existingLocalUsers.forEach(lu => {
+          const exists = mappedUsers.some(mu => mu.id === lu.id || (lu.nip && String(mu.nip).toLowerCase() === String(lu.nip).toLowerCase()));
+          if (!exists) {
+            mappedUsers.push({
+              ...lu,
+              avatar: DEFAULT_AVATAR,
+              allowedApps: this.normalizeAllowedApps(lu.allowedApps)
+            });
+          }
+        });
+
         localStorage.setItem(DB_KEYS.USERS, JSON.stringify(mappedUsers));
+
+        // Sync active session if logged in
+        try {
+          const activeSess = JSON.parse(localStorage.getItem(DB_KEYS.SESSION) || 'null');
+          if (activeSess) {
+            const freshUser = mappedUsers.find(mu => mu.id === activeSess.id || (activeSess.nip && String(mu.nip).toLowerCase() === String(activeSess.nip).toLowerCase()));
+            if (freshUser) {
+              this.setSession(freshUser);
+            }
+          }
+        } catch (e) {}
       }
 
       // Fetch SPPA records
@@ -798,11 +879,20 @@ class AskrindoDB {
     };
     delete normalizedPayload.unitKerja;
 
+    if (normalizedPayload.allowedApps) {
+      normalizedPayload.allowedApps = this.normalizeAllowedApps(normalizedPayload.allowedApps);
+    }
+
     if (normalizedPayload.id) {
       // Update
       const index = users.findIndex(u => u.id === normalizedPayload.id);
       if (index !== -1) {
-        users[index] = { ...users[index], ...normalizedPayload, avatar: DEFAULT_AVATAR };
+        users[index] = {
+          ...users[index],
+          ...normalizedPayload,
+          avatar: DEFAULT_AVATAR,
+          allowedApps: this.normalizeAllowedApps(normalizedPayload.allowedApps || users[index].allowedApps)
+        };
         targetUser = users[index];
       }
     } else {
@@ -813,12 +903,23 @@ class AskrindoDB {
         createdAt: new Date().toISOString(),
         status: 'active',
         avatar: DEFAULT_AVATAR,
-        ...normalizedPayload
+        ...normalizedPayload,
+        allowedApps: this.normalizeAllowedApps(normalizedPayload.allowedApps)
       };
       targetUser.avatar = DEFAULT_AVATAR;
       users.push(targetUser);
     }
     localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
+
+    if (targetUser) {
+      this.saveUserOverride(targetUser);
+      try {
+        const activeSess = JSON.parse(localStorage.getItem(DB_KEYS.SESSION) || 'null');
+        if (activeSess && (activeSess.id === targetUser.id || (activeSess.nip && String(activeSess.nip).toLowerCase() === String(targetUser.nip).toLowerCase()))) {
+          this.setSession(targetUser);
+        }
+      } catch (e) {}
+    }
 
     // Async sync to Supabase
     if (this.supabase && this.cloudStatus === 'connected' && targetUser) {
@@ -862,12 +963,34 @@ class AskrindoDB {
     const users = this.getUsers();
     const user = users.find(u => u.id === userId);
     if (user) {
-      user.allowedApps = allowedApps;
+      const normalizedApps = this.normalizeAllowedApps(allowedApps);
+      user.allowedApps = normalizedApps;
       localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
+      this.saveUserOverride(user);
+
+      try {
+        const activeSess = JSON.parse(localStorage.getItem(DB_KEYS.SESSION) || 'null');
+        if (activeSess && (activeSess.id === user.id || (activeSess.nip && String(activeSess.nip).toLowerCase() === String(user.nip).toLowerCase()))) {
+          this.setSession(user);
+        }
+      } catch (e) {}
 
       // Async sync to Supabase
       if (this.supabase && this.cloudStatus === 'connected') {
-        this.supabase.from('users').update({ allowed_apps: allowedApps }).eq('id', userId).then(({ error }) => {
+        this.supabase.from('users').upsert({
+          id: user.id,
+          nip: user.nip,
+          name: user.name,
+          email: user.email,
+          password: user.password || 'password123',
+          role: user.role,
+          division: user.division,
+          branch: user.branch,
+          avatar: user.avatar || DEFAULT_AVATAR,
+          allowed_apps: normalizedApps,
+          status: user.status || 'active',
+          last_login: user.lastLogin || new Date().toISOString()
+        }).then(({ error }) => {
           if (error) console.warn('[Supabase Update Permissions Error]:', error);
         });
       }
@@ -880,7 +1003,19 @@ class AskrindoDB {
   getCurrentSession() {
     try {
       const sess = JSON.parse(localStorage.getItem(DB_KEYS.SESSION));
-      if (sess) sess.avatar = DEFAULT_AVATAR;
+      if (!sess) return null;
+      const users = this.getUsers();
+      const latest = users.find(u => u.id === sess.id || (sess.nip && String(u.nip).toLowerCase() === String(sess.nip).toLowerCase()));
+      if (latest) {
+        return {
+          ...sess,
+          ...latest,
+          avatar: DEFAULT_AVATAR,
+          allowedApps: this.normalizeAllowedApps(latest.allowedApps)
+        };
+      }
+      sess.avatar = DEFAULT_AVATAR;
+      sess.allowedApps = this.normalizeAllowedApps(sess.allowedApps);
       return sess;
     } catch (e) {
       return null;

@@ -19,12 +19,15 @@ window.DashboardModule = {
     const totalSppaCount = sppaList.length;
     const totalTsiValue = sppaList.reduce((acc, curr) => acc + (Number(curr.totalTsi) || 0), 0);
     const formattedTsi = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(totalTsiValue);
+    const coreAppIds = ['lapor', 'kabar', 'akur', 'sedia', 'cepat'];
+    const accessibleCoreApps = coreAppIds.filter(id => window.authService.hasAccess(id));
+    const activeAppCount = accessibleCoreApps.length;
+    const restrictedAppCount = coreAppIds.length - activeAppCount;
 
     // Helper for app cards
     const renderAppCard = (appKey) => {
       const app = apps[appKey];
       const isDev = window.authService.isAppInDevelopment(app.id);
-      const isAdmin = window.authService.canAccessAdmin();
       const hasAccess = window.authService.hasAccess(app.id);
 
       const colorMap = {
@@ -68,7 +71,7 @@ window.DashboardModule = {
       const styling = colorMap[app.color] || colorMap.blue;
 
       return `
-        <div class="group relative bg-white rounded-2xl p-6 shadow-sm border ${isDev && !isAdmin ? 'border-dashed border-slate-300 opacity-90' : 'border-slate-200'} hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${styling.borderAccent} flex flex-col justify-between">
+        <div class="group relative bg-white rounded-2xl p-6 shadow-sm border ${!hasAccess ? 'border-dashed border-slate-300 opacity-90' : 'border-slate-200'} hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${styling.borderAccent} flex flex-col justify-between">
           <div>
             <!-- Header Card -->
             <div class="flex items-start justify-between mb-4">
@@ -76,24 +79,19 @@ window.DashboardModule = {
                 <i data-lucide="${app.icon}" class="w-7 h-7"></i>
               </div>
               <div class="flex flex-col items-end">
-                ${isDev 
-                  ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                      <i data-lucide="sparkles" class="w-3 h-3 text-amber-600"></i> Segera Hadir
-                     </span>
-                     <span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 mt-1">
-                      <i data-lucide="clock" class="w-3 h-3 text-slate-400"></i> Segera Hadir
-                     </span>`
-                  : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${styling.badgeBg} border">
+                ${hasAccess 
+                  ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${styling.badgeBg} border">
                       <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> ${app.badge}
                      </span>
-                     ${hasAccess 
-                       ? `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 mt-1">
-                           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Siap Digunakan
-                          </span>`
-                       : `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 mt-1">
-                           <i data-lucide="lock" class="w-3 h-3 text-slate-400"></i> Akses Terbatas
-                          </span>`
-                     }`
+                     <span class="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 mt-1">
+                      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Siap Digunakan
+                     </span>`
+                  : `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                      <i data-lucide="${isDev ? 'sparkles' : 'lock'}" class="w-3 h-3 text-amber-600"></i> ${isDev ? 'Segera Hadir' : 'Akses Terbatas'}
+                     </span>
+                     <span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 mt-1">
+                      <i data-lucide="lock" class="w-3 h-3 text-slate-400"></i> Belum Memiliki Akses
+                     </span>`
                 }
               </div>
             </div>
@@ -127,28 +125,15 @@ window.DashboardModule = {
 
           <!-- Action Button -->
           <div class="pt-4 border-t border-slate-100">
-            ${isDev 
-              ? (isAdmin 
-                  ? `<a href="${app.route}" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition-all duration-200 ${styling.btnBg}">
-                      <i data-lucide="eye" class="w-4 h-4"></i>
-                      <span>Pratinjau Modul</span>
-                      <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>
-                     </a>`
-                  : `<button onclick="window.askrindoApp.showDevelopmentNoticeModal('${app.name}')" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm text-slate-400 bg-slate-100 hover:bg-slate-200 transition-colors">
-                      <i data-lucide="sparkles" class="w-4 h-4 text-amber-500"></i>
-                      <span>Segera Hadir</span>
-                     </button>`
-                )
-              : (hasAccess 
-                  ? `<a href="${app.route}" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition-all duration-200 ${styling.btnBg}">
-                      <span>Buka Aplikasi ${app.name}</span>
-                      <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>
-                     </a>`
-                  : `<button onclick="window.askrindoApp.requestAccessModal('${app.name}')" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors">
-                      <i data-lucide="lock" class="w-4 h-4 text-slate-400"></i>
-                      <span>Minta Hak Akses</span>
-                     </button>`
-                )
+            ${hasAccess 
+              ? `<a href="${app.route}" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm shadow-sm transition-all duration-200 ${styling.btnBg}">
+                  <span>Buka Aplikasi ${app.name}</span>
+                  <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>
+                 </a>`
+              : `<button onclick="window.askrindoApp.requestAccessModal('${app.name}')" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer">
+                  <i data-lucide="lock" class="w-4 h-4 text-slate-400"></i>
+                  <span>Minta Hak Akses</span>
+                 </button>`
             }
           </div>
         </div>
@@ -185,52 +170,49 @@ window.DashboardModule = {
                 </div>
                 <div class="flex items-center gap-1.5">
                   <i data-lucide="shield" class="w-4 h-4 text-amber-400"></i>
-                  <span>Hak Akses: ${user.allowedApps.length} Modul Aktif</span>
+                  <span>Hak Akses: ${activeAppCount} Modul Aktif</span>
                 </div>
               </div>
             </div>
 
             <!-- Quick Action Shortcut Card -->
             <div class="bg-white/10 backdrop-blur-xl border border-white/20 p-5 rounded-2xl w-full lg:w-auto shrink-0 space-y-3 text-slate-100">
-              <div class="text-xs font-semibold uppercase tracking-wider text-amber-300 flex items-center justify-between">
+              <div class="text-xs font-semibold uppercase tracking-wider text-amber-300 flex items-center justify-between gap-4">
                 <span class="flex items-center gap-1.5"><i data-lucide="zap" class="w-4 h-4 text-amber-400"></i> Aksi Cepat</span>
-                ${window.authService.canAccessAdmin() ? `<span class="text-[9px] font-mono bg-black/20 px-2 py-0.5 rounded text-amber-200 font-bold uppercase tracking-wider">Akses Pratinjau Admin</span>` : ''}
+                <span class="text-[9px] font-mono bg-black/20 px-2 py-0.5 rounded text-amber-200 font-bold uppercase tracking-wider">${activeAppCount} Modul Aktif</span>
               </div>
-              ${window.authService.canAccessAdmin() ? `
-                <div class="grid grid-cols-2 gap-2 text-xs font-medium">
+              <div class="grid grid-cols-2 gap-2 text-xs font-medium">
+                ${window.authService.hasAccess('lapor') ? `
                   <a href="#/lapor" title="LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)" class="col-span-2 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition shadow-md shadow-purple-600/30">
                     <i data-lucide="calculator" class="w-4 h-4 text-white"></i>
-                    <span>Buka Modul LAPOR (Aktif)</span>
+                    <span>Buka Modul LAPOR</span>
                   </a>
+                ` : ''}
+                ${window.authService.hasAccess('kabar') ? `
                   <a href="#/kabar" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="KABAR (Kalkulator Asuransi Kebakaran)">
-                    <i data-lucide="eye" class="w-3.5 h-3.5 text-orange-400"></i>
-                    <span>KABAR (Segera)</span>
+                    <i data-lucide="flame" class="w-3.5 h-3.5 text-orange-400"></i>
+                    <span>KABAR</span>
                   </a>
+                ` : ''}
+                ${window.authService.hasAccess('sedia') ? `
                   <a href="#/sedia" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="SEDIA (Sistem Elektronik Dokumen dan Informasi Asuransi)">
-                    <i data-lucide="eye" class="w-3.5 h-3.5 text-emerald-400"></i>
-                    <span>SEDIA (Segera)</span>
+                    <i data-lucide="file-text" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    <span>SEDIA</span>
                   </a>
+                ` : ''}
+                ${window.authService.hasAccess('cepat') ? `
                   <a href="#/cepat" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="CEPAT (Cover Note Pertanggungan Asuransi Terintegrasi)">
-                    <i data-lucide="eye" class="w-3.5 h-3.5 text-cyan-400"></i>
-                    <span>CEPAT (Segera)</span>
+                    <i data-lucide="file-check-2" class="w-3.5 h-3.5 text-cyan-400"></i>
+                    <span>CEPAT</span>
                   </a>
+                ` : ''}
+                ${window.authService.hasAccess('akur') ? `
                   <a href="#/akur" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="AKUR (Analisis Kredit Usaha Rakyat)">
-                    <i data-lucide="eye" class="w-3.5 h-3.5 text-blue-400"></i>
-                    <span>AKUR (Segera)</span>
+                    <i data-lucide="help-circle" class="w-3.5 h-3.5 text-blue-400"></i>
+                    <span>AKUR</span>
                   </a>
-                </div>
-              ` : `
-                <div class="space-y-2 text-xs font-medium">
-                  <a href="#/lapor" title="LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)" class="flex items-center justify-center gap-2 p-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition shadow-md shadow-purple-600/30">
-                    <i data-lucide="calculator" class="w-4 h-4 text-white"></i>
-                    <span>Buka Modul LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)</span>
-                  </a>
-                  <div class="p-2.5 rounded-xl bg-white/10 text-[11px] text-slate-200 flex items-center gap-2">
-                    <i data-lucide="sparkles" class="w-4 h-4 text-amber-300 shrink-0"></i>
-                    <span>Modul KABAR, AKUR, SEDIA, dan CEPAT segera hadir.</span>
-                  </div>
-                </div>
-              `}
+                ` : ''}
+              </div>
             </div>
           </div>
         </div>
@@ -268,9 +250,9 @@ window.DashboardModule = {
           <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
             <div class="space-y-1">
               <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Status Aplikasi</p>
-              <h4 class="text-2xl font-bold text-slate-800">1 Aktif <span class="text-xs font-normal text-slate-400">· 4 Segera</span></h4>
+              <h4 class="text-2xl font-bold text-slate-800">${activeAppCount} Aktif <span class="text-xs font-normal text-slate-400">${restrictedAppCount > 0 ? `· ${restrictedAppCount} Terbatas` : '· Akses Penuh'}</span></h4>
               <p class="text-[11px] text-purple-700 font-semibold flex items-center gap-1">
-                <i data-lucide="check-circle" class="w-3 h-3 text-purple-600"></i> LAPOR (Live Operasional)
+                <i data-lucide="check-circle" class="w-3 h-3 text-purple-600"></i> ${accessibleCoreApps.map(id => id.toUpperCase()).join(', ') || 'Tidak ada modul'}
               </p>
             </div>
             <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
@@ -300,10 +282,10 @@ window.DashboardModule = {
                 <i data-lucide="layout-grid" class="w-5 h-5 text-orange-500"></i>
                 <span>Katalog Aplikasi Askrindo SATU</span>
               </h2>
-              <p class="text-xs text-slate-500 mt-0.5">Pengembangan sistem bertahap: 1 modul aktif operasional & 4 modul segera hadir.</p>
+              <p class="text-xs text-slate-500 mt-0.5">Menampilkan daftar modul aplikasi terpadu sesuai dengan izin akses akun Anda.</p>
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">1 Aktif · 4 Segera Hadir</span>
+              <span class="text-xs font-semibold px-2.5 py-1 rounded-full ${restrictedAppCount === 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${activeAppCount} Aktif${restrictedAppCount > 0 ? ` · ${restrictedAppCount} Terbatas` : ' · Akses Penuh'}</span>
             </div>
           </div>
 

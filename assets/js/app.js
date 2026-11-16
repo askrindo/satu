@@ -19,6 +19,8 @@ class AskrindoApp {
 
     // Listen to Supabase cloud sync events
     window.addEventListener('askrindo:db-synced', () => {
+      if (window.authService) window.authService.init();
+      this.updateActiveNavs();
       if ((this.currentRoute.startsWith('#/lapor') || this.currentRoute.startsWith('#/pelaku')) && window.PelakuModule?.handleDbSynced) {
         window.PelakuModule.handleDbSynced();
       } else {
@@ -161,7 +163,7 @@ class AskrindoApp {
                         <span class="text-[10px] block font-normal text-slate-400 leading-snug">Kalkulator Asuransi Kebakaran</span>
                       </div>
                     </div>
-                    <span class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
+                    <span id="nav-badge-kabar" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('kabar') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('kabar') ? 'Aktif' : 'Terkunci'}</span>
                   </a>
 
                   <!-- AKUR (formerly TTK) -->
@@ -173,7 +175,7 @@ class AskrindoApp {
                         <span class="text-[10px] block font-normal text-slate-400 leading-snug">Analisis Kredit Usaha Rakyat</span>
                       </div>
                     </div>
-                    <span class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
+                    <span id="nav-badge-akur" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('akur') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('akur') ? 'Aktif' : 'Terkunci'}</span>
                   </a>
 
                   <!-- SEDIA (formerly BUSET) -->
@@ -185,7 +187,7 @@ class AskrindoApp {
                         <span class="text-[10px] block font-normal text-slate-400 leading-snug">Sistem Elektronik Dokumen dan Informasi Asuransi</span>
                       </div>
                     </div>
-                    <span class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
+                    <span id="nav-badge-sedia" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('sedia') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('sedia') ? 'Aktif' : 'Terkunci'}</span>
                   </a>
 
                   <!-- CEPAT -->
@@ -197,7 +199,7 @@ class AskrindoApp {
                         <span class="text-[10px] block font-normal text-slate-400 leading-snug">Cover Note Pertanggungan Asuransi Terintegrasi</span>
                       </div>
                     </div>
-                    <span class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
+                    <span id="nav-badge-cepat" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('cepat') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('cepat') ? 'Aktif' : 'Terkunci'}</span>
                   </a>
 
                   <!-- LAPOR (formerly PELAKU) -->
@@ -209,7 +211,7 @@ class AskrindoApp {
                         <span class="text-[10px] block font-normal text-slate-400 leading-snug">Layanan Analisis dan Perhitungan Rasio Keuangan</span>
                       </div>
                     </div>
-                    <span class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase">Aktif</span>
+                    <span id="nav-badge-lapor" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('lapor') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('lapor') ? 'Aktif' : 'Terkunci'}</span>
                   </a>
                 </div>
 
@@ -317,19 +319,6 @@ class AskrindoApp {
                     <!-- Menu List -->
                     <div class="p-1.5 space-y-1">
                       <button 
-                        onclick="window.askrindoApp.showMyActivityModal(); window.askrindoApp.closeProfileMenu();" 
-                        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:text-blue-600 hover:bg-blue-50 transition text-left group cursor-pointer"
-                      >
-                        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition">
-                          <i data-lucide="history" class="w-4 h-4"></i>
-                        </div>
-                        <div class="min-w-0">
-                          <p class="font-bold text-slate-800 group-hover:text-blue-600">Riwayat Aktivitas Saya</p>
-                          <p class="text-[10px] text-slate-400 font-normal">Lihat log & tindakan akun Anda</p>
-                        </div>
-                      </button>
-
-                      <button 
                         onclick="window.askrindoApp.showChangePasswordModal(); window.askrindoApp.closeProfileMenu();" 
                         class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:text-orange-600 hover:bg-orange-50 transition text-left group cursor-pointer"
                       >
@@ -415,6 +404,15 @@ class AskrindoApp {
       } else {
         el.className = el.className.replace('text-orange-600 font-bold bg-orange-50/80 shadow-sm', 'text-slate-600');
       }
+    });
+
+    // Sync sidebar access status badges dynamically
+    ['kabar', 'akur', 'sedia', 'cepat', 'lapor'].forEach(appId => {
+      const badgeEl = document.getElementById(`nav-badge-${appId}`);
+      if (!badgeEl || !window.authService) return;
+      const allowed = window.authService.hasAccess(appId);
+      badgeEl.innerText = allowed ? 'Aktif' : 'Terkunci';
+      badgeEl.className = `sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${allowed ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}`;
     });
 
     if (window.lucide) window.lucide.createIcons();
@@ -873,48 +871,14 @@ class AskrindoApp {
   }
 
   renderUnauthorized(appName) {
-    const user = window.authService.getCurrentUser();
-    const isDev = window.authService.isAppInDevelopment(appName.toLowerCase()) || 
-                  appName.toLowerCase().includes('kabar') || 
-                  appName.toLowerCase().includes('ttk') || 
-                  appName.toLowerCase().includes('akur') || 
-                  appName.toLowerCase().includes('bus') || 
-                  appName.toLowerCase().includes('sedia') || 
-                  appName.toLowerCase().includes('cepat');
-
-    if (isDev) {
-      return `
-        <div class="max-w-md mx-auto my-12 bg-white p-8 rounded-3xl border border-slate-200 shadow-xl text-center space-y-4 animate-fadeIn">
-          <div class="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200">
-            <i data-lucide="sparkles" class="w-8 h-8 text-amber-500"></i>
-          </div>
-          <span class="inline-block px-3 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 uppercase tracking-wider">
-            Segera Hadir
-          </span>
-          <h2 class="text-xl font-black text-slate-800">Modul ${appName} Segera Hadir</h2>
-          <p class="text-xs text-slate-500 leading-relaxed">
-            Sesuai jadwal peluncuran bertahap portal Askrindo SATU, modul <b>${appName}</b> sedang disiapkan dan akan segera hadir untuk operasional.
-          </p>
-          <div class="p-3.5 rounded-xl bg-purple-50 border border-purple-200 text-left text-xs space-y-1">
-            <div class="flex items-center gap-1.5 text-purple-900 font-bold">
-              <i data-lucide="check-circle" class="w-4 h-4 text-purple-600"></i>
-              <span>Modul Aktif untuk Operasional:</span>
-            </div>
-            <p class="text-slate-600 text-[11px] leading-relaxed">
-              Anda dapat menggunakan modul <b>LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)</b> yang telah aktif dan siap digunakan secara penuh.
-            </p>
-          </div>
-          <div class="flex items-center justify-center gap-3 pt-2">
-            <a href="#/dashboard" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
-              Kembali ke Beranda
-            </a>
-            <a href="#/lapor" class="px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-purple-600 hover:bg-purple-700 shadow-sm transition">
-              Buka Modul LAPOR
-            </a>
-          </div>
-        </div>
-      `;
-    }
+    const user = window.authService.getCurrentUser() || { name: 'Pengguna', role: '-', allowedApps: [] };
+    const canonicalApps = [...new Set((user.allowedApps || []).map(a => {
+      const k = String(a).toLowerCase();
+      if (k === 'ttk') return 'akur';
+      if (k === 'bus' || k === 'buset') return 'sedia';
+      if (k === 'pelaku') return 'lapor';
+      return k;
+    }))];
 
     return `
       <div class="max-w-md mx-auto my-12 bg-white p-8 rounded-3xl border border-slate-200 shadow-xl text-center space-y-4 animate-fadeIn">
@@ -923,19 +887,22 @@ class AskrindoApp {
         </div>
         <h2 class="text-xl font-black text-slate-800">Akses Terbatas: ${appName}</h2>
         <p class="text-xs text-slate-500 leading-relaxed">
-          Akun Anda (<b>${user.name}</b>, ${user.role}) saat ini belum memiliki hak akses untuk membuka modul <b>${appName}</b>.
+          Akun Anda (<b>${user.name}</b>, ${user.role}) saat ini belum memiliki hak akses untuk membuka modul <b>${appName}</b>. Hubungi Administrator untuk mengaktifkan izin akses modul ini pada Matriks Hak Akses.
         </p>
         <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-left text-xs space-y-1">
           <p class="font-bold text-slate-700">Aplikasi yang Anda miliki saat ini:</p>
           <div class="flex flex-wrap gap-1 pt-1">
-            ${user.allowedApps.map(a => `<span class="px-2 py-0.5 rounded bg-white border text-[10px] font-bold text-slate-700 uppercase">${a}</span>`).join('')}
+            ${canonicalApps.length > 0
+              ? canonicalApps.map(a => `<span class="px-2 py-0.5 rounded bg-white border text-[10px] font-bold text-slate-700 uppercase">${a}</span>`).join('')
+              : `<span class="text-[11px] text-slate-400 italic">Belum ada modul aktif</span>`
+            }
           </div>
         </div>
         <div class="flex items-center justify-center gap-3 pt-2">
           <a href="#/dashboard" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
             Kembali ke Beranda
           </a>
-          <button onclick="window.askrindoApp.requestAccessModal('${appName}')" class="px-5 py-2 rounded-xl text-xs font-semibold text-white bg-orange-600 hover:bg-orange-700 transition">
+          <button onclick="window.askrindoApp.requestAccessModal('${appName}')" class="px-5 py-2 rounded-xl text-xs font-semibold text-white bg-orange-600 hover:bg-orange-700 transition cursor-pointer">
             Minta Akses ke Admin
           </button>
         </div>
