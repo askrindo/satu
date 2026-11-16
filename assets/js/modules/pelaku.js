@@ -899,6 +899,12 @@ window.PelakuModule = {
                   <p id="pelaku-short-summary" class="text-[11px] text-slate-200 pt-1 leading-relaxed">
                     Belum ada data laporan keuangan yang dimasukkan untuk dianalisis.
                   </p>
+                  <div id="pelaku-score-coverage-wrap" class="hidden pt-2 mt-1 border-t border-white/10 flex items-center justify-between gap-2 text-[10px]">
+                    <span id="pelaku-score-coverage" class="text-emerald-300 font-semibold">Basis: Seluruh 27 Rasio + Kapasitas &amp; Tren</span>
+                    <button type="button" onclick="window.PelakuModule.openScoreBreakdownModal()" class="px-2 py-0.5 rounded-md bg-white/15 hover:bg-white/25 text-white font-bold transition cursor-pointer shrink-0">
+                      Rincian Skor
+                    </button>
+                  </div>
                 </div>
 
                 <!-- Ratio Breakdown (27 Indikator Rasio) -->
@@ -1717,6 +1723,8 @@ window.PelakuModule = {
       if (elScoreBar) elScoreBar.style.width = '0%';
       if (elSumm) elSumm.textContent = 'Belum ada data laporan keuangan yang dimasukkan untuk dianalisis.';
       if (elNarr) elNarr.textContent = 'Silakan lengkapi pos-pos Laporan Keuangan pada tabel di sebelah kiri untuk melihat evaluasi finansial dan scoring otomatis.';
+      const elCovWrap = document.getElementById('pelaku-score-coverage-wrap');
+      if (elCovWrap) elCovWrap.classList.add('hidden');
 
       const companyRaw = document.getElementById('pelaku-company')?.value.trim() || '';
       const companyId = window.askrindoDB ? window.askrindoDB.normalizeCompanyId(companyRaw) : '';
@@ -2100,102 +2108,129 @@ window.PelakuModule = {
     updateText('ratio-nwc', `${this.fmtRp(nwcVal)}${projectVal > 0 ? ` (${nwcToProject.toFixed(1)}%)` : ''}`, (nwcToProject > 40 || (projectVal === 0 && nwcVal >= 0)) ? 'text-emerald-600' : (nwcToProject > 10 ? 'text-amber-600' : 'text-rose-600'));
     updateText1('ratio-nwc', nwcTxt1, (nwcToProject1 > 40 || (projectVal === 0 && nwcVal1 >= 0)) ? 'text-emerald-600' : (nwcToProject1 > 10 ? 'text-amber-600' : 'text-rose-600'));
 
-    // 5. Composite Scoring & Grade Askrindo (Berdasarkan Parameter Rasio Finansial Penuh)
+    // 5. Composite Scoring & Grade Askrindo (Seluruh 27 Indikator Rasio + Kapasitas & Tren)
     const auditStatus = document.getElementById('pelaku-audit-status')?.value || '';
     const isAudited = auditStatus === 'audited';
 
     const scores = {};
 
-    // Parameter 10: Current Ratio %
-    if (crVal >= 100 || cl2 === 0) scores.cr = 100;
-    else if (crVal >= 75) scores.cr = 60;
-    else if (crVal >= 0.1) scores.cr = 30;
-    else scores.cr = 0;
+    // 1. Current Ratio %
+    scores.cr = cl2 === 0 ? (ca2 > 0 ? 100 : 0) : (crVal >= 100 ? 100 : (crVal >= 75 ? 60 : (crVal >= 0.1 ? 30 : 0)));
 
-    // Parameter 11: Quick Ratio %
-    if (qrVal > 100 || cl2 === 0) scores.qr = 100;
-    else if (qrVal > 75) scores.qr = 80;
-    else if (qrVal > 60) scores.qr = 60;
-    else if (qrVal > 40) scores.qr = 40;
-    else scores.qr = 20;
+    // 2. Quick Ratio %
+    scores.qr = cl2 === 0 ? (quickAssets > 0 ? 100 : 0) : (qrVal > 100 ? 100 : (qrVal > 75 ? 80 : (qrVal > 60 ? 60 : (qrVal > 40 ? 40 : 20))));
 
-    // Parameter 12: Cash Ratio %
-    if (cashRatioVal > 40 || cl2 === 0) scores.cash = 100;
-    else if (cashRatioVal > 30) scores.cash = 80;
-    else if (cashRatioVal > 20) scores.cash = 60;
-    else if (cashRatioVal > 10) scores.cash = 40;
-    else scores.cash = 20;
+    // 3. Working Capital To Total Asset %
+    scores.wcta = ta2 <= 0 ? 0 : (wctaVal >= 20 ? 100 : (wctaVal >= 10 ? 80 : (wctaVal > 0 ? 60 : (wctaVal === 0 ? 40 : (wctaVal >= -15 ? 20 : 0)))));
 
-    // Parameter 13: Return on Asset %
-    if (roaVal >= 1.0) scores.roa = 100;
-    else if (roaVal >= 0.5) scores.roa = 60;
-    else if (roaVal >= 0.1) scores.roa = 30;
-    else scores.roa = 0;
+    // 4. Debt to Equity Ratio (DER) %
+    scores.der = eq2 <= 0 ? (tl2 > 0 ? 0 : 25) : (tl2 === 0 || derVal < 200 ? 100 : (derVal < 250 ? 75 : (derVal < 300 ? 50 : 25)));
 
-    // Parameter 14: Return on Equity %
-    if (roeVal >= 5.0) scores.roe = 100;
-    else if (roeVal >= 3.0) scores.roe = 60;
-    else if (roeVal >= 0.1) scores.roe = 30;
-    else scores.roe = 0;
+    // 5. Debt to Asset Ratio (DAR) %
+    scores.dar = ta2 <= 0 ? 0 : (darVal < 50 ? 100 : (darVal < 60 ? 85 : (darVal < 70 ? 70 : (darVal < 85 ? 40 : (darVal < 100 ? 15 : 0)))));
 
-    // Parameter 15: Nett Profit Margin %
-    if (npmVal > 10.0) scores.npm = 100;
-    else if (npmVal > 5.0) scores.npm = 75;
-    else if (npmVal > 2.0) scores.npm = 50;
-    else if (npmVal > 0.0) scores.npm = 25;
-    else scores.npm = 0;
+    // 6. Long Term Debt to Equity %
+    scores.ltde = eq2 <= 0 ? (ltDebtVal > 0 ? 0 : 50) : (ltdeVal < 50 ? 100 : (ltdeVal < 100 ? 75 : (ltdeVal < 150 ? 50 : 20)));
 
-    // Parameter 16: Debt Equity Ratio (DER) %
-    if (derVal < 200) scores.der = 100;
-    else if (derVal < 250) scores.der = 75;
-    else if (derVal < 300) scores.der = 50;
-    else scores.der = 25;
+    // 7. Total Asset Turnover x
+    scores.tato = (ta2 <= 0 || rev2 <= 0) ? 0 : (tatoVal >= 1.5 ? 100 : (tatoVal >= 1.0 ? 80 : (tatoVal >= 0.5 ? 50 : 25)));
 
-    // Parameter 17: Net Working Capital (vs Nilai Proyek)
+    // 8. Working Capital Turnover x
+    scores.wcto = rev2 <= 0 ? 0 : (nwcVal <= 0 ? 20 : (wctoVal >= 4.0 ? 100 : (wctoVal >= 2.0 ? 80 : (wctoVal > 0 ? 60 : 20))));
+
+    // 9. Receivable Turnover x
+    scores.rto = rev2 <= 0 ? 0 : (arVal <= 0 ? 100 : (rtoVal >= 6.0 ? 100 : (rtoVal >= 4.0 ? 80 : (rtoVal >= 2.0 ? 50 : 25))));
+
+    // 10. Day Account Receivable / Average Collection Period (hari)
+    scores.acp = rev2 <= 0 ? 0 : (arVal <= 0 ? 100 : (acpVal <= 45 ? 100 : (acpVal <= 90 ? 80 : (acpVal <= 120 ? 50 : 20))));
+
+    // 11. Inventory Turnover Ratio x
+    scores.ito = rev2 <= 0 ? 0 : (invVal <= 0 ? 80 : (itoVal >= 6.0 ? 100 : (itoVal >= 4.0 ? 80 : (itoVal >= 2.0 ? 50 : 25))));
+
+    // 12. Day Inventory (hari)
+    scores.dio = rev2 <= 0 ? 0 : (invVal <= 0 ? 100 : (dioVal <= 45 ? 100 : (dioVal <= 90 ? 80 : (dioVal <= 120 ? 50 : 20))));
+
+    // 13. Day Account Payable (hari)
+    scores.dpo = (rev2 <= 0 && curCogs <= 0) ? 0 : (apVal <= 0 ? 85 : (dpoVal <= 60 ? 100 : (dpoVal <= 90 ? 80 : (dpoVal <= 120 ? 55 : 25))));
+
+    // 14. Return on Asset (ROA) %
+    scores.roa = ta2 <= 0 ? 0 : (roaVal >= 1.0 ? 100 : (roaVal >= 0.5 ? 60 : (roaVal >= 0.1 ? 30 : 0)));
+
+    // 15. Return on Equity (ROE) %
+    scores.roe = eq2 <= 0 ? 0 : (roeVal >= 5.0 ? 100 : (roeVal >= 3.0 ? 60 : (roeVal >= 0.1 ? 30 : 0)));
+
+    // 16. Return on Investment (ROI) %
+    scores.roi = ta2 <= 0 ? 0 : (roiVal >= 5.0 ? 100 : (roiVal >= 1.0 ? 80 : (roiVal > 0 ? 60 : 0)));
+
+    // 17. Gross Profit Margin %
+    scores.gpm = rev2 <= 0 ? 0 : (gpmVal >= 20.0 ? 100 : (gpmVal >= 10.0 ? 80 : (gpmVal > 0 ? 60 : 0)));
+
+    // 18. Net Profit Margin (NPM) %
+    scores.npm = rev2 <= 0 ? 0 : (npmVal > 10.0 ? 100 : (npmVal > 5.0 ? 75 : (npmVal > 2.0 ? 50 : (npmVal > 0.0 ? 25 : 0))));
+
+    // 19. Operating Income Ratio %
+    scores.oir = rev2 <= 0 ? 0 : (oirVal >= 10.0 ? 100 : (oirVal >= 5.0 ? 80 : (oirVal > 0 ? 60 : 0)));
+
+    // 20. Operating Ratio %
+    scores.opr = rev2 <= 0 ? 0 : (oprVal <= 80 ? 100 : (oprVal <= 90 ? 85 : (oprVal <= 95 ? 70 : (oprVal <= 100 ? 40 : 10))));
+
+    // 21. Cash Ratio %
+    scores.cash = cl2 === 0 ? (cashVal > 0 ? 100 : 0) : (cashRatioVal > 40 ? 100 : (cashRatioVal > 30 ? 80 : (cashRatioVal > 20 ? 60 : (cashRatioVal > 10 ? 40 : 20))));
+
+    // 22. Sales Growth %
+    scores.salesGrowth = (!hasData1 || rev1 <= 0) ? (rev2 > 0 ? 50 : 0) : (salesGrowth >= 10 ? 100 : (salesGrowth >= 0 ? 75 : (salesGrowth >= -10 ? 40 : 10)));
+
+    // 23. Operating Profit Margin %
+    scores.opm = rev2 <= 0 ? 0 : (opmVal >= 10.0 ? 100 : (opmVal >= 5.0 ? 80 : (opmVal > 0 ? 60 : 0)));
+
+    // 24. Ebitda
+    const ebitdaMargin = rev2 > 0 ? (ebitdaVal / rev2) * 100 : 0;
+    scores.ebitda = ebitdaVal > 0 ? (rev2 > 0 ? (ebitdaMargin >= 10 ? 100 : (ebitdaMargin >= 5 ? 80 : 65)) : 65) : (ebitdaVal === 0 ? 20 : 0);
+
+    // 25. Ebitda to interest %
+    scores.ebitdaInt = ebitdaIntVal === null ? (ebitdaVal > 0 ? 100 : (ebitdaVal === 0 ? 60 : 20)) : (ebitdaIntX >= 3.0 ? 100 : (ebitdaIntX >= 2.0 ? 80 : (ebitdaIntX >= 1.0 ? 45 : 15)));
+
+    // 26. Ebitda to debt %
+    scores.ebitdaDebt = ebitdaDebtVal === null ? (ebitdaVal > 0 ? 100 : (ebitdaVal === 0 ? 60 : 20)) : (ebitdaDebtVal >= 30 ? 100 : (ebitdaDebtVal >= 20 ? 80 : (ebitdaDebtVal >= 10 ? 50 : (ebitdaDebtVal > 0 ? 25 : 0))));
+
+    // 27. Net Working Capital (vs Nilai Proyek)
     if (projectVal > 0) {
-      if (nwcToProject > 40) scores.nwc = 100;
+      if (nwcVal < 0) scores.nwc = 0;
+      else if (nwcToProject > 40) scores.nwc = 100;
       else if (nwcToProject > 20) scores.nwc = 75;
       else if (nwcToProject > 10) scores.nwc = 50;
       else scores.nwc = 25;
     } else {
-      scores.nwc = nwcVal > 0 ? 100 : 25;
+      scores.nwc = nwcVal > 0 ? 100 : (nwcVal === 0 ? 50 : 20);
     }
 
-    // Parameter 18: Self Financing, Modal Internal
+    // 28. Self Financing / Modal Internal (Capacity)
     if (selfFinVal > 20) scores.selfFin = 100;
     else if (selfFinVal >= 15) scores.selfFin = 80;
     else if (selfFinVal >= 10) scores.selfFin = 60;
     else if (selfFinVal >= 5) scores.selfFin = 40;
     else scores.selfFin = 20;
 
-    // Parameter Tren Kondisi Laporan Keuangan 2 Tahun Terakhir (Auto-computed dari data Y1 vs Y2)
-    let trendScore = 50; // default: belum ada data Y1 → positif stabil
+    // 29. Parameter Tren Kondisi Laporan Keuangan 2 Tahun Terakhir
+    let trendScore = 50; // default: belum ada data Y1 -> positif stabil
     if (hasData1 && hasData2) {
-      // Hitung arah tiap indikator kunci (positif = naik/membaik, negatif = turun/memburuk)
       const indikators = [
-        // 1. Pertumbuhan Penjualan (bobot 2x)
         rev1 > 0 ? (rev2 > rev1 ? 2 : (rev2 === rev1 ? 0 : -2)) : 0,
-        // 2. Pertumbuhan Laba Bersih (bobot 2x)
         (eat1 !== 0) ? (eat2 > eat1 && eat2 > 0 ? 2 : (eat2 === eat1 ? 0 : -2)) : (eat2 > 0 ? 2 : 0),
-        // 3. Pertumbuhan Total Aset
         ta1 > 0 ? (ta2 > ta1 ? 1 : (ta2 === ta1 ? 0 : -1)) : 0,
-        // 4. Pertumbuhan Net Working Capital
         (ca1 - cl1) !== 0 ? ((ca2 - cl2) > (ca1 - cl1) ? 1 : ((ca2 - cl2) === (ca1 - cl1) ? 0 : -1)) : 0,
-        // 5. Pertumbuhan Ekuitas
         eq1 > 0 ? (eq2 > eq1 ? 1 : (eq2 === eq1 ? 0 : -1)) : 0
       ];
-      const trendSum = indikators.reduce((a, b) => a + b, 0); // range: -7 to +7
-      // A: Tren positif naik (skor 100) → mayoritas indikator membaik
-      // B: Positif stabil (skor 50) → seimbang
-      // C: Negatif (skor 0) → mayoritas indikator memburuk
-      if (trendSum >= 3) trendScore = 100;       // ≥ 3 poin positif → Tren positif naik
-      else if (trendSum >= 0) trendScore = 50;   // 0–2 → Positif stabil
-      else trendScore = 0;                        // negatif → Tren negatif
+      const trendSum = indikators.reduce((a, b) => a + b, 0);
+      if (trendSum >= 3) trendScore = 100;
+      else if (trendSum >= 0) trendScore = 50;
+      else trendScore = 0;
     }
     scores.trend = trendScore;
 
     const scoreVals = Object.values(scores);
-    let avgRawScore = scoreVals.reduce((a, b) => a + b, 0) / scoreVals.length;
+    const baseAvgScore = scoreVals.reduce((a, b) => a + b, 0) / scoreVals.length;
+    let avgRawScore = baseAvgScore;
 
     if (isAudited) avgRawScore = Math.min(avgRawScore + 2, 100);
     if (isBal1 && isBal2) avgRawScore = Math.min(avgRawScore + 1, 100);
@@ -2229,6 +2264,8 @@ window.PelakuModule = {
     const elScoreBar = document.getElementById('pelaku-score-bar');
     const elSumm = document.getElementById('pelaku-short-summary');
     const elNarr = document.getElementById('pelaku-narrative');
+    const elCovWrap = document.getElementById('pelaku-score-coverage-wrap');
+    const elCovText = document.getElementById('pelaku-score-coverage');
 
     if (elBadge) {
       elBadge.className = `px-3.5 py-1.5 rounded-xl font-black text-xs ${gradeCls}`;
@@ -2238,6 +2275,8 @@ window.PelakuModule = {
     if (elScoreBar) elScoreBar.style.width = score + '%';
     if (elSumm) elSumm.textContent = summaryText;
     if (elNarr) elNarr.textContent = narrative;
+    if (elCovWrap) elCovWrap.classList.remove('hidden');
+    if (elCovText) elCovText.textContent = `Basis: Seluruh 27 Rasio + Kapasitas & Tren (${scoreVals.length} komponen)`;
 
     // 6. Matriks Kepatuhan Risk Acceptance Criteria (RAC) Askrindo
     const totals1 = { ca: ca1, nca: nca1, ta: ta1, cl: cl1, tl: tl1, eq: eq1, pass: pass1, rev: rev1, gp: gp1, ebit: ebit1, ebt: ebt1, eat: eat1 };
@@ -2276,33 +2315,33 @@ window.PelakuModule = {
     }
 
     const ratios27 = [
-      { no: 1, name: 'Current Ratio% x', val1: hasData1 ? crTxt1 : '-', val: crTxt, std: 'Standar: ≥ 100,00%', pass: crVal >= 100 || cl2 === 0 },
-      { no: 2, name: 'Quick Ratio % x', val1: hasData1 ? qrTxt1 : '-', val: qrTxt, std: 'Standar: > 100,00%', pass: qrVal > 100 || cl2 === 0 },
-      { no: 3, name: 'Working Capital To Total Asset%', val1: hasData1 ? wctaTxt1 : '-', val: `${wctaVal.toFixed(2)}%`, std: 'Modal Kerja Bersih / Total Aktiva (Standar: > 0%)', pass: wctaVal > 0 },
-      { no: 4, name: 'DER% x', val1: hasData1 ? derTxt1 : '-', val: `${derVal.toFixed(2)}% (${derX.toFixed(2)}x)`, std: 'Standar: < 200,00%', pass: derVal < 200 },
-      { no: 5, name: 'DAR% x', val1: hasData1 ? darTxt1 : '-', val: `${darVal.toFixed(2)}% (${darX.toFixed(2)}x)`, std: 'Batas Toleransi: < 70,00%', pass: darVal < 70 },
-      { no: 6, name: 'Long Term Debt to Equity%', val1: hasData1 ? ltdeTxt1 : '-', val: `${ltdeVal.toFixed(2)}%`, std: 'Hutang Jk. Panjang / Modal Sendiri (Standar: < 100%)', pass: ltdeVal < 100 },
-      { no: 7, name: 'Total Asset Turnover x', val1: hasData1 ? tatoTxt1 : '-', val: `${tatoVal.toFixed(2)}x`, std: 'Penjualan / Total Aset (Standar: ≥ 1.0x)', pass: tatoVal >= 1.0 },
-      { no: 8, name: 'Working Capital Turnover x', val1: hasData1 ? wctoTxt1 : '-', val: nwcVal > 0 ? `${wctoVal.toFixed(2)}x` : 'N/A', std: 'Penjualan / Modal Kerja Bersih (NWC)', pass: wctoVal > 0 },
-      { no: 9, name: 'Receivable Turnover x', val1: hasData1 ? rtoTxt1 : '-', val: arVal > 0 ? `${rtoVal.toFixed(2)}x` : 'N/A', std: 'Penjualan / Piutang Usaha (Standar: ≥ 4.0x)', pass: rtoVal >= 4.0 },
-      { no: 10, name: 'Day account Recieveable /Average Collection Period(hari)', val1: hasData1 ? acpTxt1 : '-', val: `${Math.round(acpVal)} hari`, std: 'Rata-rata Waktu Penagihan Piutang (Batas: ≤ 90 hari)', pass: acpVal <= 90 },
-      { no: 11, name: 'Inventory Turnover Ratio X', val1: hasData1 ? itoTxt1 : '-', val: invVal > 0 ? `${itoVal.toFixed(2)}x` : 'N/A', std: 'HPP / Persediaan Barang (Standar: ≥ 4.0x)', pass: itoVal >= 4.0 },
-      { no: 12, name: 'Day Inventory (hari)', val1: hasData1 ? dioTxt1 : '-', val: `${Math.round(dioVal)} hari`, std: 'Rata-rata Hari Persediaan Tersimpan (Batas: ≤ 90 hari)', pass: dioVal <= 90 },
-      { no: 13, name: 'Day account payable (hari)', val1: hasData1 ? dpoTxt1 : '-', val: `${Math.round(dpoVal)} hari`, std: 'Rata-rata Hari Pembayaran Utang Usaha', pass: true },
-      { no: 14, name: 'ROA % x', val1: hasData1 ? roaTxt1 : '-', val: `${roaVal.toFixed(2)}% (${roaX.toFixed(2)}x)`, std: 'Standar: ≥ 1,00%', pass: roaVal >= 1.0 },
-      { no: 15, name: 'ROE % x', val1: hasData1 ? roeTxt1 : '-', val: `${roeVal.toFixed(2)}% (${roeX.toFixed(2)}x)`, std: 'Standar: ≥ 5,00%', pass: roeVal >= 5.0 },
-      { no: 16, name: 'ROI %', val1: hasData1 ? roiTxt1 : '-', val: `${roiVal.toFixed(2)}%`, std: 'Return on Investment (EBIT / Total Aktiva) (Standar: > 0%)', pass: roiVal > 0 },
-      { no: 17, name: 'Gross Profit Margin %', val1: hasData1 ? gpmTxt1 : '-', val: `${gpmVal.toFixed(2)}%`, std: 'Laba Kotor / Penjualan (Standar: > 0%)', pass: gpmVal > 0 },
-      { no: 18, name: 'Net Profit Margin % x', val1: hasData1 ? npmTxt1 : '-', val: `${npmVal.toFixed(2)}% (${npmX.toFixed(2)}x)`, std: 'Standar: > 10,00%', pass: npmVal > 10.0 },
-      { no: 19, name: 'Operating Income Ratio %', val1: hasData1 ? oirTxt1 : '-', val: `${oirVal.toFixed(2)}%`, std: 'EBIT / Penjualan (Net Operating Margin)', pass: oirVal > 0 },
-      { no: 20, name: 'Operating Ratio %', val1: hasData1 ? oprTxt1 : '-', val: `${oprVal.toFixed(2)}%`, std: '(HPP + Beban Usaha) / Penjualan (Batas: ≤ 95%)', pass: oprVal <= 95 },
-      { no: 21, name: 'Cash Ratio % x', val1: hasData1 ? cashRatioTxt1 : '-', val: cashRatioTxt, std: 'Standar: > 40,00%', pass: cashRatioVal > 40 || cl2 === 0 },
-      { no: 22, name: 'Sales Growth %', val1: '-', val: `${salesGrowth >= 0 ? '+' : ''}${salesGrowth.toFixed(2)}%`, std: 'Pertumbuhan Penjualan YoY (Standar: Positif)', pass: salesGrowth >= 0 },
-      { no: 23, name: 'Operating Profit Margin %', val1: hasData1 ? opmTxt1 : '-', val: `${opmVal.toFixed(2)}%`, std: 'Laba Bruto Operasional / Penjualan', pass: opmVal > 0 },
-      { no: 24, name: 'Ebitda', val1: hasData1 ? ebitdaTxt1 : '-', val: this.fmtRp(ebitdaVal), std: 'Laba Usaha (EBIT) + Akum. Penyusutan', pass: ebitdaVal > 0 },
-      { no: 25, name: 'Ebitda to interest %', val1: hasData1 ? ebitdaIntTxt1 : '-', val: ebitdaIntVal !== null ? `${ebitdaIntVal.toFixed(2)}% (${ebitdaIntX.toFixed(2)}x)` : 'N/A (Bebas Bunga)', std: 'Interest Coverage Ratio (Standar: ≥ 2.0x)', pass: ebitdaIntX >= 2.0 || ebitdaIntVal === null },
-      { no: 26, name: 'Ebitda to debt %', val1: hasData1 ? ebitdaDebtTxt1 : '-', val: ebitdaDebtVal !== null ? `${ebitdaDebtVal.toFixed(2)}%` : 'N/A (Bebas Hutang)', std: 'EBITDA / Total Hutang (Standar: ≥ 20%)', pass: ebitdaDebtVal >= 20 || ebitdaDebtVal === null },
-      { no: 27, name: 'Net Working Capital', val1: hasData1 ? nwcTxt1 : '-', val: this.fmtRp(nwcVal), std: 'Standar: > 40,00% Nilai Proyek', pass: projectVal > 0 ? (nwcToProject > 40) : (nwcVal >= 0) }
+      { no: 1, key: 'cr', name: 'Current Ratio% x', val1: hasData1 ? crTxt1 : '-', val: crTxt, std: 'Standar: ≥ 100,00%', scoreVal: scores.cr, pass: crVal >= 100 || (cl2 === 0 && ca2 > 0) },
+      { no: 2, key: 'qr', name: 'Quick Ratio % x', val1: hasData1 ? qrTxt1 : '-', val: qrTxt, std: 'Standar: > 100,00%', scoreVal: scores.qr, pass: qrVal > 100 || (cl2 === 0 && quickAssets > 0) },
+      { no: 3, key: 'wcta', name: 'Working Capital To Total Asset%', val1: hasData1 ? wctaTxt1 : '-', val: `${wctaVal.toFixed(2)}%`, std: 'Modal Kerja Bersih / Total Aktiva (Standar: > 0%)', scoreVal: scores.wcta, pass: wctaVal > 0 },
+      { no: 4, key: 'der', name: 'DER% x', val1: hasData1 ? derTxt1 : '-', val: `${derVal.toFixed(2)}% (${derX.toFixed(2)}x)`, std: 'Standar: < 200,00%', scoreVal: scores.der, pass: eq2 > 0 && derVal < 200 },
+      { no: 5, key: 'dar', name: 'DAR% x', val1: hasData1 ? darTxt1 : '-', val: `${darVal.toFixed(2)}% (${darX.toFixed(2)}x)`, std: 'Batas Toleransi: < 70,00%', scoreVal: scores.dar, pass: ta2 > 0 && darVal < 70 },
+      { no: 6, key: 'ltde', name: 'Long Term Debt to Equity%', val1: hasData1 ? ltdeTxt1 : '-', val: `${ltdeVal.toFixed(2)}%`, std: 'Hutang Jk. Panjang / Modal Sendiri (Standar: < 100%)', scoreVal: scores.ltde, pass: eq2 > 0 && ltdeVal < 100 },
+      { no: 7, key: 'tato', name: 'Total Asset Turnover x', val1: hasData1 ? tatoTxt1 : '-', val: `${tatoVal.toFixed(2)}x`, std: 'Penjualan / Total Aset (Standar: ≥ 1.0x)', scoreVal: scores.tato, pass: tatoVal >= 1.0 },
+      { no: 8, key: 'wcto', name: 'Working Capital Turnover x', val1: hasData1 ? wctoTxt1 : '-', val: nwcVal > 0 ? `${wctoVal.toFixed(2)}x` : 'N/A', std: 'Penjualan / Modal Kerja Bersih (NWC)', scoreVal: scores.wcto, pass: wctoVal > 0 },
+      { no: 9, key: 'rto', name: 'Receivable Turnover x', val1: hasData1 ? rtoTxt1 : '-', val: arVal > 0 ? `${rtoVal.toFixed(2)}x` : 'N/A', std: 'Penjualan / Piutang Usaha (Standar: ≥ 4.0x)', scoreVal: scores.rto, pass: rev2 > 0 && (arVal <= 0 || rtoVal >= 4.0) },
+      { no: 10, key: 'acp', name: 'Day account Recieveable /Average Collection Period(hari)', val1: hasData1 ? acpTxt1 : '-', val: `${Math.round(acpVal)} hari`, std: 'Rata-rata Waktu Penagihan Piutang (Batas: ≤ 90 hari)', scoreVal: scores.acp, pass: rev2 > 0 && acpVal <= 90 },
+      { no: 11, key: 'ito', name: 'Inventory Turnover Ratio X', val1: hasData1 ? itoTxt1 : '-', val: invVal > 0 ? `${itoVal.toFixed(2)}x` : 'N/A', std: 'HPP / Persediaan Barang (Standar: ≥ 4.0x)', scoreVal: scores.ito, pass: rev2 > 0 && (invVal <= 0 || itoVal >= 4.0) },
+      { no: 12, key: 'dio', name: 'Day Inventory (hari)', val1: hasData1 ? dioTxt1 : '-', val: `${Math.round(dioVal)} hari`, std: 'Rata-rata Hari Persediaan Tersimpan (Batas: ≤ 90 hari)', scoreVal: scores.dio, pass: rev2 > 0 && dioVal <= 90 },
+      { no: 13, key: 'dpo', name: 'Day account payable (hari)', val1: hasData1 ? dpoTxt1 : '-', val: `${Math.round(dpoVal)} hari`, std: 'Rata-rata Hari Pembayaran Utang Usaha (≤ 90 hari)', scoreVal: scores.dpo, pass: (rev2 > 0 || curCogs > 0) && dpoVal <= 90 },
+      { no: 14, key: 'roa', name: 'ROA % x', val1: hasData1 ? roaTxt1 : '-', val: `${roaVal.toFixed(2)}% (${roaX.toFixed(2)}x)`, std: 'Standar: ≥ 1,00%', scoreVal: scores.roa, pass: roaVal >= 1.0 },
+      { no: 15, key: 'roe', name: 'ROE % x', val1: hasData1 ? roeTxt1 : '-', val: `${roeVal.toFixed(2)}% (${roeX.toFixed(2)}x)`, std: 'Standar: ≥ 5,00%', scoreVal: scores.roe, pass: eq2 > 0 && roeVal >= 5.0 },
+      { no: 16, key: 'roi', name: 'ROI %', val1: hasData1 ? roiTxt1 : '-', val: `${roiVal.toFixed(2)}%`, std: 'Return on Investment (EBIT / Total Aktiva) (Standar: > 0%)', scoreVal: scores.roi, pass: roiVal > 0 },
+      { no: 17, key: 'gpm', name: 'Gross Profit Margin %', val1: hasData1 ? gpmTxt1 : '-', val: `${gpmVal.toFixed(2)}%`, std: 'Laba Kotor / Penjualan (Standar: > 0%)', scoreVal: scores.gpm, pass: rev2 > 0 && gpmVal > 0 },
+      { no: 18, key: 'npm', name: 'Net Profit Margin % x', val1: hasData1 ? npmTxt1 : '-', val: `${npmVal.toFixed(2)}% (${npmX.toFixed(2)}x)`, std: 'Standar: > 10,00%', scoreVal: scores.npm, pass: rev2 > 0 && npmVal > 10.0 },
+      { no: 19, key: 'oir', name: 'Operating Income Ratio %', val1: hasData1 ? oirTxt1 : '-', val: `${oirVal.toFixed(2)}%`, std: 'EBIT / Penjualan (Net Operating Margin)', scoreVal: scores.oir, pass: rev2 > 0 && oirVal > 0 },
+      { no: 20, key: 'opr', name: 'Operating Ratio %', val1: hasData1 ? oprTxt1 : '-', val: `${oprVal.toFixed(2)}%`, std: '(HPP + Beban Usaha) / Penjualan (Batas: ≤ 95%)', scoreVal: scores.opr, pass: rev2 > 0 && oprVal <= 95 },
+      { no: 21, key: 'cash', name: 'Cash Ratio % x', val1: hasData1 ? cashRatioTxt1 : '-', val: cashRatioTxt, std: 'Standar: > 40,00%', scoreVal: scores.cash, pass: cashRatioVal > 40 || (cl2 === 0 && cashVal > 0) },
+      { no: 22, key: 'salesGrowth', name: 'Sales Growth %', val1: '-', val: `${salesGrowth >= 0 ? '+' : ''}${salesGrowth.toFixed(2)}%`, std: 'Pertumbuhan Penjualan YoY (Standar: Positif)', scoreVal: scores.salesGrowth, pass: (!hasData1 || rev1 <= 0) ? rev2 > 0 : salesGrowth >= 0 },
+      { no: 23, key: 'opm', name: 'Operating Profit Margin %', val1: hasData1 ? opmTxt1 : '-', val: `${opmVal.toFixed(2)}%`, std: 'Laba Bruto Operasional / Penjualan', scoreVal: scores.opm, pass: rev2 > 0 && opmVal > 0 },
+      { no: 24, key: 'ebitda', name: 'Ebitda', val1: hasData1 ? ebitdaTxt1 : '-', val: this.fmtRp(ebitdaVal), std: 'Laba Usaha (EBIT) + Akum. Penyusutan', scoreVal: scores.ebitda, pass: ebitdaVal > 0 },
+      { no: 25, key: 'ebitdaInt', name: 'Ebitda to interest %', val1: hasData1 ? ebitdaIntTxt1 : '-', val: ebitdaIntVal !== null ? `${ebitdaIntVal.toFixed(2)}% (${ebitdaIntX.toFixed(2)}x)` : 'N/A (Bebas Bunga)', std: 'Interest Coverage Ratio (Standar: ≥ 2.0x)', scoreVal: scores.ebitdaInt, pass: ebitdaIntVal === null ? ebitdaVal >= 0 : ebitdaIntX >= 2.0 },
+      { no: 26, key: 'ebitdaDebt', name: 'Ebitda to debt %', val1: hasData1 ? ebitdaDebtTxt1 : '-', val: ebitdaDebtVal !== null ? `${ebitdaDebtVal.toFixed(2)}%` : 'N/A (Bebas Hutang)', std: 'EBITDA / Total Hutang (Standar: ≥ 20%)', scoreVal: scores.ebitdaDebt, pass: ebitdaDebtVal === null ? ebitdaVal >= 0 : ebitdaDebtVal >= 20 },
+      { no: 27, key: 'nwc', name: 'Net Working Capital', val1: hasData1 ? nwcTxt1 : '-', val: this.fmtRp(nwcVal), std: 'Standar: > 40,00% Nilai Proyek', scoreVal: scores.nwc, pass: projectVal > 0 ? (nwcToProject > 40) : (nwcVal > 0) }
     ];
 
     // Simpan objek analisis untuk lembar cetak
@@ -2320,6 +2359,11 @@ window.PelakuModule = {
       kapName: document.getElementById('pelaku-kap-name')?.value || '-',
       opinion: document.getElementById('pelaku-opinion')?.value || '-',
       score,
+      baseAvgScore: Math.round(baseAvgScore * 10) / 10,
+      auditBonus: isAudited ? 2 : 0,
+      balanceBonus: (isBal1 && isBal2) ? 1 : 0,
+      scores,
+      selfFinVal,
       grade,
       summaryText,
       narrative,
@@ -2357,6 +2401,95 @@ window.PelakuModule = {
       const text = (r.textContent || '').toLowerCase();
       r.style.display = (!q || text.includes(q)) ? '' : 'none';
     });
+  },
+
+  openScoreBreakdownModal() {
+    const c = this.currentAnalysis;
+    const modal = document.getElementById('pelaku-modal-container');
+    if (!modal || !c || !c.hasData) return;
+
+    const allItems = [
+      ...(c.ratios27 || []).map(r => ({
+        no: r.no,
+        name: r.name,
+        val: r.val,
+        std: r.std,
+        score: r.scoreVal ?? 0
+      })),
+      {
+        no: 28,
+        name: 'Self Financing / Modal Internal',
+        val: c.selfFinVal !== undefined ? `${c.selfFinVal.toFixed(2)}%` : '-',
+        std: c.projectVal > 0 ? 'Modal Sendiri / Nilai Proyek (> 20%)' : 'Modal Sendiri / Total Aset (> 20%)',
+        score: c.scores?.selfFin ?? 0
+      },
+      {
+        no: 29,
+        name: 'Tren Kondisi Keuangan (2 Tahun)',
+        val: c.scores?.trend === 100 ? 'Positif Naik' : (c.scores?.trend === 50 ? 'Positif Stabil' : 'Negatif'),
+        std: 'Perbandingan Penjualan, EAT, Aset, NWC, Ekuitas',
+        score: c.scores?.trend ?? 0
+      }
+    ];
+
+    modal.innerHTML = `
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-5 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] flex flex-col">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3 shrink-0">
+            <div>
+              <h3 class="text-sm font-black text-slate-800">Rincian Perhitungan Skor Finansial Komposit</h3>
+              <p class="text-[11px] text-slate-500">Seluruh 27 indikator rasio finansial + Self Financing + Tren 2 tahun (${allItems.length} komponen)</p>
+            </div>
+            <button type="button" onclick="document.getElementById('pelaku-modal-container').innerHTML=''" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <div class="p-3 rounded-xl bg-gradient-to-r from-[#002B49] to-indigo-900 text-white flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
+            <div>
+              <span class="text-indigo-200 block text-[10px]">Rata-rata 29 Komponen + Bonus (Audit +${c.auditBonus || 0}, Balance +${c.balanceBonus || 0}):</span>
+              <span class="font-bold">${this.escapeHtml(c.grade)}</span>
+            </div>
+            <span class="px-3 py-1 rounded-lg bg-white/15 font-mono font-black text-sm">${Number(c.score || 0).toFixed(1)} / 100</span>
+          </div>
+
+          <div class="overflow-y-auto border border-slate-200 rounded-xl flex-1">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-50 text-slate-600 font-bold sticky top-0 border-b border-slate-200">
+                <tr>
+                  <th class="py-2 px-2.5 text-center w-8">No</th>
+                  <th class="py-2 px-2.5">Indikator &amp; Standar</th>
+                  <th class="py-2 px-2.5 text-right">Nilai Eval</th>
+                  <th class="py-2 px-2.5 text-right w-16">Skor</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                ${allItems.map(item => `
+                  <tr class="hover:bg-slate-50/70">
+                    <td class="py-1.5 px-2.5 text-center font-mono text-[11px] text-slate-400">${item.no}</td>
+                    <td class="py-1.5 px-2.5">
+                      <p class="font-semibold text-slate-800 text-[11px]">${item.name}</p>
+                      <p class="text-[10px] text-slate-400">${item.std}</p>
+                    </td>
+                    <td class="py-1.5 px-2.5 text-right font-mono text-[11px] text-slate-700">${item.val}</td>
+                    <td class="py-1.5 px-2.5 text-right font-mono font-bold text-xs ${item.score >= 80 ? 'text-emerald-600' : (item.score >= 50 ? 'text-amber-600' : 'text-rose-600')}">
+                      ${item.score}
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="flex justify-end pt-2 border-t border-slate-100 shrink-0">
+            <button type="button" onclick="document.getElementById('pelaku-modal-container').innerHTML=''" class="px-4 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition">
+              Tutup
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    if (window.lucide) window.lucide.createIcons();
   },
 
   computeRacMatrix(totals1, totals2, yr1, yr2, projectVal, d1 = {}, d2 = {}) {
@@ -5297,6 +5430,7 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
                 <th class="p-2 text-left">Indikator Rasio</th>
                 <th class="p-2 text-right">${c.year1 ? `Tahun ${c.year1}` : 'Tahun 1'}</th>
                 <th class="p-2 text-right">${c.year2 ? `Tahun ${c.year2} (Eval)` : 'Tahun 2'}</th>
+                <th class="p-2 text-center w-14">Skor</th>
                 <th class="p-2 text-left">Parameter / Standar Acuan</th>
               </tr>
               ${(c.ratios27 || []).map(r => `
@@ -5305,6 +5439,7 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
                   <td class="p-1.5 font-medium text-slate-800">${r.name}</td>
                   <td class="p-1.5 text-right font-mono text-slate-600">${r.val1 || '-'}</td>
                   <td class="p-1.5 text-right font-mono font-bold ${r.pass ? 'text-emerald-700' : 'text-slate-800'}">${r.val}</td>
+                  <td class="p-1.5 text-center font-mono font-bold text-[11px] ${Number(r.scoreVal) >= 80 ? 'text-emerald-700' : (Number(r.scoreVal) >= 50 ? 'text-amber-700' : 'text-rose-700')}">${r.scoreVal !== undefined ? r.scoreVal : '-'}</td>
                   <td class="p-1.5 text-slate-500 text-[11px]">${r.std}</td>
                 </tr>
               `).join('')}
