@@ -153,63 +153,63 @@ class AskrindoApp {
                   <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">Aplikasi-Aplikasi Terpadu</p>
                   
                   <!-- KABAR -->
-                  <a href="#/kabar" id="nav-kabar" title="KABAR (Kalkulator Asuransi Kebakaran)" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-orange-600 hover:bg-orange-50">
-                    <div class="flex items-center gap-3">
+                  <a href="#/kabar" id="nav-kabar" title="KABAR (Kalkulator Asuransi Kebakaran)" class="flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-orange-600 hover:bg-orange-50">
+                    <div class="flex items-center gap-3 min-w-0">
                       <i data-lucide="flame" class="w-4 h-4 text-orange-500 shrink-0"></i>
-                      <div class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
+                      <div class="sidebar-text min-w-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">KABAR</span>
-                        <span class="text-[10px] block font-normal text-slate-400">Kalkulator Asuransi Kebakaran</span>
+                        <span class="text-[10px] block font-normal text-slate-400 leading-snug">Kalkulator Asuransi Kebakaran</span>
                       </div>
                     </div>
-                    <span class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
+                    <span class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
                   </a>
 
                   <!-- AKUR (formerly TTK) -->
-                  <a href="#/akur" id="nav-akur" title="AKUR (Analisis Kredit Usaha Rakyat)" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-blue-600 hover:bg-blue-50">
-                    <div class="flex items-center gap-3">
+                  <a href="#/akur" id="nav-akur" title="AKUR (Analisis Kredit Usaha Rakyat)" class="flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-blue-600 hover:bg-blue-50">
+                    <div class="flex items-center gap-3 min-w-0">
                       <i data-lucide="help-circle" class="w-4 h-4 text-blue-500 shrink-0"></i>
-                      <div class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
+                      <div class="sidebar-text min-w-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">AKUR</span>
-                        <span class="text-[10px] block font-normal text-slate-400">Analisis Kredit Usaha Rakyat</span>
+                        <span class="text-[10px] block font-normal text-slate-400 leading-snug">Analisis Kredit Usaha Rakyat</span>
                       </div>
                     </div>
-                    <span class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
+                    <span class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
                   </a>
 
                   <!-- SEDIA (formerly BUSET) -->
-                  <a href="#/sedia" id="nav-sedia" title="SEDIA (Sistem Elektronik Dokumen dan Informasi Asuransi)" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-emerald-600 hover:bg-emerald-50">
-                    <div class="flex items-center gap-3">
+                  <a href="#/sedia" id="nav-sedia" title="SEDIA (Sistem Elektronik Dokumen dan Informasi Asuransi)" class="flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-emerald-600 hover:bg-emerald-50">
+                    <div class="flex items-center gap-3 min-w-0">
                       <i data-lucide="file-text" class="w-4 h-4 text-emerald-500 shrink-0"></i>
-                      <div class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
+                      <div class="sidebar-text min-w-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">SEDIA</span>
-                        <span class="text-[10px] block font-normal text-slate-400">Dokumen & Informasi Asuransi</span>
+                        <span class="text-[10px] block font-normal text-slate-400 leading-snug">Sistem Elektronik Dokumen dan Informasi Asuransi</span>
                       </div>
                     </div>
-                    <span class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
+                    <span class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
                   </a>
 
                   <!-- CEPAT -->
-                  <a href="#/cepat" id="nav-cepat" title="CEPAT (Cover Note Pertanggungan Asuransi)" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-cyan-600 hover:bg-cyan-50">
-                    <div class="flex items-center gap-3">
+                  <a href="#/cepat" id="nav-cepat" title="CEPAT (Cover Note Pertanggungan Asuransi Terintegrasi)" class="flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-cyan-600 hover:bg-cyan-50">
+                    <div class="flex items-center gap-3 min-w-0">
                       <i data-lucide="file-check-2" class="w-4 h-4 text-cyan-500 shrink-0"></i>
-                      <div class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
+                      <div class="sidebar-text min-w-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">CEPAT</span>
-                        <span class="text-[10px] block font-normal text-slate-400">Cover Note Pertanggungan Asuransi</span>
+                        <span class="text-[10px] block font-normal text-slate-400 leading-snug">Cover Note Pertanggungan Asuransi Terintegrasi</span>
                       </div>
                     </div>
-                    <span class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
+                    <span class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
                   </a>
 
                   <!-- LAPOR (formerly PELAKU) -->
-                  <a href="#/lapor" id="nav-lapor" title="LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-purple-600 hover:bg-purple-50">
-                    <div class="flex items-center gap-3">
+                  <a href="#/lapor" id="nav-lapor" title="LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)" class="flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-purple-600 hover:bg-purple-50">
+                    <div class="flex items-center gap-3 min-w-0">
                       <i data-lucide="calculator" class="w-4 h-4 text-purple-500 shrink-0"></i>
-                      <div class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
+                      <div class="sidebar-text min-w-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">LAPOR</span>
-                        <span class="text-[10px] block font-normal text-slate-400">Layanan Analisis Rasio Keuangan</span>
+                        <span class="text-[10px] block font-normal text-slate-400 leading-snug">Layanan Analisis dan Perhitungan Rasio Keuangan</span>
                       </div>
                     </div>
-                    <span class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase">Aktif</span>
+                    <span class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase">Aktif</span>
                   </a>
                 </div>
 
@@ -502,7 +502,7 @@ class AskrindoApp {
 
                 <div class="grid grid-cols-2 gap-2 text-xs">
                   <!-- LAPOR (AKTIF PENUH) -->
-                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-gradient-to-r from-purple-500/25 to-indigo-500/25 hover:from-purple-500/35 hover:to-indigo-500/35 transition border border-purple-400/40 shadow-sm relative overflow-hidden" title="LAPOR: Layanan Analisis dan Perhitungan Rasio Keuangan (Aktif Siap Digunakan)">
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-gradient-to-r from-purple-500/25 to-indigo-500/25 hover:from-purple-500/35 hover:to-indigo-500/35 transition border border-purple-400/40 shadow-sm relative overflow-hidden" title="LAPOR: Layanan Analisis dan Perhitungan Rasio Keuangan">
                     <div class="w-7 h-7 rounded-lg bg-purple-500 flex items-center justify-center shrink-0 shadow-md">
                       <i data-lucide="calculator" class="w-4 h-4 text-white"></i>
                     </div>
@@ -511,12 +511,12 @@ class AskrindoApp {
                         <span class="font-black text-purple-200 text-xs">LAPOR</span>
                         <span class="px-1.5 py-0.2 rounded text-[7px] font-extrabold bg-emerald-500 text-white uppercase tracking-wider">Aktif</span>
                       </div>
-                      <span class="text-[10px] text-slate-200 block truncate">Layanan Analisis Rasio</span>
+                      <span class="text-[10px] text-slate-200 block leading-snug">Layanan Analisis dan Perhitungan Rasio Keuangan</span>
                     </div>
                   </div>
 
                   <!-- KABAR (SEGERA HADIR) -->
-                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-dashed border-white/20 hover:bg-white/10 transition group" title="KABAR: Kalkulator Asuransi Kebakaran (Segera Hadir)">
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-dashed border-white/20 hover:bg-white/10 transition group" title="KABAR: Kalkulator Asuransi Kebakaran">
                     <div class="w-7 h-7 rounded-lg bg-orange-500/20 border border-orange-400/30 flex items-center justify-center shrink-0">
                       <i data-lucide="flame" class="w-4 h-4 text-orange-300"></i>
                     </div>
@@ -525,12 +525,12 @@ class AskrindoApp {
                         <span class="font-bold text-slate-300 text-xs">KABAR</span>
                         <span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">Segera</span>
                       </div>
-                      <span class="text-[10px] text-slate-400 block truncate">Kalkulator Kebakaran</span>
+                      <span class="text-[10px] text-slate-400 block leading-snug">Kalkulator Asuransi Kebakaran</span>
                     </div>
                   </div>
 
                   <!-- AKUR (SEGERA HADIR) -->
-                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-dashed border-white/20 hover:bg-white/10 transition group" title="AKUR: Analisis Kredit Usaha Rakyat (Segera Hadir)">
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-dashed border-white/20 hover:bg-white/10 transition group" title="AKUR: Analisis Kredit Usaha Rakyat">
                     <div class="w-7 h-7 rounded-lg bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0">
                       <i data-lucide="help-circle" class="w-4 h-4 text-blue-300"></i>
                     </div>
@@ -539,12 +539,12 @@ class AskrindoApp {
                         <span class="font-bold text-slate-300 text-xs">AKUR</span>
                         <span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">Segera</span>
                       </div>
-                      <span class="text-[10px] text-slate-400 block truncate">Analisis Kredit Usaha</span>
+                      <span class="text-[10px] text-slate-400 block leading-snug">Analisis Kredit Usaha Rakyat</span>
                     </div>
                   </div>
 
                   <!-- SEDIA (SEGERA HADIR) -->
-                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-dashed border-white/20 hover:bg-white/10 transition group" title="SEDIA: Sistem Elektronik Dokumen dan Informasi Asuransi (Segera Hadir)">
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-dashed border-white/20 hover:bg-white/10 transition group" title="SEDIA: Sistem Elektronik Dokumen dan Informasi Asuransi">
                     <div class="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center shrink-0">
                       <i data-lucide="file-text" class="w-4 h-4 text-emerald-300"></i>
                     </div>
@@ -553,12 +553,12 @@ class AskrindoApp {
                         <span class="font-bold text-slate-300 text-xs">SEDIA</span>
                         <span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">Segera</span>
                       </div>
-                      <span class="text-[10px] text-slate-400 block truncate">Dokumen & Informasi Asuransi</span>
+                      <span class="text-[10px] text-slate-400 block leading-snug">Sistem Elektronik Dokumen dan Informasi Asuransi</span>
                     </div>
                   </div>
 
                   <!-- CEPAT (SEGERA HADIR) -->
-                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-dashed border-white/20 hover:bg-white/10 transition group" title="CEPAT: Cover Note Pertanggungan Asuransi Terintegrasi (Segera Hadir)">
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-dashed border-white/20 hover:bg-white/10 transition group" title="CEPAT: Cover Note Pertanggungan Asuransi Terintegrasi">
                     <div class="w-7 h-7 rounded-lg bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center shrink-0">
                       <i data-lucide="file-check-2" class="w-4 h-4 text-cyan-300"></i>
                     </div>
@@ -567,7 +567,7 @@ class AskrindoApp {
                         <span class="font-bold text-slate-300 text-xs">CEPAT</span>
                         <span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">Segera</span>
                       </div>
-                      <span class="text-[10px] text-slate-400 block truncate">Cover Note Asuransi</span>
+                      <span class="text-[10px] text-slate-400 block leading-snug">Cover Note Pertanggungan Asuransi Terintegrasi</span>
                     </div>
                   </div>
                 </div>

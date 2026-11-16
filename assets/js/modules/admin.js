@@ -307,11 +307,11 @@ window.AdminModule = {
 
   renderMatrixTab(allUsers) {
     const appsList = [
-      { id: 'lapor', altId: 'pelaku', name: 'LAPOR', label: 'Layanan Analisis Rasio (Aktif)', color: 'text-purple-600' },
-      { id: 'kabar', altId: null, name: 'KABAR', label: 'Kalkulator Kebakaran (Segera)', color: 'text-orange-600' },
-      { id: 'akur', altId: 'ttk', name: 'AKUR', label: 'Analisis Kredit Usaha (Segera)', color: 'text-blue-600' },
-      { id: 'sedia', altId: 'bus', name: 'SEDIA', label: 'Dokumen & Info Asuransi (Segera)', color: 'text-emerald-600' },
-      { id: 'cepat', altId: null, name: 'CEPAT', label: 'Cover Note (Segera)', color: 'text-cyan-600' },
+      { id: 'lapor', altId: 'pelaku', name: 'LAPOR', label: 'Layanan Analisis dan Perhitungan Rasio Keuangan', color: 'text-purple-600' },
+      { id: 'kabar', altId: null, name: 'KABAR', label: 'Kalkulator Asuransi Kebakaran', color: 'text-orange-600' },
+      { id: 'akur', altId: 'ttk', name: 'AKUR', label: 'Analisis Kredit Usaha Rakyat', color: 'text-blue-600' },
+      { id: 'sedia', altId: 'bus', name: 'SEDIA', label: 'Sistem Elektronik Dokumen dan Informasi Asuransi', color: 'text-emerald-600' },
+      { id: 'cepat', altId: null, name: 'CEPAT', label: 'Cover Note Pertanggungan Asuransi Terintegrasi', color: 'text-cyan-600' },
       { id: 'admin', altId: null, name: 'ADMIN', label: 'Web Admin Portal', color: 'text-amber-600' }
     ];
 

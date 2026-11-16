@@ -1,5 +1,5 @@
 ﻿/**
- * Askrindo SATU - PELAKU Module (Perhitungan Laporan Keuangan)
+ * Askrindo SATU - LAPOR Module (Layanan Analisis dan Perhitungan Rasio Keuangan)
  * Financial Statement & Ratio Analysis Engine for Underwriting, Surety, and Credit Assessment.
  * Full 27-Account Comparative Financial Statement Model (Neraca & Laba Rugi) adopted from ASCA.
  * Integrated with AI Financial Statement Scanner (Gemini Multimodal Vision OCR).
@@ -612,8 +612,8 @@ window.PelakuModule = {
 
   render() {
     const user = window.authService.getCurrentUser();
-    if (!user || !window.authService.hasAccess('pelaku')) {
-      return window.askrindoApp.renderUnauthorized('PELAKU');
+    if (!user || (!window.authService.hasAccess('lapor') && !window.authService.hasAccess('pelaku'))) {
+      return window.askrindoApp.renderUnauthorized('LAPOR');
     }
 
     this.initWorkspaceState();
@@ -3767,7 +3767,7 @@ window.PelakuModule = {
     this.saveWorkspaceDraft();
 
     window.askrindoDB.logActivity(
-      'PELAKU',
+      'LAPOR',
       res.isNewCompany ? 'Simpan Analisa Baru' : 'Perbarui Analisa Perusahaan',
       `Menyimpan analisa keuangan ${companyName} (ID: ${res.savedRecord.id}) Tahun Buku ${c.year1}-${c.year2} Skor ${c.score.toFixed(1)}`
     );
@@ -3858,7 +3858,7 @@ window.PelakuModule = {
       return;
     }
     window.askrindoDB.deletePelakuAnalysis(rec.id);
-    window.askrindoDB.logActivity('PELAKU', 'Hapus Arsip Perusahaan', `Menghapus arsip analisa ${rec.companyName} (ID: ${rec.id})`);
+    window.askrindoDB.logActivity('LAPOR', 'Hapus Arsip Perusahaan', `Menghapus arsip analisa ${rec.companyName} (ID: ${rec.id})`);
 
     if (this.loadedCompanyId === rec.id) {
       this.loadedCompanyId = null;
@@ -3958,11 +3958,11 @@ window.PelakuModule = {
       window.askrindoApp.showToast('Belum ada data perusahaan tersimpan untuk diekspor.', 'warning');
       return;
     }
-    const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), app: 'Askrindo SATU PELAKU', scope: this.archiveScope, records: list }, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), app: 'Askrindo SATU LAPOR', scope: this.archiveScope, records: list }, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `PELAKU_Arsip_Perusahaan_${this.archiveScope}_${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `LAPOR_Arsip_Perusahaan_${this.archiveScope}_${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
     window.askrindoApp.showToast(`${list.length} arsip perusahaan (${this.archiveScope === 'mine' ? 'Proyek Saya' : 'Semua Proyek'}) berhasil diekspor ke JSON!`, 'success');
@@ -4795,7 +4795,7 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
               </div>
               <div>
                 <h3 class="text-base font-extrabold text-slate-800">Verifikasi Hasil Ekstraksi AI Vision</h3>
-                <p class="text-xs text-slate-500">Tinjau 27 pos keuangan Neraca &amp; Laba Rugi sebelum diterapkan ke modul PELAKU</p>
+                <p class="text-xs text-slate-500">Tinjau 27 pos keuangan Neraca &amp; Laba Rugi sebelum diterapkan ke modul LAPOR</p>
               </div>
             </div>
             <button onclick="window.PelakuModule.closeAiFinUploadModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">

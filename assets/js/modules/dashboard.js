@@ -198,32 +198,32 @@ window.DashboardModule = {
               </div>
               ${window.authService.canAccessAdmin() ? `
                 <div class="grid grid-cols-2 gap-2 text-xs font-medium">
-                  <a href="#/lapor" class="col-span-2 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition shadow-md shadow-purple-600/30">
+                  <a href="#/lapor" title="LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)" class="col-span-2 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition shadow-md shadow-purple-600/30">
                     <i data-lucide="calculator" class="w-4 h-4 text-white"></i>
-                    <span>Analisis Finansial LAPOR (Aktif)</span>
+                    <span>Buka Modul LAPOR (Aktif)</span>
                   </a>
-                  <a href="#/kabar" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="Pratinjau KABAR">
+                  <a href="#/kabar" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="KABAR (Kalkulator Asuransi Kebakaran)">
                     <i data-lucide="eye" class="w-3.5 h-3.5 text-orange-400"></i>
                     <span>KABAR (Segera)</span>
                   </a>
-                  <a href="#/sedia" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="Pratinjau SEDIA">
+                  <a href="#/sedia" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="SEDIA (Sistem Elektronik Dokumen dan Informasi Asuransi)">
                     <i data-lucide="eye" class="w-3.5 h-3.5 text-emerald-400"></i>
                     <span>SEDIA (Segera)</span>
                   </a>
-                  <a href="#/cepat" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="Pratinjau CEPAT">
+                  <a href="#/cepat" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="CEPAT (Cover Note Pertanggungan Asuransi Terintegrasi)">
                     <i data-lucide="eye" class="w-3.5 h-3.5 text-cyan-400"></i>
                     <span>CEPAT (Segera)</span>
                   </a>
-                  <a href="#/akur" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="Pratinjau AKUR">
+                  <a href="#/akur" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="AKUR (Analisis Kredit Usaha Rakyat)">
                     <i data-lucide="eye" class="w-3.5 h-3.5 text-blue-400"></i>
                     <span>AKUR (Segera)</span>
                   </a>
                 </div>
               ` : `
                 <div class="space-y-2 text-xs font-medium">
-                  <a href="#/lapor" class="flex items-center justify-center gap-2 p-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition shadow-md shadow-purple-600/30">
+                  <a href="#/lapor" title="LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)" class="flex items-center justify-center gap-2 p-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition shadow-md shadow-purple-600/30">
                     <i data-lucide="calculator" class="w-4 h-4 text-white"></i>
-                    <span>Mulai Analisis Laporan Keuangan (LAPOR)</span>
+                    <span>Buka Modul LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)</span>
                   </a>
                   <div class="p-2.5 rounded-xl bg-white/10 text-[11px] text-slate-200 flex items-center gap-2">
                     <i data-lucide="sparkles" class="w-4 h-4 text-amber-300 shrink-0"></i>
