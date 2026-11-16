@@ -664,7 +664,7 @@ window.LaporModule = {
       if (dotCount === 1) {
         const parts = s.split('.');
         if (parts[1].length === 3 && parts[0].length >= 1) {
-          cleanNumStr = parts[0].replace(/\D/g, '');
+          cleanNumStr = parts[0].replace(/\D/g, '') + parts[1].replace(/\D/g, '');
         } else {
           cleanNumStr = parts[0].replace(/\D/g, '') + '.' + parts[1];
         }
@@ -4864,11 +4864,14 @@ TARGET TAHUN BUKU:
 - Tahun 2 (Tahun Terakhir / Berjalan): ${y2} (atau tahun terbaru yang tertera pada dokumen)
 
 ATURAN AKUNTANSI STANDAR INDONESIA:
-1. DETEKSI FORMAT ANGKA:
-   - Format angka Indonesia lazim menggunakan tanda titik (.) sebagai pemisah ribuan dan koma (,) sebagai pemisah desimal (contoh: 1.250.000,50).
-   - Pastikan membaca angka secara akurat. Ubah semua nilai menjadi angka nominal murni (number/integer) dalam satuan Rupiah penuh.
+1. DETEKSI FORMAT ANGKA & PRESISI DIGIT (KRITIS):
+   - Format angka Indonesia lazim menggunakan tanda titik (.) sebagai pemisah ribuan dan koma (,) sebagai pemisah desimal (contoh: 68.700.000,00 atau 1.250.000,50).
+   - Hitung jumlah digit tiap kelompok ribuan dengan sangat teliti! Contoh: "68.700.000" atau "68.700.000,00" adalah 68700000 (8 digit = 68,7 juta), BUKAN 687000000 (687 juta).
+   - Bagian ",00" atau ".00" di akhir angka adalah sen nol (desimal) — JANGAN menggabungkannya sebagai tambahan angka nol di belakang nominal.
+   - Semua field angka pada JSON keluaran WAJIB berupa angka murni bertipe JSON number (bukan string berformat titik/koma seperti "68.700.000").
    - Bila laporan tertulis dalam ribuan ("Rp dalam ribuan / in thousands"), kalikan dengan 1.000.
    - Bila laporan tertulis dalam jutaan ("Rp dalam jutaan / in millions"), kalikan dengan 1.000.000.
+   - VERIFIKASI SILANG WAJIB: Sebelum mengeluarkan JSON, periksa ulang penjumlahan Neraca (Total Aset Lancar + Total Aset Tetap = Total Aktiva = Total Kewajiban + Ekuitas) dan Laba Rugi (Penjualan - HPP = Laba Kotor; Laba Kotor - Beban Operasional + Pendapatan Lain - Beban Lain - Bunga - Pajak = Laba Bersih/EAT). Jika ada pos yang selisih kelipatan 10x akibat salah baca digit nol (misal 68.700.000 terbaca 687.000.000), koreksi pos tersebut agar cocok persis dengan dokumen!
 
 2. ATURAN PENGGABUNGAN KAS & BANK:
    - Pos "Kas & Bank (Kas dan Setara Kas)" (kode: cash) WAJIB menampung seluruh saldo kas fisik dan rekening bank.
@@ -4939,9 +4942,10 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
             body: JSON.stringify({
               contents,
               generationConfig: {
-                temperature: 0.1,
+                temperature: 0,
                 topP: 0.8,
-                maxOutputTokens: 8192
+                maxOutputTokens: 8192,
+                responseMimeType: 'application/json'
               }
             })
           });
@@ -5283,7 +5287,11 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
 
     const updateEl = (id, val) => {
       const el = document.getElementById(id);
-      if (el) el.textContent = this.formatNumberWithDots(val, true);
+      if (el) {
+        el.textContent = val < 0
+          ? `(${this.formatNumberWithDots(Math.abs(val), true)})`
+          : this.formatNumberWithDots(val, true);
+      }
     };
 
     updateEl('ai_subtot_ca_1', ca1);
