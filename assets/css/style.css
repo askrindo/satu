@@ -102,15 +102,18 @@ body {
   background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
 }
 
-.gradient-card-ttk {
+.gradient-card-ttk,
+.gradient-card-akur {
   background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
 }
 
-.gradient-card-bus {
+.gradient-card-bus,
+.gradient-card-sedia {
   background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
 }
 
-.gradient-card-pelaku {
+.gradient-card-pelaku,
+.gradient-card-lapor {
   background: linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%);
 }
 

@@ -1,5 +1,5 @@
 /**
- * Askrindo SATU - TTK Module (Tanya-Tanya KUR)
+ * Askrindo SATU - AKUR Module (Analisis Kredit Usaha Rakyat)
  * Interactive KUR installment calculator, debtor eligibility checker, and smart knowledge base.
  */
 
@@ -8,8 +8,8 @@ window.TtkModule = {
 
   render() {
     const user = window.authService.getCurrentUser();
-    if (!user || !window.authService.hasAccess('ttk')) {
-      return window.askrindoApp.renderUnauthorized('TTK');
+    if (!user || (!window.authService.hasAccess('akur') && !window.authService.hasAccess('ttk'))) {
+      return window.askrindoApp.renderUnauthorized('AKUR');
     }
 
     return `
@@ -22,13 +22,13 @@ window.TtkModule = {
             </div>
             <div>
               <div class="flex items-center gap-2">
-                <h1 class="text-2xl font-black text-slate-800 tracking-tight">TTK</h1>
+                <h1 class="text-2xl font-black text-slate-800 tracking-tight">AKUR</h1>
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200">
-                  Tanya-Tanya KUR
+                  Analisis Kredit Usaha Rakyat
                 </span>
               </div>
               <p class="text-xs text-slate-500 mt-0.5">
-                Pusat simulasi angsuran Kredit Usaha Rakyat (KUR), cek kelayakan debitur, dan basis pengetahuan penjaminan Askrindo.
+                Pusat simulasi angsuran, analisis kelayakan debitur Kredit Usaha Rakyat (KUR), dan basis pengetahuan penjaminan Askrindo.
               </p>
             </div>
           </div>
@@ -546,3 +546,5 @@ window.TtkModule = {
     `;
   }
 };
+
+window.AkurModule = window.TtkModule;

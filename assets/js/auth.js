@@ -100,12 +100,19 @@ class AuthService {
   }
 
   isAppInDevelopment(appId) {
-    const key = (appId || '').toLowerCase();
+    const rawKey = (appId || '').toLowerCase();
+    const aliasMap = {
+      'buset': 'sedia',
+      'bus': 'sedia',
+      'ttk': 'akur',
+      'pelaku': 'lapor'
+    };
+    const key = aliasMap[rawKey] || rawKey;
     const devMap = window.APP_DEPLOYMENT_STATUS;
     if (devMap && devMap[key]) {
       return devMap[key].status === 'coming_soon' || devMap[key].status === 'development';
     }
-    return ['kabar', 'ttk', 'bus', 'cepat'].includes(key);
+    return ['kabar', 'akur', 'ttk', 'sedia', 'bus', 'cepat'].includes(key);
   }
 
   isAppComingSoon(appId) {
@@ -114,10 +121,17 @@ class AuthService {
 
   hasAccess(appId) {
     if (!this.currentUser) return false;
-    const key = (appId || '').toLowerCase();
-    const isAdmin = this.currentUser.role === 'Super Administrator' || (this.currentUser.allowedApps && this.currentUser.allowedApps.includes('admin'));
+    const rawKey = (appId || '').toLowerCase();
+    const aliasMap = {
+      'buset': 'sedia',
+      'bus': 'sedia',
+      'ttk': 'akur',
+      'pelaku': 'lapor'
+    };
+    const key = aliasMap[rawKey] || rawKey;
+    const isAdmin = this.canAccessAdmin();
 
-    // Pengaturan Bertahap: Modul KABAR, TTK, BUSET, CEPAT berstatus Segera Hadir.
+    // Pengaturan Bertahap: Modul KABAR, AKUR, SEDIA, CEPAT berstatus Segera Hadir.
     // Akun Super Administrator dapat mengakses pratinjau modul.
     if (this.isAppComingSoon(key)) {
       return isAdmin;
@@ -127,7 +141,8 @@ class AuthService {
     if (isAdmin) return true;
 
     // Untuk pengguna umum, periksa daftar hak akses (allowedApps)
-    return this.currentUser.allowedApps && this.currentUser.allowedApps.includes(key);
+    const allowed = this.currentUser.allowedApps || [];
+    return allowed.includes(key) || allowed.includes(rawKey);
   }
 
   canAccessAdmin() {

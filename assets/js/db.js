@@ -36,7 +36,7 @@ const INITIAL_USERS = [
     division: 'Divisi Teknologi Informasi (Technology Information Division)',
     branch: 'Divisi Teknologi Informasi (Technology Information Division)',
     avatar: DEFAULT_AVATAR,
-    allowedApps: ['kabar', 'ttk', 'bus', 'pelaku', 'cepat', 'admin'],
+    allowedApps: ['kabar', 'akur', 'ttk', 'sedia', 'bus', 'lapor', 'pelaku', 'cepat', 'admin'],
     status: 'active',
     createdAt: '2026-01-10T08:00:00Z',
     lastLogin: '2026-11-12T09:30:00Z'
@@ -51,7 +51,7 @@ const INITIAL_USERS = [
     division: 'Main Branch Office (Kantor Cabang Utama)',
     branch: 'Main Branch Office (Kantor Cabang Utama)',
     avatar: DEFAULT_AVATAR,
-    allowedApps: ['kabar', 'bus', 'pelaku', 'cepat'],
+    allowedApps: ['kabar', 'sedia', 'bus', 'lapor', 'pelaku', 'cepat'],
     status: 'active',
     createdAt: '2026-02-15T09:00:00Z',
     lastLogin: '2026-11-12T08:15:00Z'
@@ -66,7 +66,7 @@ const INITIAL_USERS = [
     division: 'Branch Office Surabaya',
     branch: 'Branch Office Surabaya',
     avatar: DEFAULT_AVATAR,
-    allowedApps: ['ttk', 'pelaku'],
+    allowedApps: ['akur', 'ttk', 'lapor', 'pelaku'],
     status: 'active',
     createdAt: '2026-03-01T10:00:00Z',
     lastLogin: '2026-11-11T16:45:00Z'
@@ -81,7 +81,7 @@ const INITIAL_USERS = [
     division: 'Branch Office Medan',
     branch: 'Branch Office Medan',
     avatar: DEFAULT_AVATAR,
-    allowedApps: ['kabar', 'bus', 'cepat'],
+    allowedApps: ['kabar', 'sedia', 'bus', 'cepat'],
     status: 'active',
     createdAt: '2026-05-12T11:00:00Z',
     lastLogin: '2026-11-10T14:20:00Z'
@@ -253,7 +253,7 @@ const INITIAL_AUDIT = [
     userNip: '19940722',
     user: 'Siti Rahmawati, S.E.',
     role: 'Relationship Manager',
-    subApp: 'TTK',
+    subApp: 'AKUR',
     action: 'Simulasi Angsuran KUR',
     details: 'Simulasi KUR Mikro Rp 50.000.000 tenor 36 bulan suku bunga subsidi 6%'
   }
@@ -261,8 +261,15 @@ const INITIAL_AUDIT = [
 
 // Status Rilis & Deployment Sub-Aplikasi (Pengembangan Bertahap)
 const APP_DEPLOYMENT_STATUS = {
-  pelaku: {
+  lapor: {
     status: 'active', // 'active' | 'coming_soon'
+    label: 'Rilis Penuh (Aktif)',
+    phase: 'Tahap 1 (Live Operasional)',
+    badge: 'Aktif',
+    isPublic: true
+  },
+  pelaku: {
+    status: 'active',
     label: 'Rilis Penuh (Aktif)',
     phase: 'Tahap 1 (Live Operasional)',
     badge: 'Aktif',
@@ -275,7 +282,21 @@ const APP_DEPLOYMENT_STATUS = {
     badge: 'Segera Hadir',
     isPublic: false
   },
+  akur: {
+    status: 'coming_soon',
+    label: 'Segera Hadir',
+    phase: 'Roadmap Pengembangan',
+    badge: 'Segera Hadir',
+    isPublic: false
+  },
   ttk: {
+    status: 'coming_soon',
+    label: 'Segera Hadir',
+    phase: 'Roadmap Pengembangan',
+    badge: 'Segera Hadir',
+    isPublic: false
+  },
+  sedia: {
     status: 'coming_soon',
     label: 'Segera Hadir',
     phase: 'Roadmap Pengembangan',
@@ -299,7 +320,7 @@ const APP_DEPLOYMENT_STATUS = {
 };
 window.APP_DEPLOYMENT_STATUS = APP_DEPLOYMENT_STATUS;
 
-// Seed App Catalog Info
+// Seed App Catalog Info (Branding Askrindo SATU)
 const SUB_APPS_CATALOG = {
   kabar: {
     id: 'kabar',
@@ -313,41 +334,44 @@ const SUB_APPS_CATALOG = {
     description: 'Hitung tarif premi standar asuransi kebakaran dan perluasan jaminan (RSMDCC, TSFWD, EQVET) mengacu pada regulasi OJK secara cepat dan presisi.',
     features: ['Tarif OJK SEOJK 6/2017', 'Kalkulator Perluasan Jaminan', 'Slip Penawaran / Quotation PDF', 'Integrasi Langsung ke SPPA']
   },
-  ttk: {
-    id: 'ttk',
-    name: 'TTK',
-    tagline: 'Tanya-Tanya KUR',
+  akur: {
+    id: 'akur',
+    legacyId: 'ttk',
+    name: 'AKUR',
+    tagline: 'Analisis Kredit Usaha Rakyat',
     badge: 'Penjaminan KUR & UMKM',
     category: 'Konsultasi & Simulasi',
     color: 'blue',
     icon: 'help-circle',
-    route: '#/ttk',
+    route: '#/akur',
     description: 'Pusat informasi dan asisten penjaminan Kredit Usaha Rakyat (Super Mikro, Mikro, Kecil). Simulasi angsuran, suku bunga subsidi, dan cek kelayakan debitur.',
     features: ['Simulasi Angsuran & IJP Askrindo', 'Cek Kelayakan Calon Debitur', 'Jadwal Amortisasi Lengkap', 'Smart Knowledge Base Peraturan']
   },
-  bus: {
-    id: 'bus',
-    name: 'BUSET',
-    tagline: 'Buat SPPA Elektronik Terpadu',
+  sedia: {
+    id: 'sedia',
+    legacyId: 'bus',
+    name: 'SEDIA',
+    tagline: 'Sistem Elektronik Dokumen dan Informasi Asuransi',
     badge: 'Operasional & Penerbitan',
     category: 'Dokumen & Polis',
     color: 'emerald',
     icon: 'file-text',
-    route: '#/buset',
+    route: '#/sedia',
     description: 'Penyusunan Surat Permohonan Penutupan Asuransi secara digital, lengkap dengan validasi data tertanggung, kode registrasi, dan cetak dokumen resmi berstandar Askrindo.',
     features: ['Wizard 4 Langkah Praktis', 'Preview Dokumen Berstempel Digital', 'Unduh Format PDF Siap Tanda Tangan', 'Arsip Riwayat Pengajuan']
   },
-  pelaku: {
-    id: 'pelaku',
-    name: 'PELAKU',
-    tagline: 'Perhitungan Laporan Keuangan',
+  lapor: {
+    id: 'lapor',
+    legacyId: 'pelaku',
+    name: 'LAPOR',
+    tagline: 'Layanan Analisis dan Perhitungan Rasio Keuangan',
     badge: 'Analisis Finansial & Risiko',
     category: 'Underwriting & Akuntansi',
     color: 'purple',
     icon: 'calculator',
-    route: '#/pelaku',
+    route: '#/lapor',
     description: 'Analisis rasio keuangan calon nasabah (Likuiditas, Solvabilitas DER/DAR, Profitabilitas ROA/ROE/NPM) serta penilaian scoring otomatis untuk kelayakan penjaminan.',
-    features: ['Input Neraca & Laba Rugi', 'Analisis 9+ Rasio Finansial Utama', 'Scoring Kelayakan & Rekomendasi Underwriting', 'Lembar Ringkasan Analisis Cetak']
+    features: ['Input Neraca & Laba Rugi', 'Analisis 27 Parameter Rasio Finansial', 'Scoring Kelayakan & Rekomendasi Underwriting', 'Lembar Ringkasan Analisis Cetak']
   },
   cepat: {
     id: 'cepat',
@@ -362,6 +386,12 @@ const SUB_APPS_CATALOG = {
     features: ['Penerbitan Cover Note Kilat', 'Format Standar Perbankan (Banker\'s Clause)', 'Pratinjau & Cetak PDF Berstempel', 'Arsip & Konversi ke SPPA Definitif']
   }
 };
+
+// Backward-compatible alias mappings
+SUB_APPS_CATALOG.ttk = SUB_APPS_CATALOG.akur;
+SUB_APPS_CATALOG.bus = SUB_APPS_CATALOG.sedia;
+SUB_APPS_CATALOG.buset = SUB_APPS_CATALOG.sedia;
+SUB_APPS_CATALOG.pelaku = SUB_APPS_CATALOG.lapor;
 
 class AskrindoDB {
   constructor() {
@@ -397,6 +427,10 @@ class AskrindoDB {
           if ((u.id === 'USR-001' || u.id === 'USR-002' || u.id === 'USR-004' || u.role === 'Super Administrator') && !u.allowedApps.includes('cepat')) {
             u.allowedApps.push('cepat');
           }
+          if (!u.allowedApps) u.allowedApps = [];
+          if (u.allowedApps.includes('ttk') && !u.allowedApps.includes('akur')) u.allowedApps.push('akur');
+          if (u.allowedApps.includes('bus') && !u.allowedApps.includes('sedia')) u.allowedApps.push('sedia');
+          if (u.allowedApps.includes('pelaku') && !u.allowedApps.includes('lapor')) u.allowedApps.push('lapor');
           if (u.role) {
             u.role = this.normalizeLegacyRole(u.role);
           }
@@ -419,6 +453,10 @@ class AskrindoDB {
             sess.allowedApps.push('cepat');
             sessUpdated = true;
           }
+          if (!sess.allowedApps) sess.allowedApps = [];
+          if (sess.allowedApps.includes('ttk') && !sess.allowedApps.includes('akur')) { sess.allowedApps.push('akur'); sessUpdated = true; }
+          if (sess.allowedApps.includes('bus') && !sess.allowedApps.includes('sedia')) { sess.allowedApps.push('sedia'); sessUpdated = true; }
+          if (sess.allowedApps.includes('pelaku') && !sess.allowedApps.includes('lapor')) { sess.allowedApps.push('lapor'); sessUpdated = true; }
           const normalizedSessRole = this.normalizeLegacyRole(sess.role);
           if (normalizedSessRole !== sess.role) {
             sess.role = normalizedSessRole;

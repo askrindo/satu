@@ -198,36 +198,36 @@ window.DashboardModule = {
               </div>
               ${window.authService.canAccessAdmin() ? `
                 <div class="grid grid-cols-2 gap-2 text-xs font-medium">
-                  <a href="#/pelaku" class="col-span-2 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition shadow-md shadow-purple-600/30">
+                  <a href="#/lapor" class="col-span-2 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition shadow-md shadow-purple-600/30">
                     <i data-lucide="calculator" class="w-4 h-4 text-white"></i>
-                    <span>Analisis Finansial PELAKU (Aktif)</span>
+                    <span>Analisis Finansial LAPOR (Aktif)</span>
                   </a>
                   <a href="#/kabar" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="Pratinjau KABAR">
                     <i data-lucide="eye" class="w-3.5 h-3.5 text-orange-400"></i>
                     <span>KABAR (Segera)</span>
                   </a>
-                  <a href="#/buset" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="Pratinjau BUSET">
+                  <a href="#/sedia" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="Pratinjau SEDIA">
                     <i data-lucide="eye" class="w-3.5 h-3.5 text-emerald-400"></i>
-                    <span>BUSET (Segera)</span>
+                    <span>SEDIA (Segera)</span>
                   </a>
                   <a href="#/cepat" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="Pratinjau CEPAT">
                     <i data-lucide="eye" class="w-3.5 h-3.5 text-cyan-400"></i>
                     <span>CEPAT (Segera)</span>
                   </a>
-                  <a href="#/ttk" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="Pratinjau TTK">
+                  <a href="#/akur" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="Pratinjau AKUR">
                     <i data-lucide="eye" class="w-3.5 h-3.5 text-blue-400"></i>
-                    <span>TTK (Segera)</span>
+                    <span>AKUR (Segera)</span>
                   </a>
                 </div>
               ` : `
                 <div class="space-y-2 text-xs font-medium">
-                  <a href="#/pelaku" class="flex items-center justify-center gap-2 p-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition shadow-md shadow-purple-600/30">
+                  <a href="#/lapor" class="flex items-center justify-center gap-2 p-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition shadow-md shadow-purple-600/30">
                     <i data-lucide="calculator" class="w-4 h-4 text-white"></i>
-                    <span>Mulai Analisis Laporan Keuangan (PELAKU)</span>
+                    <span>Mulai Analisis Laporan Keuangan (LAPOR)</span>
                   </a>
                   <div class="p-2.5 rounded-xl bg-white/10 text-[11px] text-slate-200 flex items-center gap-2">
                     <i data-lucide="sparkles" class="w-4 h-4 text-amber-300 shrink-0"></i>
-                    <span>Modul KABAR, TTK, BUSET, dan CEPAT segera hadir.</span>
+                    <span>Modul KABAR, AKUR, SEDIA, dan CEPAT segera hadir.</span>
                   </div>
                 </div>
               `}
@@ -270,7 +270,7 @@ window.DashboardModule = {
               <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Status Aplikasi</p>
               <h4 class="text-2xl font-bold text-slate-800">1 Aktif <span class="text-xs font-normal text-slate-400">· 4 Segera</span></h4>
               <p class="text-[11px] text-purple-700 font-semibold flex items-center gap-1">
-                <i data-lucide="check-circle" class="w-3 h-3 text-purple-600"></i> PELAKU (Live Operasional)
+                <i data-lucide="check-circle" class="w-3 h-3 text-purple-600"></i> LAPOR (Live Operasional)
               </p>
             </div>
             <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
@@ -309,10 +309,10 @@ window.DashboardModule = {
 
           <!-- Application Cards Grid -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            ${renderAppCard('pelaku')}
+            ${renderAppCard('lapor')}
             ${renderAppCard('kabar')}
-            ${renderAppCard('ttk')}
-            ${renderAppCard('bus')}
+            ${renderAppCard('akur')}
+            ${renderAppCard('sedia')}
             ${renderAppCard('cepat')}
           </div>
         </div>
@@ -417,7 +417,7 @@ window.DashboardModule = {
                   Suku Bunga Subsidi KUR 2026
                 </p>
                 <p class="text-[11px] text-blue-800 leading-relaxed">
-                  Skema KUR Super Mikro tetap 3% efektif per tahun. KUR Mikro dan KUR Kecil 6% untuk nasabah pertama kali. Gunakan modul TTK untuk simulasi.
+                  Skema KUR Super Mikro tetap 3% efektif per tahun. KUR Mikro dan KUR Kecil 6% untuk nasabah pertama kali. Gunakan modul AKUR untuk simulasi.
                 </p>
               </div>
 

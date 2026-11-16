@@ -1,5 +1,5 @@
 /**
- * Askrindo SATU - BUSET Module (Buat SPPA Elektronik Terpadu)
+ * Askrindo SATU - SEDIA Module (Sistem Elektronik Dokumen dan Informasi Asuransi)
  * Digital Insurance Closing Application Form (SPPA) Generator with QR code and PDF print.
  */
 
@@ -26,8 +26,8 @@ window.BusModule = {
 
   render() {
     const user = window.authService.getCurrentUser();
-    if (!user || !window.authService.hasAccess('bus')) {
-      return window.askrindoApp.renderUnauthorized('BUSET');
+    if (!user || (!window.authService.hasAccess('sedia') && !window.authService.hasAccess('bus'))) {
+      return window.askrindoApp.renderUnauthorized('SEDIA');
     }
 
     // Check if there is pending data from KABAR
@@ -55,13 +55,13 @@ window.BusModule = {
             </div>
             <div>
               <div class="flex items-center gap-2">
-                <h1 class="text-2xl font-black text-slate-800 tracking-tight">BUSET</h1>
+                <h1 class="text-2xl font-black text-slate-800 tracking-tight">SEDIA</h1>
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                  Buat SPPA Elektronik Terpadu
+                  Sistem Elektronik Dokumen dan Informasi Asuransi
                 </span>
               </div>
               <p class="text-xs text-slate-500 mt-0.5">
-                Penerbitan Surat Permohonan Penutupan Asuransi secara digital, validasi tertanggung, dan cetak dokumen resmi berstandar Askrindo.
+                Penerbitan Surat Permohonan Penutupan Asuransi secara digital, validasi dokumen dan informasi asuransi, serta cetak dokumen resmi berstandar Askrindo.
               </p>
             </div>
           </div>
@@ -485,7 +485,7 @@ window.BusModule = {
     };
 
     window.askrindoDB.saveSppa(newSppa);
-    window.askrindoDB.logActivity('BUSET', 'Penerbitan SPPA', `Menerbitkan SPPA nomor ${docNo} untuk tertanggung ${this.formData.insuredName}`);
+    window.askrindoDB.logActivity('SEDIA', 'Penerbitan SPPA', `Menerbitkan SPPA nomor ${docNo} untuk tertanggung ${this.formData.insuredName}`);
     
     // Clear pending session
     sessionStorage.removeItem('askrindo_pending_sppa_from_kabar');
@@ -594,3 +594,5 @@ window.BusModule = {
     window.askrindoApp.renderCurrentRoute();
   }
 };
+
+window.SediaModule = window.BusModule;

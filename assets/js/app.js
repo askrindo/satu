@@ -19,21 +19,21 @@ class AskrindoApp {
 
     // Listen to Supabase cloud sync events
     window.addEventListener('askrindo:db-synced', () => {
-      if (this.currentRoute.startsWith('#/pelaku') && window.PelakuModule?.handleDbSynced) {
+      if ((this.currentRoute.startsWith('#/lapor') || this.currentRoute.startsWith('#/pelaku')) && window.PelakuModule?.handleDbSynced) {
         window.PelakuModule.handleDbSynced();
       } else {
         this.renderCurrentRoute();
       }
     });
 
-    // Keyboard shortcut for command palette (Ctrl+K) and PELAKU quick save (Ctrl+S)
+    // Keyboard shortcut for command palette (Ctrl+K) and LAPOR quick save (Ctrl+S)
     window.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         this.openCommandPalette();
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
-        if (this.currentRoute.startsWith('#/pelaku') && window.PelakuModule?.currentTab === 'workspace') {
+        if ((this.currentRoute.startsWith('#/lapor') || this.currentRoute.startsWith('#/pelaku')) && window.PelakuModule?.currentTab === 'workspace') {
           e.preventDefault();
           window.PelakuModule.saveCurrentAnalysis();
         }
@@ -81,7 +81,7 @@ class AskrindoApp {
     const prevRoute = this.currentRoute;
     this.currentRoute = hash;
     this.previousRoute = prevRoute;
-    if (this.currentRoute.startsWith('#/pelaku') && (!prevRoute || !prevRoute.startsWith('#/pelaku'))) {
+    if ((this.currentRoute.startsWith('#/lapor') || this.currentRoute.startsWith('#/pelaku')) && (!prevRoute || (!prevRoute.startsWith('#/lapor') && !prevRoute.startsWith('#/pelaku')))) {
       if (window.PelakuModule) window.PelakuModule.currentTab = 'archive';
     }
     this.renderAppShell();
@@ -164,25 +164,25 @@ class AskrindoApp {
                     <span class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
                   </a>
 
-                  <!-- TTK -->
-                  <a href="#/ttk" id="nav-ttk" title="TTK (Tanya-Tanya KUR)" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-blue-600 hover:bg-blue-50">
+                  <!-- AKUR (formerly TTK) -->
+                  <a href="#/akur" id="nav-akur" title="AKUR (Analisis Kredit Usaha Rakyat)" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-blue-600 hover:bg-blue-50">
                     <div class="flex items-center gap-3">
                       <i data-lucide="help-circle" class="w-4 h-4 text-blue-500 shrink-0"></i>
                       <div class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
-                        <span class="font-bold">TTK</span>
-                        <span class="text-[10px] block font-normal text-slate-400">Tanya-Tanya KUR</span>
+                        <span class="font-bold">AKUR</span>
+                        <span class="text-[10px] block font-normal text-slate-400">Analisis Kredit Usaha Rakyat</span>
                       </div>
                     </div>
                     <span class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
                   </a>
 
-                  <!-- BUSET -->
-                  <a href="#/buset" id="nav-bus" title="BUSET (Buat SPPA Elektronik)" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-emerald-600 hover:bg-emerald-50">
+                  <!-- SEDIA (formerly BUSET) -->
+                  <a href="#/sedia" id="nav-sedia" title="SEDIA (Sistem Elektronik Dokumen dan Informasi Asuransi)" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-emerald-600 hover:bg-emerald-50">
                     <div class="flex items-center gap-3">
                       <i data-lucide="file-text" class="w-4 h-4 text-emerald-500 shrink-0"></i>
                       <div class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
-                        <span class="font-bold">BUSET</span>
-                        <span class="text-[10px] block font-normal text-slate-400">Buat SPPA Elektronik</span>
+                        <span class="font-bold">SEDIA</span>
+                        <span class="text-[10px] block font-normal text-slate-400">Dokumen & Informasi Asuransi</span>
                       </div>
                     </div>
                     <span class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
@@ -200,13 +200,13 @@ class AskrindoApp {
                     <span class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100 text-amber-800 border border-amber-200 uppercase">Segera</span>
                   </a>
 
-                  <!-- PELAKU -->
-                  <a href="#/pelaku" id="nav-pelaku" title="PELAKU (Perhitungan Laporan Keuangan)" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-purple-600 hover:bg-purple-50">
+                  <!-- LAPOR (formerly PELAKU) -->
+                  <a href="#/lapor" id="nav-lapor" title="LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-slate-600 hover:text-purple-600 hover:bg-purple-50">
                     <div class="flex items-center gap-3">
                       <i data-lucide="calculator" class="w-4 h-4 text-purple-500 shrink-0"></i>
                       <div class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
-                        <span class="font-bold">PELAKU</span>
-                        <span class="text-[10px] block font-normal text-slate-400">Laporan Keuangan</span>
+                        <span class="font-bold">LAPOR</span>
+                        <span class="text-[10px] block font-normal text-slate-400">Layanan Analisis Rasio Keuangan</span>
                       </div>
                     </div>
                     <span class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase">Aktif</span>
@@ -395,19 +395,20 @@ class AskrindoApp {
   updateActiveNavs() {
     const route = this.currentRoute;
     const navItems = [
-      { id: 'nav-dashboard', hash: '#/dashboard', title: 'Beranda Terpadu' },
-      { id: 'nav-kabar', hash: '#/kabar', title: 'KABAR (Kalkulator Asuransi Kebakaran)' },
-      { id: 'nav-ttk', hash: '#/ttk', title: 'TTK (Tanya-Tanya KUR)' },
-      { id: 'nav-bus', hash: '#/buset', title: 'BUSET (Buat SPPA Elektronik Terpadu)' },
-      { id: 'nav-cepat', hash: '#/cepat', title: 'CEPAT (Cover Note Pertanggungan Asuransi Terintegrasi)' },
-      { id: 'nav-pelaku', hash: '#/pelaku', title: 'PELAKU (Perhitungan Laporan Keuangan)' },
-      { id: 'nav-admin', hash: '#/admin', title: 'Web Admin Portal' }
+      { id: 'nav-dashboard', hashes: ['#/dashboard'], title: 'Beranda Terpadu' },
+      { id: 'nav-kabar', hashes: ['#/kabar'], title: 'KABAR (Kalkulator Asuransi Kebakaran)' },
+      { id: 'nav-akur', altId: 'nav-ttk', hashes: ['#/akur', '#/ttk'], title: 'AKUR (Analisis Kredit Usaha Rakyat)' },
+      { id: 'nav-sedia', altId: 'nav-bus', hashes: ['#/sedia', '#/buset', '#/bus'], title: 'SEDIA (Sistem Elektronik Dokumen dan Informasi Asuransi)' },
+      { id: 'nav-cepat', hashes: ['#/cepat'], title: 'CEPAT (Cover Note Pertanggungan Asuransi Terintegrasi)' },
+      { id: 'nav-lapor', altId: 'nav-pelaku', hashes: ['#/lapor', '#/pelaku'], title: 'LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)' },
+      { id: 'nav-admin', hashes: ['#/admin'], title: 'Web Admin Portal' }
     ];
 
     navItems.forEach(item => {
-      const el = document.getElementById(item.id);
+      const el = document.getElementById(item.id) || (item.altId ? document.getElementById(item.altId) : null);
       if (!el) return;
-      if (route.startsWith(item.hash) || (item.id === 'nav-bus' && route.startsWith('#/bus'))) {
+      const isMatch = item.hashes.some(h => route.startsWith(h));
+      if (isMatch) {
         el.className = el.className.replace('text-slate-600', 'text-orange-600 font-bold bg-orange-50/80 shadow-sm');
         const bc = document.getElementById('breadcrumb-current');
         if (bc) bc.innerText = item.title;
@@ -431,14 +432,14 @@ class AskrindoApp {
     } else if (route.startsWith('#/kabar')) {
       main.innerHTML = window.KabarModule.render();
       window.KabarModule.calculate();
-    } else if (route.startsWith('#/ttk')) {
+    } else if (route.startsWith('#/akur') || route.startsWith('#/ttk')) {
       main.innerHTML = window.TtkModule.render();
       if (window.TtkModule.currentTab === 'calc') window.TtkModule.calcInstallment();
-    } else if (route.startsWith('#/bus') || route.startsWith('#/buset')) {
+    } else if (route.startsWith('#/sedia') || route.startsWith('#/bus') || route.startsWith('#/buset')) {
       main.innerHTML = window.BusModule.render();
     } else if (route.startsWith('#/cepat')) {
       main.innerHTML = window.CepatModule.render();
-    } else if (route.startsWith('#/pelaku')) {
+    } else if (route.startsWith('#/lapor') || route.startsWith('#/pelaku')) {
       main.innerHTML = window.PelakuModule.render();
       window.PelakuModule.updateYearLabels();
       window.PelakuModule.calculateRatios();
@@ -482,7 +483,7 @@ class AskrindoApp {
                   Satu Pintu Untuk Seluruh Kebutuhan Operasional
                 </h2>
                 <p class="text-xs text-slate-300 mt-2 leading-relaxed">
-                  Platform tunggal terintegrasi bagi insan Askrindo. Saat ini modul <b>PELAKU</b> telah aktif untuk operasional penuh, dan modul lainnya dalam tahap pengujian bertahap oleh Administrator.
+                  Platform tunggal terintegrasi bagi insan Askrindo. Saat ini modul <b>LAPOR</b> telah aktif untuk operasional penuh, dan modul lainnya dalam tahap pengujian bertahap oleh Administrator.
                 </p>
               </div>
 
@@ -500,17 +501,17 @@ class AskrindoApp {
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 text-xs">
-                  <!-- PELAKU (AKTIF PENUH) -->
-                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-gradient-to-r from-purple-500/25 to-indigo-500/25 hover:from-purple-500/35 hover:to-indigo-500/35 transition border border-purple-400/40 shadow-sm relative overflow-hidden" title="PELAKU: Perhitungan Laporan Keuangan (Aktif Siap Digunakan)">
+                  <!-- LAPOR (AKTIF PENUH) -->
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-gradient-to-r from-purple-500/25 to-indigo-500/25 hover:from-purple-500/35 hover:to-indigo-500/35 transition border border-purple-400/40 shadow-sm relative overflow-hidden" title="LAPOR: Layanan Analisis dan Perhitungan Rasio Keuangan (Aktif Siap Digunakan)">
                     <div class="w-7 h-7 rounded-lg bg-purple-500 flex items-center justify-center shrink-0 shadow-md">
                       <i data-lucide="calculator" class="w-4 h-4 text-white"></i>
                     </div>
                     <div class="min-w-0">
                       <div class="flex items-center gap-1">
-                        <span class="font-black text-purple-200 text-xs">PELAKU</span>
+                        <span class="font-black text-purple-200 text-xs">LAPOR</span>
                         <span class="px-1.5 py-0.2 rounded text-[7px] font-extrabold bg-emerald-500 text-white uppercase tracking-wider">Aktif</span>
                       </div>
-                      <span class="text-[10px] text-slate-200 block truncate">Laporan Keuangan</span>
+                      <span class="text-[10px] text-slate-200 block truncate">Layanan Analisis Rasio</span>
                     </div>
                   </div>
 
@@ -528,31 +529,31 @@ class AskrindoApp {
                     </div>
                   </div>
 
-                  <!-- TTK (SEGERA HADIR) -->
-                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-dashed border-white/20 hover:bg-white/10 transition group" title="TTK: Tanya-Tanya KUR (Segera Hadir)">
+                  <!-- AKUR (SEGERA HADIR) -->
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-dashed border-white/20 hover:bg-white/10 transition group" title="AKUR: Analisis Kredit Usaha Rakyat (Segera Hadir)">
                     <div class="w-7 h-7 rounded-lg bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0">
                       <i data-lucide="help-circle" class="w-4 h-4 text-blue-300"></i>
                     </div>
                     <div class="min-w-0">
                       <div class="flex items-center gap-1">
-                        <span class="font-bold text-slate-300 text-xs">TTK</span>
+                        <span class="font-bold text-slate-300 text-xs">AKUR</span>
                         <span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">Segera</span>
                       </div>
-                      <span class="text-[10px] text-slate-400 block truncate">Tanya-Tanya KUR</span>
+                      <span class="text-[10px] text-slate-400 block truncate">Analisis Kredit Usaha</span>
                     </div>
                   </div>
 
-                  <!-- BUSET (SEGERA HADIR) -->
-                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-dashed border-white/20 hover:bg-white/10 transition group" title="BUSET: Buat SPPA Elektronik Terpadu (Segera Hadir)">
+                  <!-- SEDIA (SEGERA HADIR) -->
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-dashed border-white/20 hover:bg-white/10 transition group" title="SEDIA: Sistem Elektronik Dokumen dan Informasi Asuransi (Segera Hadir)">
                     <div class="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center shrink-0">
                       <i data-lucide="file-text" class="w-4 h-4 text-emerald-300"></i>
                     </div>
                     <div class="min-w-0">
                       <div class="flex items-center gap-1">
-                        <span class="font-bold text-slate-300 text-xs">BUSET</span>
+                        <span class="font-bold text-slate-300 text-xs">SEDIA</span>
                         <span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">Segera</span>
                       </div>
-                      <span class="text-[10px] text-slate-400 block truncate">Buat SPPA Terpadu</span>
+                      <span class="text-[10px] text-slate-400 block truncate">Dokumen & Informasi Asuransi</span>
                     </div>
                   </div>
 
@@ -721,7 +722,7 @@ class AskrindoApp {
               type="text" 
               id="cmd-input" 
               autofocus 
-              placeholder="Ketik nama aplikasi (KABAR, TTK, BUSET, CEPAT, PELAKU) atau aksi..." 
+              placeholder="Ketik nama aplikasi (KABAR, AKUR, SEDIA, CEPAT, LAPOR) atau aksi..." 
               oninput="window.askrindoApp.filterCommandPalette(this.value)"
               class="w-full text-sm font-medium focus:outline-none bg-transparent"
             />
@@ -739,21 +740,21 @@ class AskrindoApp {
               <span class="text-[10px] text-slate-400">Buka Modul &rarr;</span>
             </a>
 
-            <a href="#/ttk" onclick="window.askrindoApp.closeAllModals()" class="flex items-center justify-between p-3 rounded-xl hover:bg-blue-50 text-slate-800 transition">
+            <a href="#/akur" onclick="window.askrindoApp.closeAllModals()" class="flex items-center justify-between p-3 rounded-xl hover:bg-blue-50 text-slate-800 transition">
               <div class="flex items-center gap-3">
                 <i data-lucide="help-circle" class="w-4 h-4 text-blue-500"></i>
                 <div>
-                  <span class="font-bold">TTK</span> — Tanya-Tanya KUR
+                  <span class="font-bold">AKUR</span> — Analisis Kredit Usaha Rakyat
                 </div>
               </div>
               <span class="text-[10px] text-slate-400">Buka Modul &rarr;</span>
             </a>
 
-            <a href="#/buset" onclick="window.askrindoApp.closeAllModals()" class="flex items-center justify-between p-3 rounded-xl hover:bg-emerald-50 text-slate-800 transition">
+            <a href="#/sedia" onclick="window.askrindoApp.closeAllModals()" class="flex items-center justify-between p-3 rounded-xl hover:bg-emerald-50 text-slate-800 transition">
               <div class="flex items-center gap-3">
                 <i data-lucide="file-text" class="w-4 h-4 text-emerald-500"></i>
                 <div>
-                  <span class="font-bold">BUSET</span> — Buat SPPA Elektronik Terpadu & Cetak Dokumen Polis
+                  <span class="font-bold">SEDIA</span> — Sistem Elektronik Dokumen dan Informasi Asuransi
                 </div>
               </div>
               <span class="text-[10px] text-slate-400">Buka Modul &rarr;</span>
@@ -769,11 +770,11 @@ class AskrindoApp {
               <span class="text-[10px] text-slate-400">Buka Modul &rarr;</span>
             </a>
 
-            <a href="#/pelaku" onclick="window.askrindoApp.closeAllModals()" class="flex items-center justify-between p-3 rounded-xl hover:bg-purple-50 text-slate-800 transition">
+            <a href="#/lapor" onclick="window.askrindoApp.closeAllModals()" class="flex items-center justify-between p-3 rounded-xl hover:bg-purple-50 text-slate-800 transition">
               <div class="flex items-center gap-3">
                 <i data-lucide="calculator" class="w-4 h-4 text-purple-500"></i>
                 <div>
-                  <span class="font-bold">PELAKU</span> — Perhitungan Laporan Keuangan Rekanan
+                  <span class="font-bold">LAPOR</span> — Layanan Analisis dan Perhitungan Rasio Keuangan
                 </div>
               </div>
               <span class="text-[10px] text-slate-400">Buka Modul &rarr;</span>
@@ -876,7 +877,9 @@ class AskrindoApp {
     const isDev = window.authService.isAppInDevelopment(appName.toLowerCase()) || 
                   appName.toLowerCase().includes('kabar') || 
                   appName.toLowerCase().includes('ttk') || 
+                  appName.toLowerCase().includes('akur') || 
                   appName.toLowerCase().includes('bus') || 
+                  appName.toLowerCase().includes('sedia') || 
                   appName.toLowerCase().includes('cepat');
 
     if (isDev) {
@@ -898,15 +901,15 @@ class AskrindoApp {
               <span>Modul Aktif untuk Operasional:</span>
             </div>
             <p class="text-slate-600 text-[11px] leading-relaxed">
-              Anda dapat menggunakan modul <b>PELAKU (Perhitungan Laporan Keuangan)</b> yang telah aktif dan siap digunakan secara penuh.
+              Anda dapat menggunakan modul <b>LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)</b> yang telah aktif dan siap digunakan secara penuh.
             </p>
           </div>
           <div class="flex items-center justify-center gap-3 pt-2">
             <a href="#/dashboard" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
               Kembali ke Beranda
             </a>
-            <a href="#/pelaku" class="px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-purple-600 hover:bg-purple-700 shadow-sm transition">
-              Buka Modul PELAKU
+            <a href="#/lapor" class="px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-purple-600 hover:bg-purple-700 shadow-sm transition">
+              Buka Modul LAPOR
             </a>
           </div>
         </div>
@@ -962,14 +965,14 @@ class AskrindoApp {
               <i data-lucide="check-circle" class="w-4 h-4 text-purple-600"></i>
               Modul Aktif Operasional:
             </p>
-            <p class="text-slate-600 text-[11px]">Gunakan modul <b>PELAKU (Perhitungan Laporan Keuangan)</b> yang sudah rilis penuh.</p>
+            <p class="text-slate-600 text-[11px]">Gunakan modul <b>LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)</b> yang sudah rilis penuh.</p>
           </div>
           <div class="flex items-center justify-center gap-2 pt-2">
             <button onclick="window.askrindoApp.closeAllModals()" class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
               Tutup
             </button>
-            <a href="#/pelaku" onclick="window.askrindoApp.closeAllModals()" class="px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-purple-600 hover:bg-purple-700 transition">
-              Buka Modul PELAKU
+            <a href="#/lapor" onclick="window.askrindoApp.closeAllModals()" class="px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-purple-600 hover:bg-purple-700 transition">
+              Buka Modul LAPOR
             </a>
           </div>
         </div>

@@ -790,7 +790,7 @@ window.CepatModule = {
                         <button onclick="window.CepatModule.previewSavedCoverNote('${item.id}')" title="Cetak / Pratinjau Dokumen" class="p-1.5 rounded-lg bg-cyan-50 text-cyan-700 hover:bg-cyan-100 transition">
                           <i data-lucide="printer" class="w-4 h-4"></i>
                         </button>
-                        <button onclick="window.CepatModule.convertToSppa('${item.id}')" title="Teruskan ke SPPA Definitif (Modul BUSET)" class="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition">
+                        <button onclick="window.CepatModule.convertToSppa('${item.id}')" title="Teruskan ke SPPA Definitif (Modul SEDIA)" class="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition">
                           <i data-lucide="file-plus" class="w-4 h-4"></i>
                         </button>
                         <button onclick="window.CepatModule.deleteItem('${item.id}')" title="Hapus Dokumen" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition">
@@ -843,10 +843,10 @@ window.CepatModule = {
     // Update status in Cover Note
     item.status = 'Dikonversi ke Polis';
     window.askrindoDB.saveCoverNote(item);
-    window.askrindoDB.logActivity('CEPAT', 'Konversi ke SPPA', `Cover Note ${item.coverNoteNo} berhasil dialihkan ke penerbitan SPPA modul BUSET.`);
+    window.askrindoDB.logActivity('CEPAT', 'Konversi ke SPPA', `Cover Note ${item.coverNoteNo} berhasil dialihkan ke penerbitan SPPA modul SEDIA.`);
 
-    window.askrindoApp.showToast(`Data Cover Note ${item.coverNoteNo} dialihkan ke modul BUSET untuk penerbitan Polis Definitif!`, 'success');
-    window.location.hash = '#/buset';
+    window.askrindoApp.showToast(`Data Cover Note ${item.coverNoteNo} dialihkan ke modul SEDIA untuk penerbitan Polis Definitif!`, 'success');
+    window.location.hash = '#/sedia';
   },
 
   deleteItem(id) {

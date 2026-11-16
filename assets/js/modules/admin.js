@@ -69,7 +69,7 @@ window.AdminModule = {
                 </span>
               </div>
               <p class="text-xs text-slate-500 mt-0.5">
-                Kelola master pengguna, konfigurasi hak akses sub-aplikasi (KABAR, TTK, BUSET, CEPAT, PELAKU), dan pantau audit trail operasional.
+                Kelola master pengguna, konfigurasi hak akses sub-aplikasi (KABAR, AKUR, SEDIA, CEPAT, LAPOR), dan pantau audit trail operasional.
               </p>
             </div>
           </div>
@@ -249,21 +249,30 @@ window.AdminModule = {
                   </td>
                   <td class="py-3 px-4">
                     <div class="flex flex-wrap gap-1">
-                      ${user.allowedApps.map(app => {
+                      ${(() => {
                         const appBadgeColors = {
                           kabar: 'bg-orange-100 text-orange-800 border-orange-200',
+                          akur: 'bg-blue-100 text-blue-800 border-blue-200',
                           ttk: 'bg-blue-100 text-blue-800 border-blue-200',
+                          sedia: 'bg-emerald-100 text-emerald-800 border-emerald-200',
                           bus: 'bg-emerald-100 text-emerald-800 border-emerald-200',
                           cepat: 'bg-cyan-100 text-cyan-800 border-cyan-200',
+                          lapor: 'bg-purple-100 text-purple-800 border-purple-200',
                           pelaku: 'bg-purple-100 text-purple-800 border-purple-200',
                           admin: 'bg-amber-100 text-amber-800 border-amber-200'
                         };
-                        return `
+                        const canonicalApps = [...new Set((user.allowedApps || []).map(a => {
+                          if (a === 'ttk') return 'akur';
+                          if (a === 'bus' || a === 'buset') return 'sedia';
+                          if (a === 'pelaku') return 'lapor';
+                          return a;
+                        }))];
+                        return canonicalApps.map(app => `
                           <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${appBadgeColors[app] || 'bg-slate-100 text-slate-600'}">
                             ${app}
                           </span>
-                        `;
-                      }).join('')}
+                        `).join('');
+                      })()}
                     </div>
                   </td>
                   <td class="py-3 px-4 text-center">
@@ -298,12 +307,12 @@ window.AdminModule = {
 
   renderMatrixTab(allUsers) {
     const appsList = [
-      { id: 'pelaku', name: 'PELAKU', label: 'Laporan Keuangan (Aktif)', color: 'text-purple-600' },
-      { id: 'kabar', name: 'KABAR', label: 'Kalkulator Kebakaran (Segera)', color: 'text-orange-600' },
-      { id: 'ttk', name: 'TTK', label: 'Tanya KUR (Segera)', color: 'text-blue-600' },
-      { id: 'bus', name: 'BUSET', label: 'Buat SPPA (Segera)', color: 'text-emerald-600' },
-      { id: 'cepat', name: 'CEPAT', label: 'Cover Note (Segera)', color: 'text-cyan-600' },
-      { id: 'admin', name: 'ADMIN', label: 'Web Admin Portal', color: 'text-amber-600' }
+      { id: 'lapor', altId: 'pelaku', name: 'LAPOR', label: 'Layanan Analisis Rasio (Aktif)', color: 'text-purple-600' },
+      { id: 'kabar', altId: null, name: 'KABAR', label: 'Kalkulator Kebakaran (Segera)', color: 'text-orange-600' },
+      { id: 'akur', altId: 'ttk', name: 'AKUR', label: 'Analisis Kredit Usaha (Segera)', color: 'text-blue-600' },
+      { id: 'sedia', altId: 'bus', name: 'SEDIA', label: 'Dokumen & Info Asuransi (Segera)', color: 'text-emerald-600' },
+      { id: 'cepat', altId: null, name: 'CEPAT', label: 'Cover Note (Segera)', color: 'text-cyan-600' },
+      { id: 'admin', altId: null, name: 'ADMIN', label: 'Web Admin Portal', color: 'text-amber-600' }
     ];
 
     return `
@@ -313,7 +322,7 @@ window.AdminModule = {
           <div>
             <h4 class="text-xs font-bold text-amber-900">Rencana Implementasi Bertahap (Roadmap Ekosistem)</h4>
             <p class="text-xs text-amber-800 mt-0.5 leading-relaxed">
-              Saat ini modul <b>PELAKU</b> telah aktif untuk operasional. Modul <b>KABAR, TTK, BUSET, CEPAT</b> berstatus <b>Segera Hadir</b> dan disiapkan untuk peluncuran bertahap bagi seluruh unit kerja.
+              Saat ini modul <b>LAPOR</b> telah aktif untuk operasional. Modul <b>KABAR, AKUR, SEDIA, CEPAT</b> berstatus <b>Segera Hadir</b> dan disiapkan untuk peluncuran bertahap bagi seluruh unit kerja.
             </p>
           </div>
         </div>
@@ -349,7 +358,7 @@ window.AdminModule = {
                     <p class="text-[11px] text-slate-500">${window.askrindoDB.getUserUnitKerja(user)}</p>
                   </td>
                   ${appsList.map(app => {
-                    const isChecked = user.allowedApps && user.allowedApps.includes(app.id);
+                    const isChecked = user.allowedApps && (user.allowedApps.includes(app.id) || (app.altId && user.allowedApps.includes(app.altId)));
                     const isSuperAdminUser = user.id === 'USR-001' && app.id === 'admin';
                     return `
                       <td class="py-3 px-4 text-center">
@@ -516,17 +525,42 @@ window.AdminModule = {
     const user = window.askrindoDB.getUser(userId);
     if (!user) return;
 
+    const aliases = {
+      akur: ['akur', 'ttk'],
+      ttk: ['akur', 'ttk'],
+      sedia: ['sedia', 'bus', 'buset'],
+      bus: ['sedia', 'bus', 'buset'],
+      lapor: ['lapor', 'pelaku'],
+      pelaku: ['lapor', 'pelaku']
+    };
+    const affected = aliases[appId] || [appId];
+
     let apps = [...user.allowedApps];
     if (isChecked) {
-      if (!apps.includes(appId)) apps.push(appId);
+      affected.forEach(a => {
+        if (!apps.includes(a)) apps.push(a);
+      });
     } else {
-      apps = apps.filter(a => a !== appId);
+      apps = apps.filter(a => !affected.includes(a));
     }
 
+    const displayNames = {
+      akur: 'AKUR',
+      ttk: 'AKUR',
+      sedia: 'SEDIA',
+      bus: 'SEDIA',
+      lapor: 'LAPOR',
+      pelaku: 'LAPOR',
+      kabar: 'KABAR',
+      cepat: 'CEPAT',
+      admin: 'ADMIN'
+    };
+    const appDisplayName = displayNames[appId] || appId.toUpperCase();
+
     window.askrindoDB.updateUserPermissions(userId, apps);
-    window.askrindoDB.logActivity('ADMIN', 'Update Hak Akses (Matrix)', `Akses modul ${appId.toUpperCase()} untuk ${user.name} diubah menjadi: ${isChecked ? 'Diberikan' : 'Dicabut'}`);
+    window.askrindoDB.logActivity('ADMIN', 'Update Hak Akses (Matrix)', `Akses modul ${appDisplayName} untuk ${user.name} diubah menjadi: ${isChecked ? 'Diberikan' : 'Dicabut'}`);
     
-    window.askrindoApp.showToast(`Hak akses modul ${appId.toUpperCase()} berhasil diperbarui!`, 'success');
+    window.askrindoApp.showToast(`Hak akses modul ${appDisplayName} berhasil diperbarui!`, 'success');
   },
 
   toggleUserStatus(userId) {
@@ -642,29 +676,29 @@ window.AdminModule = {
               <label class="block font-bold text-slate-800 mb-2">Izin Akses Sub-Aplikasi Terpadu</label>
               <div class="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="perm-lapor" value="lapor" ${allowedApps.includes('lapor') || allowedApps.includes('pelaku') ? 'checked' : ''} class="w-4 h-4 text-purple-600 rounded" />
+                  <span class="font-semibold text-slate-800">LAPOR</span>
+                  <span class="text-slate-500 text-[11px]">— Layanan Analisis dan Perhitungan Rasio Keuangan</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" id="perm-kabar" value="kabar" ${allowedApps.includes('kabar') ? 'checked' : ''} class="w-4 h-4 text-orange-600 rounded" />
                   <span class="font-semibold text-slate-800">KABAR</span>
                   <span class="text-slate-500 text-[11px]">— Kalkulator Asuransi Kebakaran</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" id="perm-ttk" value="ttk" ${allowedApps.includes('ttk') ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded" />
-                  <span class="font-semibold text-slate-800">TTK</span>
-                  <span class="text-slate-500 text-[11px]">— Tanya-Tanya KUR</span>
+                  <input type="checkbox" id="perm-akur" value="akur" ${allowedApps.includes('akur') || allowedApps.includes('ttk') ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded" />
+                  <span class="font-semibold text-slate-800">AKUR</span>
+                  <span class="text-slate-500 text-[11px]">— Analisis Kredit Usaha Rakyat</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" id="perm-bus" value="bus" ${allowedApps.includes('bus') ? 'checked' : ''} class="w-4 h-4 text-emerald-600 rounded" />
-                  <span class="font-semibold text-slate-800">BUSET</span>
-                  <span class="text-slate-500 text-[11px]">— Buat SPPA Elektronik Terpadu (Surat Permohonan Penutupan Asuransi)</span>
+                  <input type="checkbox" id="perm-sedia" value="sedia" ${allowedApps.includes('sedia') || allowedApps.includes('bus') || allowedApps.includes('buset') ? 'checked' : ''} class="w-4 h-4 text-emerald-600 rounded" />
+                  <span class="font-semibold text-slate-800">SEDIA</span>
+                  <span class="text-slate-500 text-[11px]">— Sistem Elektronik Dokumen dan Informasi Asuransi</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" id="perm-cepat" value="cepat" ${allowedApps.includes('cepat') ? 'checked' : ''} class="w-4 h-4 text-cyan-600 rounded" />
                   <span class="font-semibold text-slate-800">CEPAT</span>
                   <span class="text-slate-500 text-[11px]">— Cover Note Pertanggungan Asuransi Terintegrasi</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" id="perm-pelaku" value="pelaku" ${allowedApps.includes('pelaku') ? 'checked' : ''} class="w-4 h-4 text-purple-600 rounded" />
-                  <span class="font-semibold text-slate-800">PELAKU</span>
-                  <span class="text-slate-500 text-[11px]">— Perhitungan Laporan Keuangan</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer pt-1 border-t border-slate-200">
                   <input type="checkbox" id="perm-admin" value="admin" ${allowedApps.includes('admin') ? 'checked' : ''} class="w-4 h-4 text-amber-600 rounded" />
@@ -724,11 +758,11 @@ window.AdminModule = {
     const role = document.getElementById('modal-role').value;
 
     const allowedApps = [];
+    if (document.getElementById('perm-lapor').checked) allowedApps.push('lapor', 'pelaku');
     if (document.getElementById('perm-kabar').checked) allowedApps.push('kabar');
-    if (document.getElementById('perm-ttk').checked) allowedApps.push('ttk');
-    if (document.getElementById('perm-bus').checked) allowedApps.push('bus');
+    if (document.getElementById('perm-akur').checked) allowedApps.push('akur', 'ttk');
+    if (document.getElementById('perm-sedia').checked) allowedApps.push('sedia', 'bus');
     if (document.getElementById('perm-cepat').checked) allowedApps.push('cepat');
-    if (document.getElementById('perm-pelaku').checked) allowedApps.push('pelaku');
     if (document.getElementById('perm-admin').checked) allowedApps.push('admin');
 
     const userData = {
