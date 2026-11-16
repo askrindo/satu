@@ -229,7 +229,7 @@ class AskrindoApp {
             <!-- Bottom User Profile Card -->
             <div class="p-3 border-t border-slate-200">
               <div class="p-2.5 rounded-2xl bg-slate-50 flex items-center gap-2.5">
-                <img src="${user.avatar}" alt="${user.name}" class="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0" />
+                <img src="${window.DEFAULT_AVATAR || 'assets/images/default-avatar.svg'}" onerror="this.src='assets/images/default-avatar.svg'" alt="${user.name}" class="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0 bg-slate-100" />
                 <div class="min-w-0 sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                   <p class="text-xs font-bold text-slate-800 truncate">${user.name}</p>
                   <p class="text-[10px] text-slate-400 truncate">${user.role}</p>
@@ -286,7 +286,7 @@ class AskrindoApp {
                     class="flex items-center gap-2.5 pl-2 py-1 pr-1 border-l border-slate-200 hover:bg-slate-50 rounded-xl transition focus:outline-none cursor-pointer"
                     title="Menu Profil Pengguna"
                   >
-                    <img src="${user.avatar}" class="w-8 h-8 rounded-full object-cover border border-slate-200 shadow-sm" />
+                    <img src="${window.DEFAULT_AVATAR || 'assets/images/default-avatar.svg'}" onerror="this.src='assets/images/default-avatar.svg'" alt="${user.name}" class="w-8 h-8 rounded-full object-cover border border-slate-200 shadow-sm shrink-0 bg-slate-100" />
                     <div class="hidden sm:block text-left">
                       <p class="text-xs font-bold text-slate-800 leading-tight">${user.name.split(',')[0]}</p>
                       <p class="text-[10px] font-mono text-slate-400">NIP: ${user.nip}</p>
@@ -302,7 +302,7 @@ class AskrindoApp {
                     <!-- Header with user info -->
                     <div class="px-4 py-3 border-b border-slate-100 bg-gradient-to-br from-slate-50 to-orange-50/30 rounded-t-xl">
                       <div class="flex items-start gap-3">
-                        <img src="${user.avatar}" class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm shrink-0" />
+                        <img src="${window.DEFAULT_AVATAR || 'assets/images/default-avatar.svg'}" onerror="this.src='assets/images/default-avatar.svg'" alt="${user.name}" class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm shrink-0 bg-slate-100" />
                         <div class="min-w-0 flex-1">
                           <p class="text-xs font-bold text-slate-900 truncate" title="${user.name}">${user.name}</p>
                           <p class="text-[11px] text-slate-600 truncate mt-0.5">${user.role}</p>

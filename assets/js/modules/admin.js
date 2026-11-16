@@ -229,7 +229,7 @@ window.AdminModule = {
                 <tr class="hover:bg-slate-50/80 transition-colors">
                   <td class="py-3 px-4">
                     <div class="flex items-center gap-3">
-                      <img src="${user.avatar}" alt="${user.name}" class="w-9 h-9 rounded-full object-cover border border-slate-200" />
+                      <img src="${window.DEFAULT_AVATAR || 'assets/images/default-avatar.svg'}" onerror="this.src='assets/images/default-avatar.svg'" alt="${user.name}" class="w-9 h-9 rounded-full object-cover border border-slate-200 bg-slate-100" />
                       <div>
                         <p class="font-bold text-slate-800">${user.name}</p>
                         <p class="text-[11px] text-slate-400">${user.email}</p>
@@ -337,7 +337,7 @@ window.AdminModule = {
                 <tr class="hover:bg-slate-50/60 transition-colors">
                   <td class="py-3 px-4">
                     <div class="flex items-center gap-3">
-                      <img src="${user.avatar}" class="w-8 h-8 rounded-full object-cover border" />
+                      <img src="${window.DEFAULT_AVATAR || 'assets/images/default-avatar.svg'}" onerror="this.src='assets/images/default-avatar.svg'" alt="${user.name}" class="w-8 h-8 rounded-full object-cover border border-slate-200 bg-slate-100" />
                       <div>
                         <p class="font-bold text-slate-800">${user.name}</p>
                         <p class="text-[11px] font-mono text-slate-400">NIP: ${user.nip}</p>

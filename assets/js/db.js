@@ -21,6 +21,9 @@ const DB_KEYS = {
   SETTINGS: 'askrindo_satu_settings_v1'
 };
 
+// Standard Default Avatar for All Users
+const DEFAULT_AVATAR = 'assets/images/default-avatar.svg';
+
 // Seed Users for local fallback
 const INITIAL_USERS = [
   {
@@ -32,7 +35,7 @@ const INITIAL_USERS = [
     role: 'Super Administrator',
     division: 'Divisi Teknologi Informasi (Technology Information Division)',
     branch: 'Divisi Teknologi Informasi (Technology Information Division)',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
+    avatar: DEFAULT_AVATAR,
     allowedApps: ['kabar', 'ttk', 'bus', 'pelaku', 'cepat', 'admin'],
     status: 'active',
     createdAt: '2026-01-10T08:00:00Z',
@@ -47,7 +50,7 @@ const INITIAL_USERS = [
     role: 'Underwriter',
     division: 'Main Branch Office (Kantor Cabang Utama)',
     branch: 'Main Branch Office (Kantor Cabang Utama)',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80',
+    avatar: DEFAULT_AVATAR,
     allowedApps: ['kabar', 'bus', 'pelaku', 'cepat'],
     status: 'active',
     createdAt: '2026-02-15T09:00:00Z',
@@ -62,7 +65,7 @@ const INITIAL_USERS = [
     role: 'Relationship Manager',
     division: 'Branch Office Surabaya',
     branch: 'Branch Office Surabaya',
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=256&q=80',
+    avatar: DEFAULT_AVATAR,
     allowedApps: ['ttk', 'pelaku'],
     status: 'active',
     createdAt: '2026-03-01T10:00:00Z',
@@ -77,7 +80,7 @@ const INITIAL_USERS = [
     role: 'Business Head',
     division: 'Branch Office Medan',
     branch: 'Branch Office Medan',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&q=80',
+    avatar: DEFAULT_AVATAR,
     allowedApps: ['kabar', 'bus', 'cepat'],
     status: 'active',
     createdAt: '2026-05-12T11:00:00Z',
@@ -92,7 +95,7 @@ const INITIAL_USERS = [
     role: 'Branch Support',
     division: 'Branch Office Bandung',
     branch: 'Branch Office Bandung',
-    avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=256&q=80',
+    avatar: DEFAULT_AVATAR,
     allowedApps: ['kabar'],
     status: 'active',
     createdAt: '2026-08-01T08:30:00Z',
@@ -400,6 +403,7 @@ class AskrindoDB {
           const normalizedUnit = this.normalizeLegacyUnitKerja(u.division, u.branch);
           u.division = normalizedUnit;
           u.branch = normalizedUnit;
+          u.avatar = DEFAULT_AVATAR;
         });
         localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
 
@@ -407,6 +411,10 @@ class AskrindoDB {
         const sess = this.getCurrentSession();
         if (sess) {
           let sessUpdated = false;
+          if (sess.avatar !== DEFAULT_AVATAR) {
+            sess.avatar = DEFAULT_AVATAR;
+            sessUpdated = true;
+          }
           if ((sess.id === 'USR-001' || sess.id === 'USR-002' || sess.id === 'USR-004' || sess.role === 'Super Administrator') && !sess.allowedApps.includes('cepat')) {
             sess.allowedApps.push('cepat');
             sessUpdated = true;
@@ -506,7 +514,7 @@ class AskrindoDB {
           role: this.normalizeLegacyRole(u.role),
           division: this.normalizeLegacyUnitKerja(u.division, u.branch),
           branch: this.normalizeLegacyUnitKerja(u.division, u.branch),
-          avatar: u.avatar,
+          avatar: DEFAULT_AVATAR,
           allowedApps: u.allowed_apps || ['kabar'],
           status: u.status,
           createdAt: u.created_at,
@@ -581,10 +589,15 @@ class AskrindoDB {
   // --- Users CRUD ---
   getUsers() {
     try {
-      return JSON.parse(localStorage.getItem(DB_KEYS.USERS)) || [];
+      const users = JSON.parse(localStorage.getItem(DB_KEYS.USERS)) || [];
+      return users.map(u => ({ ...u, avatar: DEFAULT_AVATAR }));
     } catch (e) {
       return INITIAL_USERS;
     }
+  }
+
+  getUserAvatar(user) {
+    return DEFAULT_AVATAR;
   }
 
   getStandardUnitKerja() {
@@ -751,7 +764,7 @@ class AskrindoDB {
       // Update
       const index = users.findIndex(u => u.id === normalizedPayload.id);
       if (index !== -1) {
-        users[index] = { ...users[index], ...normalizedPayload };
+        users[index] = { ...users[index], ...normalizedPayload, avatar: DEFAULT_AVATAR };
         targetUser = users[index];
       }
     } else {
@@ -761,9 +774,10 @@ class AskrindoDB {
         id: newId,
         createdAt: new Date().toISOString(),
         status: 'active',
-        avatar: `https://images.unsplash.com/photo-${1534528741775 + users.length * 1000}?auto=format&fit=crop&w=256&q=80`,
+        avatar: DEFAULT_AVATAR,
         ...normalizedPayload
       };
+      targetUser.avatar = DEFAULT_AVATAR;
       users.push(targetUser);
     }
     localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
@@ -827,13 +841,16 @@ class AskrindoDB {
   // --- Session ---
   getCurrentSession() {
     try {
-      return JSON.parse(localStorage.getItem(DB_KEYS.SESSION));
+      const sess = JSON.parse(localStorage.getItem(DB_KEYS.SESSION));
+      if (sess) sess.avatar = DEFAULT_AVATAR;
+      return sess;
     } catch (e) {
       return null;
     }
   }
 
   setSession(user) {
+    if (user) user.avatar = DEFAULT_AVATAR;
     localStorage.setItem(DB_KEYS.SESSION, JSON.stringify(user));
   }
 
@@ -1489,5 +1506,6 @@ class AskrindoDB {
 }
 
 // Global Export
+window.DEFAULT_AVATAR = DEFAULT_AVATAR;
 window.askrindoDB = new AskrindoDB();
 window.SUB_APPS_CATALOG = SUB_APPS_CATALOG;
