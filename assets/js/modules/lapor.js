@@ -762,29 +762,29 @@ window.LaporModule = {
         <div class="lapor-screen-content ${this.currentTab === 'archive' ? 'space-y-4' : 'space-y-6'}">
         <!-- Module Header with Tabs & Actions -->
         <div class="bg-white p-4 sm:px-5 sm:py-4 rounded-2xl border border-slate-200/80 shadow-sm border-l-4 border-l-purple-600">
-          <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
-            <div class="flex items-center gap-3.5 min-w-0">
+          <div class="flex flex-col ${this.currentTab === 'archive' ? 'xl:flex-row xl:items-center justify-between' : ''} gap-3.5">
+            <div class="flex items-center gap-3.5 flex-1 min-w-0">
               <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-purple-700 to-indigo-500 text-white flex items-center justify-center shadow-md shadow-purple-500/20 shrink-0">
                 <i data-lucide="calculator" class="w-6 h-6"></i>
               </div>
-              <div class="min-w-0">
-                <div class="flex items-center gap-2 flex-wrap xl:flex-nowrap">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 ${this.currentTab === 'archive' ? 'flex-wrap xl:flex-nowrap' : 'flex-wrap'}">
                   <h1 class="text-2xl font-black text-slate-800 tracking-tight shrink-0">LAPOR</h1>
-                  <span class="px-2.5 py-0.5 rounded-full text-[11px] 2xl:text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200 truncate">
+                  <span class="px-2.5 py-0.5 rounded-full text-[11px] 2xl:text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200 ${this.currentTab === 'archive' ? 'truncate min-w-0' : ''}">
                     Layanan Analisis dan Perhitungan Rasio Keuangan
                   </span>
                   <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm flex items-center gap-1 shrink-0 whitespace-nowrap">
                     <i data-lucide="sparkles" class="w-3 h-3"></i> AI OCR Vision
                   </span>
                 </div>
-                <p class="text-xs text-slate-500 mt-0.5 truncate">
+                <p class="text-xs text-slate-500 mt-0.5 ${this.currentTab === 'archive' ? 'truncate' : ''}">
                   Layanan Analisis dan Perhitungan Rasio Keuangan berbasis AI OCR dengan 27 parameter rasio finansial secara otomatis
                 </p>
               </div>
             </div>
 
             <!-- Navigation Tabs & Workspace Quick Actions -->
-            <div class="flex items-center gap-2 flex-wrap xl:flex-nowrap shrink-0">
+            <div class="flex items-center gap-2 flex-wrap ${this.currentTab === 'archive' ? 'xl:flex-nowrap shrink-0' : 'pt-1 border-t border-slate-100'}">
               <!-- Mode Tabs -->
               <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
                 <button onclick="window.LaporModule.setTab('archive')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${this.currentTab === 'archive' ? 'bg-purple-700 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}">
