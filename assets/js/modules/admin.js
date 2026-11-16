@@ -242,8 +242,8 @@ window.AdminModule = {
                   <td class="py-3 px-4 text-slate-700 font-medium max-w-[240px]">
                     <span class="line-clamp-2" title="${window.askrindoDB.getUserUnitKerja(user)}">${window.askrindoDB.getUserUnitKerja(user)}</span>
                   </td>
-                  <td class="py-3 px-4">
-                    <span class="px-2.5 py-1 rounded-md text-[11px] font-semibold ${user.role.includes('Admin') ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-700'}">
+                  <td class="py-3 px-4 whitespace-nowrap">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap ${user.role.includes('Admin') ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}">
                       ${user.role}
                     </span>
                   </td>
@@ -268,7 +268,7 @@ window.AdminModule = {
                           return a;
                         }))];
                         return canonicalApps.map(app => `
-                          <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${appBadgeColors[app] || 'bg-slate-100 text-slate-600'}">
+                          <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase border whitespace-nowrap ${appBadgeColors[app] || 'bg-slate-100 text-slate-600'}">
                             ${app}
                           </span>
                         `).join('');
@@ -417,8 +417,8 @@ window.AdminModule = {
                     <p class="font-bold text-slate-800">${log.user}</p>
                     <p class="text-[11px] text-slate-400">${log.role}</p>
                   </td>
-                  <td class="py-3 px-4">
-                    <span class="px-2 py-0.5 rounded font-bold text-[10px] bg-slate-100 text-slate-700 border">
+                  <td class="py-3 px-4 whitespace-nowrap">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded font-bold text-[10px] bg-slate-100 text-slate-700 border whitespace-nowrap">
                       ${log.subApp}
                     </span>
                   </td>
