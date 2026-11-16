@@ -170,7 +170,7 @@ class AskrindoApp {
                       <i data-lucide="flame" class="w-4 h-4 text-orange-500 shrink-0"></i>
                       <div class="sidebar-text min-w-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">KABAR</span>
-                        <span class="text-[10px] block font-normal text-slate-400 leading-snug truncate">Kalkulator Asuransi Kebakaran</span>
+                        <span class="text-[10px] block font-normal text-slate-400 leading-snug">Kalkulator Asuransi Kebakaran</span>
                       </div>
                     </div>
                     <span id="nav-badge-kabar" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('kabar') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('kabar') ? 'Aktif' : 'Terkunci'}</span>
@@ -182,7 +182,7 @@ class AskrindoApp {
                       <i data-lucide="help-circle" class="w-4 h-4 text-blue-500 shrink-0"></i>
                       <div class="sidebar-text min-w-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">AKUR</span>
-                        <span class="text-[10px] block font-normal text-slate-400 leading-snug truncate">Analisis Kredit Usaha Rakyat</span>
+                        <span class="text-[10px] block font-normal text-slate-400 leading-snug">Analisis Kredit Usaha Rakyat</span>
                       </div>
                     </div>
                     <span id="nav-badge-akur" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('akur') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('akur') ? 'Aktif' : 'Terkunci'}</span>
@@ -194,7 +194,7 @@ class AskrindoApp {
                       <i data-lucide="file-text" class="w-4 h-4 text-emerald-500 shrink-0"></i>
                       <div class="sidebar-text min-w-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">SEDIA</span>
-                        <span class="text-[10px] block font-normal text-slate-400 leading-snug truncate">Dokumen &amp; Info Asuransi</span>
+                        <span class="text-[10px] block font-normal text-slate-400 leading-snug">Sistem Elektronik Dokumen dan Informasi Asuransi</span>
                       </div>
                     </div>
                     <span id="nav-badge-sedia" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('sedia') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('sedia') ? 'Aktif' : 'Terkunci'}</span>
@@ -206,7 +206,7 @@ class AskrindoApp {
                       <i data-lucide="file-check-2" class="w-4 h-4 text-cyan-500 shrink-0"></i>
                       <div class="sidebar-text min-w-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">CEPAT</span>
-                        <span class="text-[10px] block font-normal text-slate-400 leading-snug truncate">Cover Note Terintegrasi</span>
+                        <span class="text-[10px] block font-normal text-slate-400 leading-snug">Cover Note Pertanggungan Asuransi Terintegrasi</span>
                       </div>
                     </div>
                     <span id="nav-badge-cepat" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('cepat') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('cepat') ? 'Aktif' : 'Terkunci'}</span>
@@ -218,7 +218,7 @@ class AskrindoApp {
                       <i data-lucide="calculator" class="w-4 h-4 text-purple-500 shrink-0"></i>
                       <div class="sidebar-text min-w-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">LAPOR</span>
-                        <span class="text-[10px] block font-normal text-slate-400 leading-snug truncate">Analisis Rasio Keuangan</span>
+                        <span class="text-[10px] block font-normal text-slate-400 leading-snug">Layanan Analisis dan Perhitungan Rasio Keuangan</span>
                       </div>
                     </div>
                     <span id="nav-badge-lapor" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('lapor') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('lapor') ? 'Aktif' : 'Terkunci'}</span>
