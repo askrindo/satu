@@ -632,6 +632,7 @@ window.PelakuModule = {
 
     return `
       <div class="space-y-6 animate-fadeIn">
+        <div class="pelaku-screen-content space-y-6">
         <!-- Module Header with Tabs & Actions -->
         <div class="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 border-l-4 border-l-purple-600">
           <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
@@ -1328,6 +1329,7 @@ window.PelakuModule = {
             </div>
           </div>
         `}
+        </div>
 
         <!-- Print & Modal Containers -->
         <div id="pelaku-modal-container"></div>
@@ -2499,70 +2501,44 @@ window.PelakuModule = {
     if (!hasData2) {
       return [
         { no: 1, name: 'Current Ratio (CR)', formula: 'Aset Lancar / Liab. Lancar', rac: '&ge; 100,00%', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' },
-        { no: 2, name: 'Quick Ratio (QR)', formula: '(Kas + Piutang) / Liab. Lancar', rac: '&gt; 100,00%', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' },
-        { no: 3, name: 'Cash Ratio', formula: 'Kas & Bank / Liab. Lancar', rac: '&gt; 40,00%', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' },
-        { no: 4, name: 'Debt to Equity Ratio (DER)', formula: 'Total Liabilitas / Total Ekuitas', rac: '&lt; 200,00%', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' },
-        { no: 5, name: 'Return on Asset (ROA)', formula: 'EAT / Total Aset', rac: '&ge; 1,00%', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' },
-        { no: 6, name: 'Return on Equity (ROE)', formula: 'EAT / Total Ekuitas', rac: '&ge; 5,00%', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' },
-        { no: 7, name: 'Nett Profit Margin (NPM)', formula: 'EAT / Penjualan', rac: '&gt; 10,00%', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' },
-        { no: 8, name: 'Net Working Capital (NWC)', formula: projectVal > 0 ? 'NWC Riil / Nilai Proyek' : 'Aset Lancar - Liab. Lancar', rac: projectVal > 0 ? '&gt; 40,00% Proyek' : '&gt; Rp 0', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' },
-        { no: 9, name: 'Self Financing (Modal Internal)', formula: projectVal > 0 ? 'Modal Sendiri / Nilai Proyek' : 'Modal Sendiri / Total Aset', rac: '&gt; 20,00%', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' }
+        { no: 2, name: 'Debt to Equity Ratio (DER)', formula: 'Total Liabilitas / Total Ekuitas', rac: '&lt; 200,00%', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' },
+        { no: 3, name: 'Return on Assets (ROA)', formula: 'EAT / Total Aset', rac: '&ge; 1,00%', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' },
+        { no: 4, name: 'Return on Equity (ROE)', formula: 'EAT / Total Ekuitas', rac: '&ge; 5,00%', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' },
+        { no: 5, name: 'Net Working Capital (NWC)', formula: 'Aset Lancar - Liab. Lancar', rac: '&gt; Rp 0', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' },
+        { no: 6, name: 'NWC / Nilai Proyek', formula: '(NWC / Nilai Proyek) &times; 100%', rac: '&gt; 40,00%', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' }
       ];
     }
 
     const isNoDebt1 = hasData1 && (!totals1.cl || totals1.cl === 0);
     const isNoDebt2 = !totals2.cl || totals2.cl === 0;
 
-    // 1. Current Ratio
+    // 1. Current Ratio (CR)
     const cr1 = !hasData1 ? null : (isNoDebt1 ? null : (totals1.ca / totals1.cl) * 100);
     const cr2 = isNoDebt2 ? null : (totals2.ca / totals2.cl) * 100;
     const passCR = isNoDebt2 ? true : (cr2 >= 100);
 
-    // 2. Quick Ratio
-    const quick1 = (d1.cash || 0) + (d1.ar || 0) + (d1.otherAr || 0);
-    const quick2 = (d2.cash || 0) + (d2.ar || 0) + (d2.otherAr || 0);
-    const qr1 = !hasData1 ? null : (isNoDebt1 ? null : (quick1 / totals1.cl) * 100);
-    const qr2 = isNoDebt2 ? null : (quick2 / totals2.cl) * 100;
-    const passQR = isNoDebt2 ? true : (qr2 > 100);
-
-    // 3. Cash Ratio
-    const cash1 = d1.cash || 0;
-    const cash2 = d2.cash || 0;
-    const cashR1 = !hasData1 ? null : (isNoDebt1 ? null : (cash1 / totals1.cl) * 100);
-    const cashR2 = isNoDebt2 ? null : (cash2 / totals2.cl) * 100;
-    const passCash = isNoDebt2 ? true : (cashR2 > 40);
-
-    // 4. DER
+    // 2. Debt to Equity Ratio (DER)
     const der1 = (!hasData1 || totals1.eq <= 0) ? null : (totals1.tl / totals1.eq) * 100;
     const der2 = totals2.eq <= 0 ? null : (totals2.tl / totals2.eq) * 100;
     const passDER = der2 !== null && der2 < 200;
 
-    // 5. ROA
+    // 3. Return on Assets (ROA)
     const roa1 = (!hasData1 || totals1.ta <= 0) ? null : (totals1.eat / totals1.ta) * 100;
     const roa2 = totals2.ta <= 0 ? null : (totals2.eat / totals2.ta) * 100;
     const passROA = roa2 !== null && roa2 >= 1.0;
 
-    // 6. ROE
+    // 4. Return on Equity (ROE)
     const roe1 = (!hasData1 || totals1.eq <= 0) ? null : (totals1.eat / totals1.eq) * 100;
     const roe2 = totals2.eq <= 0 ? null : (totals2.eat / totals2.eq) * 100;
     const passROE = roe2 !== null && roe2 >= 5.0;
 
-    // 7. NPM
-    const npm1 = (!hasData1 || totals1.rev <= 0) ? null : (totals1.eat / totals1.rev) * 100;
-    const npm2 = totals2.rev <= 0 ? null : (totals2.eat / totals2.rev) * 100;
-    const passNPM = npm2 !== null && npm2 > 10.0;
-
-    // 8. NWC vs Nilai Proyek
+    // 5. Net Working Capital (NWC) & 6. NWC / Nilai Proyek (%)
     const nwc1 = totals1.ca - totals1.cl;
     const nwc2 = totals2.ca - totals2.cl;
-    const nwcPct1 = projectVal > 0 ? (nwc1 / projectVal) * 100 : null;
+    const passNWC = nwc2 > 0;
+    const nwcPct1 = (hasData1 && projectVal > 0) ? (nwc1 / projectVal) * 100 : null;
     const nwcPct2 = projectVal > 0 ? (nwc2 / projectVal) * 100 : null;
-    const passNWC = projectVal > 0 ? (nwcPct2 > 40) : (nwc2 > 0);
-
-    // 9. Self Financing / Modal Internal vs Nilai Proyek
-    const selfFin1 = projectVal > 0 ? (totals1.eq / projectVal) * 100 : (totals1.ta > 0 ? (totals1.eq / totals1.ta) * 100 : null);
-    const selfFin2 = projectVal > 0 ? (totals2.eq / projectVal) * 100 : (totals2.ta > 0 ? (totals2.eq / totals2.ta) * 100 : null);
-    const passSelfFin = selfFin2 !== null && selfFin2 > 20;
+    const passNwcProj = nwcPct2 !== null && nwcPct2 > 40;
 
     return [
       {
@@ -2581,40 +2557,10 @@ window.PelakuModule = {
       },
       {
         no: 2,
-        name: 'Quick Ratio (QR)',
-        formula: '(Kas + Piutang) / Liab. Lancar',
-        rac: '&gt; 100,00%',
-        v1: !hasData1 ? '-' : (isNoDebt1 ? 'N/A' : `${this.fmtNum(qr1, 2)}%`),
-        v2: isNoDebt2 ? 'N/A' : `${this.fmtNum(qr2, 2)}%`,
-        pass: passQR,
-        ket: isNoDebt2
-          ? 'Aset cepat prima (Skor 100 / Grade A).'
-          : (qr2 > 100 ? `Quick Ratio ${this.fmtNum(qr2, 2)}% memenuhi standar RAC (Skor 100 / Grade A).`
-            : (qr2 > 75 ? `Quick Ratio ${this.fmtNum(qr2, 2)}% (Skor 80 / Grade B).`
-            : (qr2 > 60 ? `Quick Ratio ${this.fmtNum(qr2, 2)}% (Skor 60 / Grade C).`
-            : `Quick Ratio ${this.fmtNum(qr2, 2)}% (Skor ${qr2 > 40 ? '40 / Grade D' : '20 / Grade E'}).`)))
-      },
-      {
-        no: 3,
-        name: 'Cash Ratio',
-        formula: 'Kas &amp; Bank / Liab. Lancar',
-        rac: '&gt; 40,00%',
-        v1: !hasData1 ? '-' : (isNoDebt1 ? 'N/A' : `${this.fmtNum(cashR1, 2)}%`),
-        v2: isNoDebt2 ? 'N/A' : `${this.fmtNum(cashR2, 2)}%`,
-        pass: passCash,
-        ket: isNoDebt2
-          ? 'Posisi kas tunai sangat prima (Skor 100 / Grade A).'
-          : (cashR2 > 40 ? `Cash Ratio ${this.fmtNum(cashR2, 2)}% memenuhi standar RAC (Skor 100 / Grade A).`
-            : (cashR2 > 30 ? `Cash Ratio ${this.fmtNum(cashR2, 2)}% (Skor 80 / Grade B).`
-            : (cashR2 > 20 ? `Cash Ratio ${this.fmtNum(cashR2, 2)}% (Skor 60 / Grade C).`
-            : `Cash Ratio ${this.fmtNum(cashR2, 2)}% (Skor ${cashR2 > 10 ? '40 / Grade D' : '20 / Grade E'}).`)))
-      },
-      {
-        no: 4,
         name: 'Debt to Equity Ratio (DER)',
-        formula: 'Total Liab. / Total Ekuitas',
+        formula: 'Total Liabilitas / Total Ekuitas',
         rac: '&lt; 200,00%',
-        v1: der1 === null ? 'N/A' : `${this.fmtNum(der1, 2)}%`,
+        v1: !hasData1 ? '-' : (der1 === null ? 'N/A' : `${this.fmtNum(der1, 2)}%`),
         v2: der2 === null ? 'N/A' : `${this.fmtNum(der2, 2)}%`,
         pass: passDER,
         ket: der2 === null
@@ -2625,8 +2571,8 @@ window.PelakuModule = {
             : `DER ${this.fmtNum(der2, 2)}% melebihi batas toleransi &ge; 300% (Skor 25 / Grade D).`)))
       },
       {
-        no: 5,
-        name: 'Return on Asset (ROA)',
+        no: 3,
+        name: 'Return on Assets (ROA)',
         formula: 'EAT / Total Aset',
         rac: '&ge; 1,00%',
         v1: roa1 === null ? '-' : `${this.fmtNum(roa1, 2)}%`,
@@ -2640,7 +2586,7 @@ window.PelakuModule = {
             : `ROA ${this.fmtNum(roa2, 2)}% di bawah standar minimum penjaminan.`)))
       },
       {
-        no: 6,
+        no: 4,
         name: 'Return on Equity (ROE)',
         formula: 'EAT / Total Ekuitas',
         rac: '&ge; 5,00%',
@@ -2655,49 +2601,31 @@ window.PelakuModule = {
             : `ROE ${this.fmtNum(roe2, 2)}% di bawah standar penjaminan.`)))
       },
       {
-        no: 7,
-        name: 'Nett Profit Margin (NPM)',
-        formula: 'EAT / Penjualan',
-        rac: '&gt; 10,00%',
-        v1: npm1 === null ? '-' : `${this.fmtNum(npm1, 2)}%`,
-        v2: npm2 === null ? '-' : `${this.fmtNum(npm2, 2)}%`,
-        pass: passNPM,
-        ket: npm2 === null
-          ? 'Data penjualan nihil.'
-          : (npm2 > 10.0 ? `NPM ${this.fmtNum(npm2, 2)}% sangat prima melampaui 10% (Skor 100 / Grade A).`
-            : (npm2 > 5.0 ? `NPM ${this.fmtNum(npm2, 2)}% sehat (Skor 75 / Grade B).`
-            : (npm2 > 2.0 ? `NPM ${this.fmtNum(npm2, 2)}% wajar (Skor 50 / Grade C).`
-            : `NPM ${this.fmtNum(npm2, 2)}% margin tipis/negatif (Skor ${npm2 > 0 ? '25 / Grade D' : '0 / Grade E'}).`)))
-      },
-      {
-        no: 8,
+        no: 5,
         name: 'Net Working Capital (NWC)',
-        formula: projectVal > 0 ? 'NWC Riil / Nilai Proyek' : 'Aset Lancar - Liab. Lancar',
-        rac: projectVal > 0 ? '&gt; 40,00% Proyek' : '&gt; Rp 0',
-        v1: !hasData1 ? '-' : (projectVal > 0 ? `${this.fmtRp(nwc1, false)} (${this.fmtNum(nwcPct1, 2)}%)` : this.fmtRp(nwc1, false)),
-        v2: projectVal > 0 ? `${this.fmtRp(nwc2, false)} (${this.fmtNum(nwcPct2, 2)}%)` : this.fmtRp(nwc2, false),
+        formula: 'Aset Lancar - Liab. Lancar',
+        rac: '&gt; Rp 0',
+        v1: !hasData1 ? '-' : this.fmtRp(nwc1, false),
+        v2: this.fmtRp(nwc2, false),
         pass: passNWC,
-        ket: projectVal > 0
-          ? (nwcPct2 > 40 ? `NWC ${this.fmtNum(nwcPct2, 2)}% dari Nilai Proyek (Skor 100 / Grade A). Penyangga modal kerja sangat kuat.`
-            : (nwcPct2 > 20 ? `NWC ${this.fmtNum(nwcPct2, 2)}% dari Nilai Proyek (Skor 75 / Grade B). Modal kerja memadai.`
-            : (nwcPct2 > 10 ? `NWC ${this.fmtNum(nwcPct2, 2)}% dari Nilai Proyek (Skor 50 / Grade C). Perlu monitoring arus kas.`
-            : `NWC ${this.fmtNum(nwcPct2, 2)}% dari Nilai Proyek di bawah 10% (Skor 25 / Grade D).`)))
-          : (nwc2 > 0 ? `NWC surplus Rp ${this.fmtRp(nwc2, false)}. Masukkan Nilai Proyek untuk evaluasi rasio terhadap proyek.` : `NWC defisit (Aset lancar lebih kecil dari hutang lancar).`)
+        ket: nwc2 > 0
+          ? `Modal kerja bersih (NWC) surplus ${this.fmtRp(nwc2, false)}. Posisi likuiditas jangka pendek sehat.`
+          : `NWC defisit/nol (${this.fmtRp(nwc2, false)}), aset lancar belum melampaui liabilitas lancar.`
       },
       {
-        no: 9,
-        name: 'Self Financing (Modal Internal)',
-        formula: projectVal > 0 ? 'Modal Sendiri / Nilai Proyek' : 'Modal Sendiri / Total Aset',
-        rac: '&gt; 20,00%',
-        v1: !hasData1 || selfFin1 === null ? '-' : `${this.fmtNum(selfFin1, 2)}%`,
-        v2: selfFin2 === null ? '-' : `${this.fmtNum(selfFin2, 2)}%`,
-        pass: passSelfFin,
-        ket: selfFin2 === null
-          ? 'Data ekuitas tidak memadai.'
-          : (selfFin2 > 20 ? `Modal Internal ${this.fmtNum(selfFin2, 2)}% melampaui standar 20% (Skor 100 / Grade A).`
-            : (selfFin2 >= 15 ? `Modal Internal ${this.fmtNum(selfFin2, 2)}% memadai (Skor 80 / Grade B).`
-            : (selfFin2 >= 10 ? `Modal Internal ${this.fmtNum(selfFin2, 2)}% cukup (Skor 60 / Grade C).`
-            : `Modal Internal ${this.fmtNum(selfFin2, 2)}% di bawah batas aman (Skor ${selfFin2 >= 5 ? '40 / Grade D' : '20 / Grade E'}).`)))
+        no: 6,
+        name: 'NWC / Nilai Proyek',
+        formula: '(NWC / Nilai Proyek) &times; 100%',
+        rac: '&gt; 40,00%',
+        v1: !hasData1 || nwcPct1 === null ? '-' : `${this.fmtNum(nwcPct1, 2)}%`,
+        v2: nwcPct2 === null ? '-' : `${this.fmtNum(nwcPct2, 2)}%`,
+        pass: passNwcProj,
+        ket: projectVal > 0
+          ? (nwcPct2 > 40 ? `NWC ${this.fmtNum(nwcPct2, 2)}% dari Nilai Proyek memenuhi standar > 40,00% (Skor 100 / Grade A). Penyangga modal kerja sangat kuat.`
+            : (nwcPct2 > 20 ? `NWC ${this.fmtNum(nwcPct2, 2)}% dari Nilai Proyek di bawah standar > 40,00% namun cukup memadai (Skor 75 / Grade B).`
+            : (nwcPct2 > 10 ? `NWC ${this.fmtNum(nwcPct2, 2)}% dari Nilai Proyek relatif tipis terhadap batas > 40,00% (Skor 50 / Grade C).`
+            : `NWC ${this.fmtNum(nwcPct2, 2)}% dari Nilai Proyek di bawah 10% (Skor 25 / Grade D).`)))
+          : 'Nilai Proyek belum diisi. Masukkan Nilai Proyek untuk menghitung persentase NWC / Nilai Proyek.'
       }
     ];
   },
@@ -3426,7 +3354,7 @@ window.PelakuModule = {
           </div>
           <div class="text-right shrink-0">
             <span class="inline-block px-2 py-0.5 rounded text-[10px] font-extrabold ${rec.racFailCount === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
-              ${rec.racPassCount}/${(Number(rec.racPassCount) || 0) + (Number(rec.racFailCount) || 0) || 9} RAC
+              ${rec.racPassCount}/${(Number(rec.racPassCount) || 0) + (Number(rec.racFailCount) || 0) || 6} RAC
             </span>
             <span class="block text-[10px] font-mono text-slate-400 mt-0.5">Skor ${Number(rec.score || 0).toFixed(1)}</span>
           </div>
@@ -4073,7 +4001,7 @@ window.PelakuModule = {
                       <span class="font-bold text-slate-800">Periode Buku: Th ${s.years && s.years.length > 2 ? this.escapeHtml(s.years.join(', ')) : (this.escapeHtml(s.year1) + ' &ndash; ' + this.escapeHtml(s.year2))}</span>
                       ${idx === 0 ? '<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-purple-600 text-white uppercase">Terbaru</span>' : ''}
                       <span class="px-2 py-0.5 rounded text-[10px] font-bold ${Number(s.racFailCount) === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
-                        ${s.racPassCount ?? 0}/${(Number(s.racPassCount) || 0) + (Number(s.racFailCount) || 0) || 9} RAC LULUS
+                        ${s.racPassCount ?? 0}/${(Number(s.racPassCount) || 0) + (Number(s.racFailCount) || 0) || 6} RAC LULUS
                       </span>
                     </div>
                     <p class="text-[11px] text-slate-600">
@@ -4302,7 +4230,7 @@ CREATE POLICY "Allow public all access on pelaku_analyses" ON public.pelaku_anal
                 Skor ${Number(item.score || 0).toFixed(1)}
               </span>
               <span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${allPass ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}">
-                ${item.racPassCount ?? 0}/${(Number(item.racPassCount) || 0) + (Number(item.racFailCount) || 0) || 9} RAC
+                ${item.racPassCount ?? 0}/${(Number(item.racPassCount) || 0) + (Number(item.racFailCount) || 0) || 6} RAC
               </span>
             </div>
             <span class="block text-[10px] text-slate-400 mt-1">${this.escapeHtml(item.grade || '-')}</span>
@@ -5349,11 +5277,11 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
     if (!modal) return;
 
     modal.innerHTML = `
-      <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn print-modal-backdrop">
         <div class="bg-white rounded-3xl max-w-4xl w-full p-8 shadow-2xl border border-slate-200 space-y-6 max-h-[92vh] overflow-y-auto printable-document">
           
           <!-- Kop Surat Resmi Askrindo -->
-          <div class="flex items-center justify-between border-b-2 border-slate-900 pb-4">
+          <div class="flex items-center justify-between border-b-2 border-slate-900 pb-4 print-avoid-break">
             <div class="flex items-center gap-3">
               <img src="assets/images/logo-corporate.png" alt="Askrindo Logo" class="h-12 object-contain" />
               <div>
@@ -5368,7 +5296,7 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
           </div>
 
           <!-- Informasi Calon Debitur / Rekanan -->
-          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1.5">
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1.5 print-avoid-break">
             <div class="flex items-center justify-between gap-2">
               <div class="flex flex-wrap items-center gap-2">
                 <h3 class="font-bold text-slate-900 text-sm">${this.escapeHtml(c.company || '-')}</h3>
@@ -5387,37 +5315,41 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
           <div>
             <div class="flex items-center justify-between mb-2">
               <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Kepatuhan Standar Risk Acceptance Criteria (RAC)</h4>
-              <span class="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded">
-                ${c.passRacCount} RAC LULUS &bull; Current Ratio (&ge; 100%)
+              <span class="text-[10px] font-bold px-2.5 py-0.5 rounded ${c.failRacCount === 0 ? 'text-emerald-800 bg-emerald-100' : (c.passRacCount > 0 ? 'text-amber-800 bg-amber-100' : 'text-rose-800 bg-rose-100')}">
+                ${c.passRacCount}/${(c.racList || []).length} RAC LULUS (${c.failRacCount === 0 ? 'Memenuhi Seluruh Standar RAC' : `${c.failRacCount} Tidak Lulus`})
               </span>
             </div>
             <table class="w-full text-xs border border-slate-200">
-              <tr class="bg-slate-100 font-bold">
-                <th class="p-2 text-center w-7">No</th>
-                <th class="p-2 text-left">Indikator Rasio</th>
-                <th class="p-2 text-left">Rumus Perhitungan</th>
-                <th class="p-2 text-center">Standar RAC</th>
-                <th class="p-2 text-center">Tahun ${c.year1}</th>
-                <th class="p-2 text-center">Tahun ${c.year2} (Eval)</th>
-                <th class="p-2 text-center">Status RAC</th>
-                <th class="p-2 text-left">Analisis &amp; Keterangan Komparasi</th>
-              </tr>
-              ${c.racList.map(r => `
-                <tr class="border-b">
-                  <td class="p-2 text-center font-bold text-slate-500">${r.no}</td>
-                  <td class="p-2 font-bold text-slate-800">${r.name}</td>
-                  <td class="p-2 text-slate-600 font-mono text-[10px]">${r.formula}</td>
-                  <td class="p-2 text-center font-mono font-bold">${r.rac}</td>
-                  <td class="p-2 text-center font-mono">${r.v1}</td>
-                  <td class="p-2 text-center font-mono font-bold ${r.pass ? 'text-emerald-700' : 'text-rose-700'}">${r.v2}</td>
-                  <td class="p-2 text-center">
-                    <span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold ${r.pass ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300'}">
-                      ${r.pass ? 'LULUS' : 'TIDAK LULUS'}
-                    </span>
-                  </td>
-                  <td class="p-2 text-[10px] leading-relaxed">${r.ket}</td>
+              <thead>
+                <tr class="bg-slate-100 font-bold">
+                  <th class="p-2 text-center w-7">No</th>
+                  <th class="p-2 text-left">Indikator Rasio</th>
+                  <th class="p-2 text-left">Rumus Perhitungan</th>
+                  <th class="p-2 text-center">Standar RAC</th>
+                  <th class="p-2 text-center">Tahun ${c.year1}</th>
+                  <th class="p-2 text-center">Tahun ${c.year2} (Eval)</th>
+                  <th class="p-2 text-center">Status RAC</th>
+                  <th class="p-2 text-left">Analisis &amp; Keterangan Komparasi</th>
                 </tr>
-              `).join('')}
+              </thead>
+              <tbody>
+                ${c.racList.map(r => `
+                  <tr class="border-b">
+                    <td class="p-2 text-center font-bold text-slate-500">${r.no}</td>
+                    <td class="p-2 font-bold text-slate-800">${r.name}</td>
+                    <td class="p-2 text-slate-600 font-mono text-[10px]">${r.formula}</td>
+                    <td class="p-2 text-center font-mono font-bold">${r.rac}</td>
+                    <td class="p-2 text-center font-mono">${r.v1}</td>
+                    <td class="p-2 text-center font-mono font-bold ${r.pass ? 'text-emerald-700' : 'text-rose-700'}">${r.v2}</td>
+                    <td class="p-2 text-center">
+                      <span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold ${r.pass ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300'}">
+                        ${r.pass ? 'LULUS' : 'TIDAK LULUS'}
+                      </span>
+                    </td>
+                    <td class="p-2 text-[10px] leading-relaxed">${r.ket}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
             </table>
           </div>
 
@@ -5425,29 +5357,33 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
           <div>
             <h4 class="text-xs font-bold text-slate-800 mb-2 uppercase tracking-wider">Hasil Analisis 27 Indikator Rasio Finansial Komparatif (${c.year1 ? `Tahun ${c.year1} &amp; ${c.year2}` : `Tahun ${c.year2}`})</h4>
             <table class="w-full text-xs border border-slate-200">
-              <tr class="bg-slate-100 font-bold">
-                <th class="p-2 text-center w-8">No</th>
-                <th class="p-2 text-left">Indikator Rasio</th>
-                <th class="p-2 text-right">${c.year1 ? `Tahun ${c.year1}` : 'Tahun 1'}</th>
-                <th class="p-2 text-right">${c.year2 ? `Tahun ${c.year2} (Eval)` : 'Tahun 2'}</th>
-                <th class="p-2 text-center w-14">Skor</th>
-                <th class="p-2 text-left">Parameter / Standar Acuan</th>
-              </tr>
-              ${(c.ratios27 || []).map(r => `
-                <tr class="border-b">
-                  <td class="p-1.5 text-center font-bold text-slate-400 text-[11px]">${r.no}</td>
-                  <td class="p-1.5 font-medium text-slate-800">${r.name}</td>
-                  <td class="p-1.5 text-right font-mono text-slate-600">${r.val1 || '-'}</td>
-                  <td class="p-1.5 text-right font-mono font-bold ${r.pass ? 'text-emerald-700' : 'text-slate-800'}">${r.val}</td>
-                  <td class="p-1.5 text-center font-mono font-bold text-[11px] ${Number(r.scoreVal) >= 80 ? 'text-emerald-700' : (Number(r.scoreVal) >= 50 ? 'text-amber-700' : 'text-rose-700')}">${r.scoreVal !== undefined ? r.scoreVal : '-'}</td>
-                  <td class="p-1.5 text-slate-500 text-[11px]">${r.std}</td>
+              <thead>
+                <tr class="bg-slate-100 font-bold">
+                  <th class="p-2 text-center w-8">No</th>
+                  <th class="p-2 text-left">Indikator Rasio</th>
+                  <th class="p-2 text-right">${c.year1 ? `Tahun ${c.year1}` : 'Tahun 1'}</th>
+                  <th class="p-2 text-right">${c.year2 ? `Tahun ${c.year2} (Eval)` : 'Tahun 2'}</th>
+                  <th class="p-2 text-center w-14">Skor</th>
+                  <th class="p-2 text-left">Parameter / Standar Acuan</th>
                 </tr>
-              `).join('')}
+              </thead>
+              <tbody>
+                ${(c.ratios27 || []).map(r => `
+                  <tr class="border-b">
+                    <td class="p-1.5 text-center font-bold text-slate-400 text-[11px]">${r.no}</td>
+                    <td class="p-1.5 font-medium text-slate-800">${r.name}</td>
+                    <td class="p-1.5 text-right font-mono text-slate-600">${r.val1 || '-'}</td>
+                    <td class="p-1.5 text-right font-mono font-bold ${r.pass ? 'text-emerald-700' : 'text-slate-800'}">${r.val}</td>
+                    <td class="p-1.5 text-center font-mono font-bold text-[11px] ${Number(r.scoreVal) >= 80 ? 'text-emerald-700' : (Number(r.scoreVal) >= 50 ? 'text-amber-700' : 'text-rose-700')}">${r.scoreVal !== undefined ? r.scoreVal : '-'}</td>
+                    <td class="p-1.5 text-slate-500 text-[11px]">${r.std}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
             </table>
           </div>
 
           <!-- Rekomendasi Naratif Underwriting -->
-          <div class="p-4 rounded-xl bg-purple-50/50 border border-purple-200 space-y-1 text-xs">
+          <div class="p-4 rounded-xl bg-purple-50/50 border border-purple-200 space-y-1 text-xs print-avoid-break">
             <span class="font-bold text-purple-900 block uppercase tracking-wider text-[10px]">Kesimpulan &amp; Rekomendasi Underwriting:</span>
             <p class="text-slate-700 leading-relaxed font-medium">${c.narrative}</p>
           </div>

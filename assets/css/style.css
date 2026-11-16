@@ -155,34 +155,108 @@ body {
   animation-play-state: paused;
 }
 
-/* Print Stylesheet for SPPA and Quotation Slips */
+/* Print Stylesheet for SPPA, Quotation Slips, and Financial Evaluation Reports */
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+  html,
   body {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
     background: white !important;
     color: black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   .no-print,
+  #app-root .no-print,
   #app-sidebar,
   #app-topbar,
   #command-palette,
+  #app-root #toast-container,
+  #toast-container,
   .print-hide {
     display: none !important;
   }
+  #app-root,
+  #app-root > div:not(.no-print),
+  #app-root > div > div:not(.no-print),
+  #app-root > div > div > div:has(> #main-content),
   #main-content {
+    position: static !important;
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
     margin: 0 !important;
     padding: 0 !important;
+    width: 100% !important;
     max-width: 100% !important;
   }
-  .printable-document {
-    box-shadow: none !important;
-    border: none !important;
+  #app-root:has(.print-modal-backdrop .printable-document) .pelaku-screen-content,
+  #app-root:has(.fixed > .printable-document) #main-content > div > *:not(:has(.printable-document)) {
+    display: none !important;
+  }
+  .print-modal-backdrop,
+  .fixed:has(> .printable-document) {
+    position: static !important;
+    inset: auto !important;
+    display: block !important;
     width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
     margin: 0 !important;
     padding: 0 !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    animation: none !important;
+    transform: none !important;
   }
-  @page {
-    size: A4;
-    margin: 15mm;
+  .printable-document {
+    position: static !important;
+    display: block !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    animation: none !important;
+    transform: none !important;
+  }
+  .printable-document .overflow-x-auto,
+  .printable-document .overflow-y-auto {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+  .printable-document table {
+    width: 100% !important;
+    border-collapse: collapse;
+  }
+  .printable-document thead {
+    display: table-header-group;
+  }
+  .printable-document tbody {
+    display: table-row-group;
+  }
+  .printable-document tr,
+  .print-avoid-break {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 }
 
