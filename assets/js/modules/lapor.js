@@ -112,6 +112,7 @@ window.LaporModule = {
   selectedAiFinFiles: [],
   currentExtractedFinData: null,
   extractedYearsData: null,
+  deletedYearsHistory: [],
 
   defaultData1: {
     cash: 14200000000, otherCa: 900000000, ar: 23500000000, inv: 18100000000, otherAr: 1200000000, prepaid: 850000000,
@@ -208,14 +209,28 @@ window.LaporModule = {
 
   getActiveYears() {
     let yrs = this.workspaceState?.years;
-    if (Array.isArray(yrs) && yrs.length >= 2) {
+    if (Array.isArray(yrs) && yrs.length >= 1) {
       return [...new Set(yrs.map(String))].sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
     }
     const y1 = document.getElementById('inp_year1')?.value?.trim() || this.workspaceState?.year1 || '2024';
     const y2 = document.getElementById('inp_year2')?.value?.trim() || this.workspaceState?.year2 || '2025';
     const set = new Set([String(y1), String(y2)].filter(Boolean));
-    if (set.size < 2) set.add('2025');
+    if (set.size === 0) {
+      set.add('2024');
+      set.add('2025');
+    }
     return Array.from(set).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+  },
+
+  /** Re-render workspace view and recalculate ratios/icons after column changes. */
+  reRenderWorkspaceView() {
+    const main = document.getElementById('main-content') || document.getElementById('app-main') || document.querySelector('main');
+    if (main) {
+      main.innerHTML = this.render();
+      this.updateYearLabels();
+      this.calculateRatios();
+      if (window.lucide) window.lucide.createIcons();
+    }
   },
 
   openAddYearModal() {
@@ -318,55 +333,167 @@ window.LaporModule = {
 
     this.formSourceMode = 'dirty';
     this.saveWorkspaceDraft();
-
-    const main = document.getElementById('app-main') || document.querySelector('main');
-    if (main) {
-      main.innerHTML = this.render();
-      this.updateYearLabels();
-      this.calculateRatios();
-      if (window.lucide) window.lucide.createIcons();
-    }
+    this.reRenderWorkspaceView();
 
     window.askrindoApp.showToast(`Kolom Tahun ${yrStr} berhasil ditambahkan! Riwayat tahun sebelumnya (${years.filter(y => y !== yrStr).join(', ')}) tetap aman tersimpan.`, 'success');
+  },
+
+  /** Open modal allowing user to pick which active year column to remove. */
+  openRemoveYearModal() {
+    const years = this.getActiveYears();
+    if (years.length <= 1) {
+      window.askrindoApp.showToast('Minimal 1 kolom tahun laporan keuangan harus tetap tersedia pada tabel.', 'warning');
+      return;
+    }
+
+    const modal = document.getElementById('lapor-modal-container');
+    if (!modal) return;
+
+    this.syncWorkspaceFromDom();
+    const yearly = this.workspaceState?.yearlyData || {};
+    const evalYr = this.workspaceState?.year2 || years[years.length - 1];
+
+    modal.innerHTML = `
+      <div onclick="if (event.target === this) document.getElementById('lapor-modal-container').innerHTML=''" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-md p-6 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2 text-rose-700 font-bold text-sm">
+              <i data-lucide="calendar-minus" class="w-4 h-4"></i>
+              <span>Hapus Kolom Tahun</span>
+            </div>
+            <button type="button" onclick="document.getElementById('lapor-modal-container').innerHTML=''" class="w-8 h-8 rounded-full text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center text-lg font-bold transition">&times;</button>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Pilih kolom periode tahun yang ingin dihapus dari tabel. Jika salah menghapus, gunakan tombol <strong>Undo Hapus</strong> untuk mengembalikan kolom beserta angkanya.
+          </p>
+          <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+            ${years.map(yr => {
+              const accObj = yearly[yr] || {};
+              const filledCount = FIN_ACCOUNT_KEYS.filter(k => {
+                const v = accObj[k];
+                return v !== '' && v !== null && v !== undefined && Number(v) !== 0;
+              }).length;
+              const isEval = yr === evalYr;
+              return `
+                <div class="flex items-center justify-between p-3 rounded-2xl border ${isEval ? 'border-purple-200 bg-purple-50/40' : 'border-slate-200 bg-slate-50/60'}">
+                  <div class="text-xs">
+                    <div class="flex items-center gap-2">
+                      <span class="font-mono font-black text-slate-800">Tahun ${this.escapeHtml(yr)}</span>
+                      ${isEval ? '<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-purple-100 text-purple-800 border border-purple-200">Evaluasi</span>' : ''}
+                    </div>
+                    <span class="text-[11px] text-slate-500">${filledCount > 0 ? `${filledCount} pos akun terisi` : 'Belum ada angka (kosong)'}</span>
+                  </div>
+                  <button type="button" onclick="document.getElementById('lapor-modal-container').innerHTML=''; window.LaporModule.removeYearColumn('${this.escapeHtml(yr)}');" class="px-3 py-1.5 rounded-xl text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-600 hover:text-white border border-rose-200 transition flex items-center gap-1 cursor-pointer">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    <span>Hapus</span>
+                  </button>
+                </div>
+              `;
+            }).join('')}
+          </div>
+          <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+            <button type="button" onclick="document.getElementById('lapor-modal-container').innerHTML=''" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Tutup</button>
+          </div>
+        </div>
+      </div>
+    `;
+    if (window.lucide) window.lucide.createIcons();
   },
 
   removeYearColumn(year) {
     const yrStr = String(year).trim();
     let years = this.getActiveYears();
-    if (years.length <= 2) {
-      window.askrindoApp.showToast('Minimal 2 tahun laporan keuangan diperlukan untuk analisis komparatif underwriting.', 'warning');
-      return;
-    }
-    if (!confirm(`Hapus kolom Tahun ${yrStr} dari tabel saat ini? Angka yang telah diinput pada tahun ini akan dihapus dari tabel.`)) {
+    if (years.length <= 1) {
+      window.askrindoApp.showToast('Minimal 1 kolom tahun laporan keuangan harus tetap ada di tabel.', 'warning');
       return;
     }
 
     this.syncWorkspaceFromDom();
+
+    const prevYears = [...years];
+    const removedData = this.workspaceState?.yearlyData?.[yrStr]
+      ? { ...this.workspaceState.yearlyData[yrStr] }
+      : {};
+    if (!Array.isArray(this.deletedYearsHistory)) this.deletedYearsHistory = [];
+    this.deletedYearsHistory.push({
+      year: yrStr,
+      data: removedData,
+      prevYears,
+      prevYear1: this.workspaceState?.year1 || '',
+      prevYear2: this.workspaceState?.year2 || '',
+      deletedAt: new Date().toISOString()
+    });
+    if (this.deletedYearsHistory.length > 10) {
+      this.deletedYearsHistory.shift();
+    }
+
     years = years.filter(y => y !== yrStr);
     this.workspaceState.years = years;
     if (this.workspaceState.yearlyData) {
       delete this.workspaceState.yearlyData[yrStr];
     }
 
-    if (this.workspaceState.year2 === yrStr) {
+    if (years.length === 1) {
+      this.workspaceState.year1 = '';
+      this.workspaceState.year2 = years[0];
+      this.workspaceState.d1 = {};
+      this.workspaceState.d2 = this.workspaceState.yearlyData?.[years[0]] || {};
+    } else if (this.workspaceState.year2 === yrStr) {
       this.workspaceState.year2 = years[years.length - 1];
-      this.workspaceState.year1 = years.length >= 2 ? years[years.length - 2] : years[0];
+      this.workspaceState.year1 = years[years.length - 2];
     } else if (this.workspaceState.year1 === yrStr) {
-      this.workspaceState.year1 = years[0];
+      this.workspaceState.year1 = years[years.length - 2];
     }
 
     this.formSourceMode = 'dirty';
     this.saveWorkspaceDraft();
+    this.reRenderWorkspaceView();
 
-    const main = document.getElementById('app-main') || document.querySelector('main');
-    if (main) {
-      main.innerHTML = this.render();
-      this.updateYearLabels();
-      this.calculateRatios();
-      if (window.lucide) window.lucide.createIcons();
+    window.askrindoApp.showToast(`Kolom Tahun ${yrStr} dihapus. Klik "Undo Hapus (${yrStr})" bila ingin membatalkan.`, 'info');
+  },
+
+  /** Restore the most recently deleted year column and all of its account values. */
+  undoRemoveYearColumn() {
+    if (!Array.isArray(this.deletedYearsHistory) || this.deletedYearsHistory.length === 0) {
+      window.askrindoApp.showToast('Tidak ada kolom tahun yang baru dihapus untuk dikembalikan.', 'info');
+      return;
     }
 
-    window.askrindoApp.showToast(`Kolom Tahun ${yrStr} berhasil dihapus dari tabel.`, 'info');
+    this.syncWorkspaceFromDom();
+    const entry = this.deletedYearsHistory.pop();
+    const yrStr = String(entry.year).trim();
+
+    if (!this.workspaceState) this.workspaceState = this.buildBlankState();
+    if (!this.workspaceState.yearlyData) this.workspaceState.yearlyData = {};
+
+    let years = this.getActiveYears();
+    if (!years.includes(yrStr)) {
+      years.push(yrStr);
+      years.sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+    }
+
+    this.workspaceState.years = years;
+    this.workspaceState.yearlyData[yrStr] = { ...(entry.data || {}) };
+
+    if (entry.prevYear1 && years.includes(entry.prevYear1)) {
+      this.workspaceState.year1 = entry.prevYear1;
+    } else {
+      this.workspaceState.year1 = years.length >= 2 ? years[years.length - 2] : '';
+    }
+    if (entry.prevYear2 && years.includes(entry.prevYear2)) {
+      this.workspaceState.year2 = entry.prevYear2;
+    } else {
+      this.workspaceState.year2 = years[years.length - 1];
+    }
+
+    this.workspaceState.d1 = this.workspaceState.year1 ? (this.workspaceState.yearlyData[this.workspaceState.year1] || {}) : {};
+    this.workspaceState.d2 = this.workspaceState.year2 ? (this.workspaceState.yearlyData[this.workspaceState.year2] || {}) : {};
+
+    this.formSourceMode = 'dirty';
+    this.saveWorkspaceDraft();
+    this.reRenderWorkspaceView();
+
+    window.askrindoApp.showToast(`Kolom Tahun ${yrStr} dan seluruh datanya berhasil dikembalikan (Undo)!`, 'success');
   },
 
   initWorkspaceState() {
@@ -419,7 +546,7 @@ window.LaporModule = {
     if (!compEl) return this.workspaceState;
 
     const years = this.getActiveYears();
-    const y1 = document.getElementById('inp_year1')?.value?.trim() || (years.length >= 2 ? years[years.length - 2] : '2024');
+    const y1 = document.getElementById('inp_year1')?.value?.trim() || (years.length >= 2 ? years[years.length - 2] : '');
     const y2 = document.getElementById('inp_year2')?.value?.trim() || (years.length >= 1 ? years[years.length - 1] : '2025');
 
     const readAcc = (yr) => {
@@ -811,11 +938,11 @@ window.LaporModule = {
 
               <!-- Card 2: Tabel Pos-Pos Laporan Keuangan Lengkap 27 Akun (Persis ASCA) -->
               <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
+                <div class="p-4 bg-slate-50 border-b border-slate-200 space-y-2.5">
+                  <div class="flex items-center justify-between gap-2 flex-wrap">
                     <div class="flex items-center gap-2 flex-wrap">
                       <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                        <i data-lucide="table-2" class="w-4 h-4 text-purple-600"></i>
+                        <i data-lucide="table-2" class="w-4 h-4 text-purple-600 shrink-0"></i>
                         <span>2. Tabel Neraca &amp; Laba Rugi Komparatif Multi-Tahun (Standar ASCA)</span>
                       </h3>
                       <div class="flex items-center gap-1 flex-wrap">
@@ -826,20 +953,55 @@ window.LaporModule = {
                         `).join('')}
                       </div>
                     </div>
-                    <p class="text-[11px] text-slate-500 mt-0.5">
-                      Masukkan nilai dalam Rupiah penuh (contoh: <code>14.200.000.000</code>). Riwayat seluruh periode tersimpan di Unique ID perusahaan ini.
-                    </p>
-                  </div>
-                  <div class="flex items-center gap-2 shrink-0">
-                    <button type="button" onclick="window.LaporModule.openAddYearModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 shadow-sm transition flex items-center gap-1.5" title="Tambah kolom periode tahun baru (misal 2026)">
-                      <i data-lucide="calendar-plus" class="w-3.5 h-3.5"></i>
-                      <span>+ Tambah Kolom Tahun</span>
-                    </button>
-                    <span class="text-[10px] font-mono text-slate-400 bg-white px-2 py-1 rounded border border-slate-200">
+                    <span class="text-[10px] font-mono text-slate-400 bg-white px-2 py-1 rounded border border-slate-200 shrink-0">
                       IDR
                     </span>
                   </div>
+                  <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
+                    <p class="text-[11px] text-slate-500">
+                      Masukkan nilai dalam Rupiah penuh (contoh: <code>14.200.000.000</code>). Riwayat seluruh periode tersimpan di Unique ID perusahaan ini.
+                    </p>
+                    <div class="flex items-center gap-2 shrink-0 flex-wrap">
+                      ${Array.isArray(this.deletedYearsHistory) && this.deletedYearsHistory.length > 0 ? (() => {
+                        const lastDel = this.deletedYearsHistory[this.deletedYearsHistory.length - 1];
+                        return `
+                          <button id="btn-undo-year-col" type="button" onclick="window.LaporModule.undoRemoveYearColumn()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 shadow-sm transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer" title="Kembalikan kolom Tahun ${this.escapeHtml(lastDel.year)} beserta angkanya">
+                            <i data-lucide="undo-2" class="w-3.5 h-3.5"></i>
+                            <span>Undo Hapus (${this.escapeHtml(lastDel.year)})</span>
+                          </button>
+                        `;
+                      })() : ''}
+                      <button id="btn-open-remove-year-modal" type="button" onclick="window.LaporModule.openRemoveYearModal()" ${activeYearsList.length <= 1 ? 'disabled title="Minimal 1 kolom tahun harus tersisa"' : 'title="Pilih dan hapus kolom tahun pada tabel"'} class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm whitespace-nowrap ${activeYearsList.length > 1 ? 'text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 cursor-pointer' : 'text-slate-400 bg-slate-100 border border-slate-200 opacity-60 cursor-not-allowed'}">
+                        <i data-lucide="calendar-minus" class="w-3.5 h-3.5"></i>
+                        <span>Hapus Kolom Tahun</span>
+                      </button>
+                      <button type="button" onclick="window.LaporModule.openAddYearModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 shadow-sm transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer" title="Tambah kolom periode tahun baru (misal 2026)">
+                        <i data-lucide="calendar-plus" class="w-3.5 h-3.5"></i>
+                        <span>+ Tambah Kolom Tahun</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
+
+                ${Array.isArray(this.deletedYearsHistory) && this.deletedYearsHistory.length > 0 ? (() => {
+                  const lastDel = this.deletedYearsHistory[this.deletedYearsHistory.length - 1];
+                  const delFilled = FIN_ACCOUNT_KEYS.filter(k => {
+                    const v = lastDel.data?.[k];
+                    return v !== '' && v !== null && v !== undefined && Number(v) !== 0;
+                  }).length;
+                  return `
+                    <div id="lapor-undo-year-banner" class="px-4 py-2 bg-amber-50/90 border-b border-amber-200 flex items-center justify-between gap-3 text-xs text-amber-900">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <i data-lucide="history" class="w-3.5 h-3.5 text-amber-600 shrink-0"></i>
+                        <span>Kolom <strong>Tahun ${this.escapeHtml(lastDel.year)}</strong> (${delFilled} pos terisi) telah dihapus${this.deletedYearsHistory.length > 1 ? ` &bull; ${this.deletedYearsHistory.length} riwayat hapus tersedia` : ''}.</span>
+                      </div>
+                      <button type="button" onclick="window.LaporModule.undoRemoveYearColumn()" class="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] transition flex items-center gap-1 shrink-0 cursor-pointer shadow-xs">
+                        <i data-lucide="undo-2" class="w-3 h-3"></i>
+                        <span>Undo (Kembalikan ${this.escapeHtml(lastDel.year)})</span>
+                      </button>
+                    </div>
+                  `;
+                })() : ''}
 
                 <!-- Kontainer Tabel Komparatif -->
                 <div class="overflow-x-auto">
@@ -852,8 +1014,8 @@ window.LaporModule = {
                           <th class="p-2.5 min-w-[130px] text-right ${yr === (ws.year2 || activeYearsList[activeYearsList.length - 1]) ? 'bg-purple-50/70 border-x border-purple-100' : ''}">
                             <div class="flex items-center justify-end gap-1.5">
                               <span class="font-bold text-slate-800">Tahun ${this.escapeHtml(yr)}</span>
-                              ${activeYearsList.length > 2 ? `
-                                <button type="button" onclick="window.LaporModule.removeYearColumn('${yr}')" title="Hapus kolom Tahun ${yr}" class="w-4 h-4 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center text-xs transition">
+                              ${activeYearsList.length > 1 ? `
+                                <button id="btn-remove-col-${this.escapeHtml(yr)}" type="button" onclick="window.LaporModule.removeYearColumn('${this.escapeHtml(yr)}')" title="Hapus kolom Tahun ${this.escapeHtml(yr)}" class="w-4 h-4 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center text-xs transition cursor-pointer">
                                   &times;
                                 </button>
                               ` : ''}
@@ -1339,7 +1501,7 @@ window.LaporModule = {
 
   renderFinStatementTableRows() {
     const years = this.getActiveYears();
-    const y1 = document.getElementById('inp_year1')?.value?.trim() || (years.length >= 2 ? years[years.length - 2] : '2024');
+    const y1 = document.getElementById('inp_year1')?.value?.trim() || (years.length >= 2 ? years[years.length - 2] : '');
     const y2 = document.getElementById('inp_year2')?.value?.trim() || (years.length >= 1 ? years[years.length - 1] : '2025');
     const ws = this.workspaceState || this.buildBlankState();
     const yearly = ws.yearlyData || {};
@@ -1498,7 +1660,7 @@ window.LaporModule = {
     this.updateYearLabels();
 
     const years = this.getActiveYears();
-    const y1 = document.getElementById('inp_year1')?.value?.trim() || (years.length >= 2 ? years[years.length - 2] : '2024');
+    const y1 = document.getElementById('inp_year1')?.value?.trim() || (years.length >= 2 ? years[years.length - 2] : '');
     const y2 = document.getElementById('inp_year2')?.value?.trim() || (years.length >= 1 ? years[years.length - 1] : '2025');
 
     const getVal = (k, yr) => {
@@ -2632,7 +2794,7 @@ window.LaporModule = {
 
   autoBalanceAllYears() {
     const years = this.getActiveYears();
-    const y1 = document.getElementById('inp_year1')?.value?.trim() || (years.length >= 2 ? years[years.length - 2] : '2024');
+    const y1 = document.getElementById('inp_year1')?.value?.trim() || (years.length >= 2 ? years[years.length - 2] : '');
     const y2 = document.getElementById('inp_year2')?.value?.trim() || (years.length >= 1 ? years[years.length - 1] : '2025');
 
     const getVal = (k, yr) => {
@@ -2655,7 +2817,7 @@ window.LaporModule = {
 
   autoBalanceYear(yr) {
     const years = this.getActiveYears();
-    const y1 = document.getElementById('inp_year1')?.value?.trim() || (years.length >= 2 ? years[years.length - 2] : '2024');
+    const y1 = document.getElementById('inp_year1')?.value?.trim() || (years.length >= 2 ? years[years.length - 2] : '');
     const y2 = document.getElementById('inp_year2')?.value?.trim() || (years.length >= 1 ? years[years.length - 1] : '2025');
 
     const getEl = (k) => document.getElementById(`inp_${k}_${yr}`) || document.getElementById(`inp_${k}_${yr === y1 ? 1 : (yr === y2 ? 2 : yr)}`);
@@ -2684,6 +2846,7 @@ window.LaporModule = {
     this.historyBannerAutoLoaded = false;
     this.dismissedBannerForId = null;
     this.lastToastMatchId = null;
+    this.deletedYearsHistory = [];
 
     const sampleState = this.buildSampleState();
     this.applyStateToDom(sampleState, false);
@@ -2700,6 +2863,7 @@ window.LaporModule = {
     this.historyBannerAutoLoaded = false;
     this.dismissedBannerForId = null;
     this.lastToastMatchId = null;
+    this.deletedYearsHistory = [];
 
     FIN_ACCOUNT_KEYS.forEach(k => {
       const el1 = document.getElementById(`inp_${k}_1`);
@@ -2724,9 +2888,7 @@ window.LaporModule = {
 
     this.workspaceState = this.buildBlankState();
     this.saveWorkspaceDraft();
-
-    this.updateYearLabels();
-    this.calculateRatios();
+    this.reRenderWorkspaceView();
     window.askrindoApp.showToast('Form Laporan Keuangan berhasil dikosongkan.', 'info');
   },
 
@@ -3212,7 +3374,7 @@ window.LaporModule = {
 
   applyStateToDom(state, preserveCompanyText = false) {
     const domYears = this.getActiveYears();
-    const stateYears = Array.isArray(state.years) && state.years.length >= 2
+    const stateYears = Array.isArray(state.years) && state.years.length >= 1
       ? [...new Set(state.years.map(String))].sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
       : null;
 
@@ -3500,9 +3662,9 @@ window.LaporModule = {
     if (!rec) return;
     const src = opts.snapshot || rec;
 
-    let allYears = Array.isArray(src.years) && src.years.length >= 2
+    let allYears = Array.isArray(src.years) && src.years.length >= 1
       ? [...src.years]
-      : (Array.isArray(rec.years) && rec.years.length >= 2
+      : (Array.isArray(rec.years) && rec.years.length >= 1
           ? [...rec.years]
           : [String(src.year1 || rec.year1 || '2024'), String(src.year2 || rec.year2 || '2025')]);
 
@@ -3515,7 +3677,7 @@ window.LaporModule = {
     if (src.data1 && src.year1 && !yearlyData[src.year1]) yearlyData[src.year1] = { ...src.data1 };
     if (src.data2 && src.year2 && !yearlyData[src.year2]) yearlyData[src.year2] = { ...src.data2 };
 
-    const y1 = String(src.year1 || (allYears.length >= 2 ? allYears[allYears.length - 2] : allYears[0]));
+    const y1 = allYears.length >= 2 ? String(src.year1 || allYears[allYears.length - 2]) : '';
     const y2 = String(src.year2 || allYears[allYears.length - 1]);
 
     const state = {
@@ -3879,11 +4041,12 @@ window.LaporModule = {
 
     this.preAutoMatchState = null;
     this.autoLoadedCompanyId = null;
+    this.deletedYearsHistory = [];
 
     const src = chosenSnap || rec;
-    let allYears = Array.isArray(src.years) && src.years.length >= 2
+    let allYears = Array.isArray(src.years) && src.years.length >= 1
       ? [...src.years]
-      : (Array.isArray(rec.years) && rec.years.length >= 2
+      : (Array.isArray(rec.years) && rec.years.length >= 1
           ? [...rec.years]
           : [String(src.year1 || rec.year1 || '2024'), String(src.year2 || rec.year2 || '2025')]);
     allYears = [...new Set(allYears.map(String).filter(Boolean))].sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
@@ -3895,7 +4058,7 @@ window.LaporModule = {
     if (src.data1 && src.year1 && !yearlyData[src.year1]) yearlyData[src.year1] = { ...src.data1 };
     if (src.data2 && src.year2 && !yearlyData[src.year2]) yearlyData[src.year2] = { ...src.data2 };
 
-    const y1 = String(src.year1 || (allYears.length >= 2 ? allYears[allYears.length - 2] : allYears[0]));
+    const y1 = allYears.length >= 2 ? String(src.year1 || allYears[allYears.length - 2]) : '';
     const y2 = String(src.year2 || allYears[allYears.length - 1]);
 
     if (this.currentTab !== 'workspace') {
@@ -3998,7 +4161,7 @@ window.LaporModule = {
                 <div class="p-4 rounded-2xl border ${idx === 0 ? 'border-purple-300 bg-purple-50/40' : 'border-slate-200 bg-white'} flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div class="space-y-1 text-xs">
                     <div class="flex items-center gap-2 flex-wrap">
-                      <span class="font-bold text-slate-800">Periode Buku: Th ${s.years && s.years.length > 2 ? this.escapeHtml(s.years.join(', ')) : (this.escapeHtml(s.year1) + ' &ndash; ' + this.escapeHtml(s.year2))}</span>
+                      <span class="font-bold text-slate-800">Periode Buku: Th ${s.years && s.years.length !== 2 ? this.escapeHtml(s.years.join(', ')) : (this.escapeHtml(s.year1) + ' &ndash; ' + this.escapeHtml(s.year2))}</span>
                       ${idx === 0 ? '<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-purple-600 text-white uppercase">Terbaru</span>' : ''}
                       <span class="px-2 py-0.5 rounded text-[10px] font-bold ${Number(s.racFailCount) === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
                         ${s.racPassCount ?? 0}/${(Number(s.racPassCount) || 0) + (Number(s.racFailCount) || 0) || 6} RAC LULUS
@@ -4213,7 +4376,7 @@ CREATE POLICY "Allow public all access on lapor_analyses" ON public.lapor_analys
             </span>
           </td>
           <td class="py-3.5 px-4">
-            <span class="font-bold text-slate-800 font-mono">Th ${item.years && item.years.length > 2 ? this.escapeHtml(item.years.join(', ')) : (this.escapeHtml(item.year1) + ' &ndash; ' + this.escapeHtml(item.year2))}</span>
+            <span class="font-bold text-slate-800 font-mono">Th ${item.years && item.years.length !== 2 ? this.escapeHtml(item.years.join(', ')) : (this.escapeHtml(item.year1) + ' &ndash; ' + this.escapeHtml(item.year2))}</span>
             <button onclick="window.LaporModule.openCompanySnapshotsModal('${this.escapeHtml(item.id)}')" class="mt-1 flex items-center gap-1 text-[10px] font-bold text-indigo-700 hover:underline">
               <i data-lucide="history" class="w-3 h-3"></i>
               <span>${snapCount} Riwayat Periode</span>
@@ -5324,7 +5487,7 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
               </span>
             </div>
             <p class="text-slate-600">
-              Nilai Proyek: <strong>${this.fmtRp(c.projectVal, false)}</strong> &bull; Periode Buku: <strong>Th ${this.escapeHtml(c.year1)} &amp; ${this.escapeHtml(c.year2)}</strong> &bull; Status Laporan: <strong>${this.escapeHtml(c.auditStatus)}</strong>
+              Nilai Proyek: <strong>${this.fmtRp(c.projectVal, false)}</strong> &bull; Periode Buku: <strong>${c.year1 ? `Th ${this.escapeHtml(c.year1)} &amp; ${this.escapeHtml(c.year2)}` : `Th ${this.escapeHtml(c.year2)}`}</strong> &bull; Status Laporan: <strong>${this.escapeHtml(c.auditStatus)}</strong>
             </p>
           </div>
 
@@ -5343,8 +5506,8 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
                   <th class="p-2 text-left">Indikator Rasio</th>
                   <th class="p-2 text-left">Rumus Perhitungan</th>
                   <th class="p-2 text-center">Standar RAC</th>
-                  <th class="p-2 text-center">Tahun ${c.year1}</th>
-                  <th class="p-2 text-center">Tahun ${c.year2} (Eval)</th>
+                  <th class="p-2 text-center">${c.year1 ? `Tahun ${this.escapeHtml(c.year1)}` : 'Tahun Sebelumnya'}</th>
+                  <th class="p-2 text-center">${c.year2 ? `Tahun ${this.escapeHtml(c.year2)} (Eval)` : 'Tahun Eval'}</th>
                   <th class="p-2 text-center">Status RAC</th>
                   <th class="p-2 text-left">Analisis &amp; Keterangan Komparasi</th>
                 </tr>

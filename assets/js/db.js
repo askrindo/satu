@@ -1241,7 +1241,9 @@ class AskrindoDB {
 
     if (allYears.length === 0) allYears = ['2024', '2025'];
 
-    const activeYr1 = String(analysisData.year1 || (allYears.length >= 2 ? allYears[allYears.length - 2] : allYears[0]));
+    const activeYr1 = allYears.length >= 2
+      ? String(analysisData.year1 || allYears[allYears.length - 2])
+      : '';
     const activeYr2 = String(analysisData.year2 || allYears[allYears.length - 1]);
 
     const snapshot = {
