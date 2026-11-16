@@ -726,11 +726,11 @@ window.LaporModule = {
     inputEl.value = formatted;
   },
 
-  handleDotBlur(inputEl) {
+  handleDotBlur(inputEl, defaultZero = false) {
     if (!inputEl) return;
     const val = inputEl.value.trim();
     if (val === '' || val === '-') {
-      inputEl.value = '';
+      inputEl.value = defaultZero ? '0,00' : '';
       return;
     }
     const num = this.parseFormattedNumber(val);
@@ -5196,8 +5196,8 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
                       </tr>
                     `;
                   }
-                  const v1 = d1[r.k] !== undefined ? d1[r.k] : 0;
-                  const v2 = d2[r.k] !== undefined ? d2[r.k] : 0;
+                  const v1 = (d1[r.k] !== undefined && d1[r.k] !== null && d1[r.k] !== '') ? d1[r.k] : 0;
+                  const v2 = (d2[r.k] !== undefined && d2[r.k] !== null && d2[r.k] !== '') ? d2[r.k] : 0;
                   return `
                     <tr class="hover:bg-slate-50/80 transition-colors">
                       <td class="p-2 font-sans text-slate-700">
@@ -5205,10 +5205,10 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
                         ${r.label}
                       </td>
                       <td class="p-1.5">
-                        <input type="text" id="ai_rev_${r.k}_1" value="${this.formatNumberWithDots(v1, true)}" oninput="window.LaporModule.recalculateAiReviewBalances()" class="w-full px-2 py-1 rounded border border-slate-200 text-right font-mono text-xs focus:border-purple-500" />
+                        <input type="text" id="ai_rev_${r.k}_1" value="${this.formatNumberWithDots(v1, true) || '0,00'}" placeholder="0,00" oninput="window.LaporModule.handleDotInput(this); window.LaporModule.recalculateAiReviewBalances()" onblur="window.LaporModule.handleDotBlur(this, true); window.LaporModule.recalculateAiReviewBalances()" class="w-full px-2 py-1 rounded border border-slate-200 text-right font-mono text-xs focus:border-purple-500" />
                       </td>
                       <td class="p-1.5">
-                        <input type="text" id="ai_rev_${r.k}_2" value="${this.formatNumberWithDots(v2, true)}" oninput="window.LaporModule.recalculateAiReviewBalances()" class="w-full px-2 py-1 rounded border border-slate-200 text-right font-mono text-xs focus:border-purple-500" />
+                        <input type="text" id="ai_rev_${r.k}_2" value="${this.formatNumberWithDots(v2, true) || '0,00'}" placeholder="0,00" oninput="window.LaporModule.handleDotInput(this); window.LaporModule.recalculateAiReviewBalances()" onblur="window.LaporModule.handleDotBlur(this, true); window.LaporModule.recalculateAiReviewBalances()" class="w-full px-2 py-1 rounded border border-slate-200 text-right font-mono text-xs focus:border-purple-500" />
                       </td>
                     </tr>
                   `;
