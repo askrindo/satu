@@ -782,7 +782,7 @@ window.LaporModule = {
                     <i data-lucide="sparkles" class="w-3 h-3"></i> AI OCR Vision
                   </span>
                 </div>
-                <p class="text-xs text-slate-500 mt-0.5 ${this.currentTab === 'archive' ? 'truncate' : ''}">
+                <p class="text-xs text-slate-500 mt-0.5">
                   Layanan Analisis dan Perhitungan Rasio Keuangan berbasis AI OCR dengan 27 parameter rasio finansial secara otomatis
                 </p>
               </div>
