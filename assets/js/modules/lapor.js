@@ -1197,7 +1197,7 @@ window.LaporModule = {
                     <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Working Capital Turnover x</span>
-                        <span class="block text-[10px] text-slate-400">Penjualan / Modal Kerja Bersih (NWC)</span>
+                        <span class="block text-[10px] text-slate-400">Penjualan / (Hutang Lancar / Aset Lancar)</span>
                       </div>
                       <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
                         <span id="ratio-wcto-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
@@ -1353,7 +1353,7 @@ window.LaporModule = {
                     <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Operating Ratio %</span>
-                        <span class="block text-[10px] text-slate-400">(HPP + Beban Usaha) / Penjualan &bull; Batas: &le; 95%</span>
+                        <span class="block text-[10px] text-slate-400">Beban Operasional / HPP &bull; Batas: &le; 95%</span>
                       </div>
                       <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
                         <span id="ratio-opr-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
@@ -2029,11 +2029,13 @@ window.LaporModule = {
     const tatoVal1 = ta1 > 0 ? (rev1 / ta1) : 0;
     const tatoTxt1 = `${tatoVal1.toFixed(2)}x`;
 
-    // 8. Working Capital Turnover x
-    const wctoVal = nwcVal > 0 ? (rev2 / nwcVal) : 0;
+    // 8. Working Capital Turnover x (sesuai rumus internal ASCA)
+    const wctoDen2 = ca2 > 0 ? Math.round((cl2 / ca2) * 1e6) / 1e6 : 0;
+    const wctoVal = wctoDen2 > 0 ? (rev2 / wctoDen2) : 0;
 
-    const wctoVal1 = nwcVal1 > 0 ? (rev1 / nwcVal1) : 0;
-    const wctoTxt1 = nwcVal1 > 0 ? `${wctoVal1.toFixed(2)}x` : 'N/A';
+    const wctoDen1 = ca1 > 0 ? Math.round((cl1 / ca1) * 1e6) / 1e6 : 0;
+    const wctoVal1 = wctoDen1 > 0 ? (rev1 / wctoDen1) : 0;
+    const wctoTxt1 = wctoDen1 > 0 ? `${this.formatNumberWithDots(wctoVal1, true)}x` : 'N/A';
 
     // 9. Receivable Turnover x
     const arVal = d2.ar || 0;
@@ -2113,12 +2115,12 @@ window.LaporModule = {
     const oirVal1 = rev1 > 0 ? (ebit1 / rev1) * 100 : 0;
     const oirTxt1 = `${oirVal1.toFixed(2)}%`;
 
-    // 20. Operating Ratio %
+    // 20. Operating Ratio % (sesuai aplikasi internal: Beban Operasional / HPP * 100)
     const opexVal = d2.opex || 0;
-    const oprVal = rev2 > 0 ? (((cogs2 + opexVal) / rev2) * 100) : 0;
+    const oprVal = cogs2 > 0 ? ((opexVal / cogs2) * 100) : 0;
 
     const opexVal1 = d1.opex || 0;
-    const oprVal1 = rev1 > 0 ? (((cogs1 + opexVal1) / rev1) * 100) : 0;
+    const oprVal1 = cogs1 > 0 ? ((opexVal1 / cogs1) * 100) : 0;
     const oprTxt1 = `${oprVal1.toFixed(2)}%`;
 
     // 21. Cash Ratio % x
@@ -2132,10 +2134,10 @@ window.LaporModule = {
     const cashRatioX1 = cl1 > 0 ? (cashVal1 / cl1) : (cashVal1 > 0 ? 99.9 : 0);
     const cashRatioTxt1 = cl1 > 0 ? `${cashRatioVal1.toFixed(2)}% (${cashRatioX1.toFixed(2)}x)` : (cashVal1 > 0 ? 'N/A (Bebas Utang)' : '0.00%');
 
-    // 22. Sales Growth %
+    // 22. Sales Growth % (sesuai aplikasi internal: tampil N/A)
     const salesGrowth = rev1 > 0 ? ((rev2 - rev1) / rev1) * 100 : 0;
     const netProfitGrowth = eat1 !== 0 ? ((eat2 - eat1) / Math.abs(eat1)) * 100 : 0;
-    const salesGrowthTxt1 = '-';
+    const salesGrowthTxt1 = 'N/A';
 
     // 23. Operating Profit Margin %
     const opmVal = rev2 > 0 ? (opBruto2 / rev2) * 100 : 0;
@@ -2212,7 +2214,7 @@ window.LaporModule = {
     updateText('ratio-tato', `${tatoVal.toFixed(2)}x`, 'text-slate-800');
     updateText1('ratio-tato', tatoTxt1, 'text-slate-700');
 
-    updateText('ratio-wcto', nwcVal > 0 ? `${wctoVal.toFixed(2)}x` : 'N/A', 'text-slate-800');
+    updateText('ratio-wcto', wctoDen2 > 0 ? `${this.formatNumberWithDots(wctoVal, true)}x` : 'N/A', 'text-slate-800');
     updateText1('ratio-wcto', wctoTxt1, 'text-slate-700');
 
     updateText('ratio-rto', arVal > 0 ? `${rtoVal.toFixed(2)}x` : 'N/A', 'text-slate-800');
@@ -2254,7 +2256,7 @@ window.LaporModule = {
     updateText('ratio-cash', cashRatioTxt, (cashRatioVal > 40 || cl2 === 0) ? 'text-emerald-600' : (cashRatioVal > 20 ? 'text-amber-600' : 'text-rose-600'));
     updateText1('ratio-cash', cashRatioTxt1, (cashRatioVal1 > 40 || cl1 === 0) ? 'text-emerald-600' : (cashRatioVal1 > 20 ? 'text-amber-600' : 'text-rose-600'));
 
-    updateText('ratio-sales-growth', `${salesGrowth >= 0 ? '+' : ''}${salesGrowth.toFixed(2)}%`, salesGrowth >= 0 ? 'text-emerald-600' : 'text-rose-600');
+    updateText('ratio-sales-growth', 'N/A', 'text-slate-400');
     updateText1('ratio-sales-growth', salesGrowthTxt1, 'text-slate-400');
 
     updateText('ratio-opm', `${opmVal.toFixed(2)}%`, opmVal > 0 ? 'text-blue-600' : 'text-rose-600');
@@ -2486,7 +2488,7 @@ window.LaporModule = {
       { no: 5, key: 'dar', name: 'DAR% x', val1: hasData1 ? darTxt1 : '-', val: `${darVal.toFixed(2)}% (${darX.toFixed(2)}x)`, std: 'Batas Toleransi: < 70,00%', scoreVal: scores.dar, pass: ta2 > 0 && darVal < 70 },
       { no: 6, key: 'ltde', name: 'Long Term Debt to Equity%', val1: hasData1 ? ltdeTxt1 : '-', val: `${ltdeVal.toFixed(2)}%`, std: 'Hutang Jk. Panjang / Modal Sendiri (Standar: < 100%)', scoreVal: scores.ltde, pass: eq2 > 0 && ltdeVal < 100 },
       { no: 7, key: 'tato', name: 'Total Asset Turnover x', val1: hasData1 ? tatoTxt1 : '-', val: `${tatoVal.toFixed(2)}x`, std: 'Penjualan / Total Aset (Standar: ≥ 1.0x)', scoreVal: scores.tato, pass: tatoVal >= 1.0 },
-      { no: 8, key: 'wcto', name: 'Working Capital Turnover x', val1: hasData1 ? wctoTxt1 : '-', val: nwcVal > 0 ? `${wctoVal.toFixed(2)}x` : 'N/A', std: 'Penjualan / Modal Kerja Bersih (NWC)', scoreVal: scores.wcto, pass: wctoVal > 0 },
+      { no: 8, key: 'wcto', name: 'Working Capital Turnover x', val1: hasData1 ? wctoTxt1 : '-', val: wctoDen2 > 0 ? `${this.formatNumberWithDots(wctoVal, true)}x` : 'N/A', std: 'Penjualan / (Hutang Lancar / Aset Lancar)', scoreVal: scores.wcto, pass: wctoVal > 0 },
       { no: 9, key: 'rto', name: 'Receivable Turnover x', val1: hasData1 ? rtoTxt1 : '-', val: arVal > 0 ? `${rtoVal.toFixed(2)}x` : 'N/A', std: 'Penjualan / Piutang Usaha (Standar: ≥ 4.0x)', scoreVal: scores.rto, pass: rev2 > 0 && (arVal <= 0 || rtoVal >= 4.0) },
       { no: 10, key: 'acp', name: 'Day account Recieveable /Average Collection Period(hari)', val1: hasData1 ? acpTxt1 : '-', val: `${Math.round(acpVal)} hari`, std: 'Rata-rata Waktu Penagihan Piutang (Batas: ≤ 90 hari)', scoreVal: scores.acp, pass: rev2 > 0 && acpVal <= 90 },
       { no: 11, key: 'ito', name: 'Inventory Turnover Ratio X', val1: hasData1 ? itoTxt1 : '-', val: invVal > 0 ? `${itoVal.toFixed(2)}x` : 'N/A', std: 'HPP / Persediaan Barang (Standar: ≥ 4.0x)', scoreVal: scores.ito, pass: rev2 > 0 && (invVal <= 0 || itoVal >= 4.0) },
@@ -2498,9 +2500,9 @@ window.LaporModule = {
       { no: 17, key: 'gpm', name: 'Gross Profit Margin %', val1: hasData1 ? gpmTxt1 : '-', val: `${gpmVal.toFixed(2)}%`, std: 'Laba Kotor / Penjualan (Standar: > 0%)', scoreVal: scores.gpm, pass: rev2 > 0 && gpmVal > 0 },
       { no: 18, key: 'npm', name: 'Net Profit Margin % x', val1: hasData1 ? npmTxt1 : '-', val: `${npmVal.toFixed(2)}% (${npmX.toFixed(2)}x)`, std: 'Standar: > 10,00%', scoreVal: scores.npm, pass: rev2 > 0 && npmVal > 10.0 },
       { no: 19, key: 'oir', name: 'Operating Income Ratio %', val1: hasData1 ? oirTxt1 : '-', val: `${oirVal.toFixed(2)}%`, std: 'EBIT / Penjualan (Net Operating Margin)', scoreVal: scores.oir, pass: rev2 > 0 && oirVal > 0 },
-      { no: 20, key: 'opr', name: 'Operating Ratio %', val1: hasData1 ? oprTxt1 : '-', val: `${oprVal.toFixed(2)}%`, std: '(HPP + Beban Usaha) / Penjualan (Batas: ≤ 95%)', scoreVal: scores.opr, pass: rev2 > 0 && oprVal <= 95 },
+      { no: 20, key: 'opr', name: 'Operating Ratio %', val1: hasData1 ? oprTxt1 : '-', val: `${oprVal.toFixed(2)}%`, std: 'Beban Operasional / HPP (Batas: ≤ 95%)', scoreVal: scores.opr, pass: rev2 > 0 && oprVal <= 95 },
       { no: 21, key: 'cash', name: 'Cash Ratio % x', val1: hasData1 ? cashRatioTxt1 : '-', val: cashRatioTxt, std: 'Standar: > 40,00%', scoreVal: scores.cash, pass: cashRatioVal > 40 || (cl2 === 0 && cashVal > 0) },
-      { no: 22, key: 'salesGrowth', name: 'Sales Growth %', val1: '-', val: `${salesGrowth >= 0 ? '+' : ''}${salesGrowth.toFixed(2)}%`, std: 'Pertumbuhan Penjualan YoY (Standar: Positif)', scoreVal: scores.salesGrowth, pass: (!hasData1 || rev1 <= 0) ? rev2 > 0 : salesGrowth >= 0 },
+      { no: 22, key: 'salesGrowth', name: 'Sales Growth %', val1: hasData1 ? 'N/A' : '-', val: 'N/A', std: 'Pertumbuhan Penjualan YoY (Standar: Positif)', scoreVal: scores.salesGrowth, pass: (!hasData1 || rev1 <= 0) ? rev2 > 0 : salesGrowth >= 0 },
       { no: 23, key: 'opm', name: 'Operating Profit Margin %', val1: hasData1 ? opmTxt1 : '-', val: `${opmVal.toFixed(2)}%`, std: 'Laba Bruto Operasional / Penjualan', scoreVal: scores.opm, pass: rev2 > 0 && opmVal > 0 },
       { no: 24, key: 'ebitda', name: 'Ebitda', val1: hasData1 ? ebitdaTxt1 : '-', val: this.fmtRp(ebitdaVal), std: 'Laba Usaha (EBIT) + Akum. Penyusutan', scoreVal: scores.ebitda, pass: ebitdaVal > 0 },
       { no: 25, key: 'ebitdaInt', name: 'Ebitda to interest %', val1: hasData1 ? ebitdaIntTxt1 : '-', val: ebitdaIntVal !== null ? `${ebitdaIntVal.toFixed(2)}% (${ebitdaIntX.toFixed(2)}x)` : 'N/A (Bebas Bunga)', std: 'Interest Coverage Ratio (Standar: ≥ 2.0x)', scoreVal: scores.ebitdaInt, pass: ebitdaIntVal === null ? ebitdaVal >= 0 : ebitdaIntX >= 2.0 },
