@@ -1145,7 +1145,7 @@ window.LaporModule = {
                     <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">DER% x</span>
-                        <span class="block text-[10px] text-slate-400">Debt to Equity &bull; Standar: &lt; 200%</span>
+                        <span class="block text-[10px] text-slate-400">Debt to Equity &bull; Standar: &le; 400%</span>
                       </div>
                       <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
                         <span id="ratio-der-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
@@ -1275,7 +1275,7 @@ window.LaporModule = {
                     <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">ROA % x</span>
-                        <span class="block text-[10px] text-slate-400">Return on Asset &bull; Standar: &ge; 1,0%</span>
+                        <span class="block text-[10px] text-slate-400">Return on Asset &bull; Standar: &gt; 1,0%</span>
                       </div>
                       <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
                         <span id="ratio-roa-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
@@ -1288,7 +1288,7 @@ window.LaporModule = {
                     <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">ROE % x</span>
-                        <span class="block text-[10px] text-slate-400">Return on Equity &bull; Standar: &ge; 5,0%</span>
+                        <span class="block text-[10px] text-slate-400">Return on Equity &bull; Standar: &gt; 5,0%</span>
                       </div>
                       <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
                         <span id="ratio-roe-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
@@ -1444,7 +1444,7 @@ window.LaporModule = {
                     <div class="lapor-ratio-row flex items-center justify-between py-1.5 border-b border-slate-100 hover:bg-slate-50/70 px-1.5 rounded transition">
                       <div class="pr-2">
                         <span class="font-semibold text-slate-700">Net Working Capital</span>
-                        <span class="block text-[10px] text-slate-400">Modal Kerja Bersih &bull; Standar: &gt; 40% Nilai Proyek</span>
+                        <span class="block text-[10px] text-slate-400">Modal Kerja Bersih &bull; Standar: &gt; 10% Nilai Proyek</span>
                       </div>
                       <div class="flex items-center gap-1.5 shrink-0 text-right font-mono text-xs">
                         <span id="ratio-nwc-1" class="w-[72px] font-medium text-slate-500 text-right truncate" title="Tahun 1">-</span>
@@ -1917,7 +1917,7 @@ window.LaporModule = {
           { no: 1, name: 'Current Ratio% x', val1: '-', val: '-', std: 'Standar: ≥ 100,00%', pass: false },
           { no: 2, name: 'Quick Ratio % x', val1: '-', val: '-', std: 'Standar: > 100,00%', pass: false },
           { no: 3, name: 'Working Capital To Total Asset%', val1: '-', val: '-', std: 'Modal Kerja Bersih / Total Aktiva (Standar: > 0%)', pass: false },
-          { no: 4, name: 'DER% x', val1: '-', val: '-', std: 'Standar: < 200,00%', pass: false },
+          { no: 4, name: 'DER% x', val1: '-', val: '-', std: 'Standar: ≤ 400,00%', pass: false },
           { no: 5, name: 'DAR% x', val1: '-', val: '-', std: 'Batas Toleransi: < 70,00%', pass: false },
           { no: 6, name: 'Long Term Debt to Equity%', val1: '-', val: '-', std: 'Hutang Jk. Panjang / Modal Sendiri (Standar: < 100%)', pass: false },
           { no: 7, name: 'Total Asset Turnover x', val1: '-', val: '-', std: 'Penjualan / Total Aset (Standar: ≥ 1.0x)', pass: false },
@@ -1927,8 +1927,8 @@ window.LaporModule = {
           { no: 11, name: 'Inventory Turnover Ratio X', val1: '-', val: '-', std: 'HPP / Persediaan Barang (Standar: ≥ 4.0x)', pass: false },
           { no: 12, name: 'Day Inventory (hari)', val1: '-', val: '-', std: 'Rata-rata Hari Persediaan Tersimpan (Batas: ≤ 90 hari)', pass: false },
           { no: 13, name: 'Day account payable (hari)', val1: '-', val: '-', std: 'Rata-rata Hari Pembayaran Utang Usaha', pass: false },
-          { no: 14, name: 'ROA % x', val1: '-', val: '-', std: 'Standar: ≥ 1,00%', pass: false },
-          { no: 15, name: 'ROE % x', val1: '-', val: '-', std: 'Standar: ≥ 5,00%', pass: false },
+          { no: 14, name: 'ROA % x', val1: '-', val: '-', std: 'Standar: > 1,00%', pass: false },
+          { no: 15, name: 'ROE % x', val1: '-', val: '-', std: 'Standar: > 5,00%', pass: false },
           { no: 16, name: 'ROI %', val1: '-', val: '-', std: 'Return on Investment (EBIT / Total Aktiva) (Standar: > 0%)', pass: false },
           { no: 17, name: 'Gross Profit Margin %', val1: '-', val: '-', std: 'Laba Kotor / Penjualan (Standar: > 0%)', pass: false },
           { no: 18, name: 'Net Profit Margin % x', val1: '-', val: '-', std: 'Standar: > 10,00%', pass: false },
@@ -1940,7 +1940,7 @@ window.LaporModule = {
           { no: 24, name: 'Ebitda', val1: '-', val: '-', std: 'Laba Usaha (EBIT) + Akum. Penyusutan', pass: false },
           { no: 25, name: 'Ebitda to interest %', val1: '-', val: '-', std: 'Interest Coverage Ratio (Standar: ≥ 2.0x)', pass: false },
           { no: 26, name: 'Ebitda to debt %', val1: '-', val: '-', std: 'EBITDA / Total Hutang (Standar: ≥ 20%)', pass: false },
-          { no: 27, name: 'Net Working Capital', val1: '-', val: '-', std: 'Standar: > 40,00% Nilai Proyek', pass: false }
+          { no: 27, name: 'Net Working Capital', val1: '-', val: '-', std: 'Standar: > 10,00% Nilai Proyek', pass: false }
         ],
         racList: emptyRac,
         passRacCount: 0,
@@ -2202,8 +2202,8 @@ window.LaporModule = {
     updateText('ratio-wcta', `${wctaVal.toFixed(2)}%`, wctaVal > 0 ? 'text-slate-800' : 'text-rose-600');
     updateText1('ratio-wcta', wctaTxt1, wctaVal1 > 0 ? 'text-slate-700' : 'text-rose-600');
 
-    updateText('ratio-der', `${derVal.toFixed(2)}% (${derX.toFixed(2)}x)`, derVal < 200 ? 'text-emerald-600' : (derVal < 300 ? 'text-amber-600' : 'text-rose-600'));
-    updateText1('ratio-der', derTxt1, derVal1 < 200 ? 'text-emerald-600' : (derVal1 < 300 ? 'text-amber-600' : 'text-rose-600'));
+    updateText('ratio-der', `${derVal.toFixed(2)}% (${derX.toFixed(2)}x)`, derVal <= 400 ? 'text-emerald-600' : 'text-rose-600');
+    updateText1('ratio-der', derTxt1, derVal1 <= 400 ? 'text-emerald-600' : 'text-rose-600');
 
     updateText('ratio-dar', `${darVal.toFixed(2)}% (${darX.toFixed(2)}x)`, darVal < 70 ? 'text-slate-800' : 'text-rose-600');
     updateText1('ratio-dar', darTxt1, darVal1 < 70 ? 'text-slate-700' : 'text-rose-600');
@@ -2232,11 +2232,11 @@ window.LaporModule = {
     updateText('ratio-dpo', `${Math.round(dpoVal)} hari`, 'text-slate-800');
     updateText1('ratio-dpo', dpoTxt1, 'text-slate-700');
 
-    updateText('ratio-roa', `${roaVal.toFixed(2)}% (${roaX.toFixed(2)}x)`, roaVal >= 1.0 ? 'text-emerald-600' : (roaVal >= 0.5 ? 'text-amber-600' : 'text-rose-600'));
-    updateText1('ratio-roa', roaTxt1, roaVal1 >= 1.0 ? 'text-emerald-600' : (roaVal1 >= 0.5 ? 'text-amber-600' : 'text-rose-600'));
+    updateText('ratio-roa', `${roaVal.toFixed(2)}% (${roaX.toFixed(2)}x)`, roaVal > 1.0 ? 'text-emerald-600' : (roaVal >= 0.5 ? 'text-amber-600' : 'text-rose-600'));
+    updateText1('ratio-roa', roaTxt1, roaVal1 > 1.0 ? 'text-emerald-600' : (roaVal1 >= 0.5 ? 'text-amber-600' : 'text-rose-600'));
 
-    updateText('ratio-roe', `${roeVal.toFixed(2)}% (${roeX.toFixed(2)}x)`, roeVal >= 5.0 ? 'text-emerald-600' : (roeVal >= 3.0 ? 'text-amber-600' : 'text-rose-600'));
-    updateText1('ratio-roe', roeTxt1, roeVal1 >= 5.0 ? 'text-emerald-600' : (roeVal1 >= 3.0 ? 'text-amber-600' : 'text-rose-600'));
+    updateText('ratio-roe', `${roeVal.toFixed(2)}% (${roeX.toFixed(2)}x)`, roeVal > 5.0 ? 'text-emerald-600' : (roeVal >= 3.0 ? 'text-amber-600' : 'text-rose-600'));
+    updateText1('ratio-roe', roeTxt1, roeVal1 > 5.0 ? 'text-emerald-600' : (roeVal1 >= 3.0 ? 'text-amber-600' : 'text-rose-600'));
 
     updateText('ratio-roi', `${roiVal.toFixed(2)}%`, roiVal > 0 ? 'text-purple-600' : 'text-rose-600');
     updateText1('ratio-roi', roiTxt1, roiVal1 > 0 ? 'text-purple-600' : 'text-rose-600');
@@ -2271,8 +2271,8 @@ window.LaporModule = {
     updateText('ratio-ebitda-debt', ebitdaDebtVal !== null ? `${ebitdaDebtVal.toFixed(2)}%` : 'N/A (Bebas Utang)', 'text-indigo-600');
     updateText1('ratio-ebitda-debt', ebitdaDebtTxt1, 'text-indigo-600');
 
-    updateText('ratio-nwc', `${this.fmtRp(nwcVal)}${projectVal > 0 ? ` (${nwcToProject.toFixed(1)}%)` : ''}`, (nwcToProject > 40 || (projectVal === 0 && nwcVal >= 0)) ? 'text-emerald-600' : (nwcToProject > 10 ? 'text-amber-600' : 'text-rose-600'));
-    updateText1('ratio-nwc', nwcTxt1, (nwcToProject1 > 40 || (projectVal === 0 && nwcVal1 >= 0)) ? 'text-emerald-600' : (nwcToProject1 > 10 ? 'text-amber-600' : 'text-rose-600'));
+    updateText('ratio-nwc', `${this.fmtRp(nwcVal)}${projectVal > 0 ? ` (${nwcToProject.toFixed(1)}%)` : ''}`, (nwcToProject > 10 || (projectVal === 0 && nwcVal >= 0)) ? 'text-emerald-600' : (nwcToProject > 5 ? 'text-amber-600' : 'text-rose-600'));
+    updateText1('ratio-nwc', nwcTxt1, (nwcToProject1 > 10 || (projectVal === 0 && nwcVal1 >= 0)) ? 'text-emerald-600' : (nwcToProject1 > 5 ? 'text-amber-600' : 'text-rose-600'));
 
     // 5. Composite Scoring & Grade Askrindo (Seluruh 27 Indikator Rasio + Kapasitas & Tren)
     const auditStatus = document.getElementById('lapor-audit-status')?.value || '';
@@ -2484,7 +2484,7 @@ window.LaporModule = {
       { no: 1, key: 'cr', name: 'Current Ratio% x', val1: hasData1 ? crTxt1 : '-', val: crTxt, std: 'Standar: ≥ 100,00%', scoreVal: scores.cr, pass: crVal >= 100 || (cl2 === 0 && ca2 > 0) },
       { no: 2, key: 'qr', name: 'Quick Ratio % x', val1: hasData1 ? qrTxt1 : '-', val: qrTxt, std: 'Standar: > 100,00%', scoreVal: scores.qr, pass: qrVal > 100 || (cl2 === 0 && quickAssets > 0) },
       { no: 3, key: 'wcta', name: 'Working Capital To Total Asset%', val1: hasData1 ? wctaTxt1 : '-', val: `${wctaVal.toFixed(2)}%`, std: 'Modal Kerja Bersih / Total Aktiva (Standar: > 0%)', scoreVal: scores.wcta, pass: wctaVal > 0 },
-      { no: 4, key: 'der', name: 'DER% x', val1: hasData1 ? derTxt1 : '-', val: `${derVal.toFixed(2)}% (${derX.toFixed(2)}x)`, std: 'Standar: < 200,00%', scoreVal: scores.der, pass: eq2 > 0 && derVal < 200 },
+      { no: 4, key: 'der', name: 'DER% x', val1: hasData1 ? derTxt1 : '-', val: `${derVal.toFixed(2)}% (${derX.toFixed(2)}x)`, std: 'Standar: ≤ 400,00%', scoreVal: scores.der, pass: eq2 > 0 && derVal <= 400 },
       { no: 5, key: 'dar', name: 'DAR% x', val1: hasData1 ? darTxt1 : '-', val: `${darVal.toFixed(2)}% (${darX.toFixed(2)}x)`, std: 'Batas Toleransi: < 70,00%', scoreVal: scores.dar, pass: ta2 > 0 && darVal < 70 },
       { no: 6, key: 'ltde', name: 'Long Term Debt to Equity%', val1: hasData1 ? ltdeTxt1 : '-', val: `${ltdeVal.toFixed(2)}%`, std: 'Hutang Jk. Panjang / Modal Sendiri (Standar: < 100%)', scoreVal: scores.ltde, pass: eq2 > 0 && ltdeVal < 100 },
       { no: 7, key: 'tato', name: 'Total Asset Turnover x', val1: hasData1 ? tatoTxt1 : '-', val: `${tatoVal.toFixed(2)}x`, std: 'Penjualan / Total Aset (Standar: ≥ 1.0x)', scoreVal: scores.tato, pass: tatoVal >= 1.0 },
@@ -2494,8 +2494,8 @@ window.LaporModule = {
       { no: 11, key: 'ito', name: 'Inventory Turnover Ratio X', val1: hasData1 ? itoTxt1 : '-', val: invVal > 0 ? `${itoVal.toFixed(2)}x` : 'N/A', std: 'HPP / Persediaan Barang (Standar: ≥ 4.0x)', scoreVal: scores.ito, pass: rev2 > 0 && (invVal <= 0 || itoVal >= 4.0) },
       { no: 12, key: 'dio', name: 'Day Inventory (hari)', val1: hasData1 ? dioTxt1 : '-', val: `${Math.round(dioVal)} hari`, std: 'Rata-rata Hari Persediaan Tersimpan (Batas: ≤ 90 hari)', scoreVal: scores.dio, pass: rev2 > 0 && dioVal <= 90 },
       { no: 13, key: 'dpo', name: 'Day account payable (hari)', val1: hasData1 ? dpoTxt1 : '-', val: `${Math.round(dpoVal)} hari`, std: 'Rata-rata Hari Pembayaran Utang Usaha (≤ 90 hari)', scoreVal: scores.dpo, pass: (rev2 > 0 || curCogs > 0) && dpoVal <= 90 },
-      { no: 14, key: 'roa', name: 'ROA % x', val1: hasData1 ? roaTxt1 : '-', val: `${roaVal.toFixed(2)}% (${roaX.toFixed(2)}x)`, std: 'Standar: ≥ 1,00%', scoreVal: scores.roa, pass: roaVal >= 1.0 },
-      { no: 15, key: 'roe', name: 'ROE % x', val1: hasData1 ? roeTxt1 : '-', val: `${roeVal.toFixed(2)}% (${roeX.toFixed(2)}x)`, std: 'Standar: ≥ 5,00%', scoreVal: scores.roe, pass: eq2 > 0 && roeVal >= 5.0 },
+      { no: 14, key: 'roa', name: 'ROA % x', val1: hasData1 ? roaTxt1 : '-', val: `${roaVal.toFixed(2)}% (${roaX.toFixed(2)}x)`, std: 'Standar: > 1,00%', scoreVal: scores.roa, pass: roaVal > 1.0 },
+      { no: 15, key: 'roe', name: 'ROE % x', val1: hasData1 ? roeTxt1 : '-', val: `${roeVal.toFixed(2)}% (${roeX.toFixed(2)}x)`, std: 'Standar: > 5,00%', scoreVal: scores.roe, pass: eq2 > 0 && roeVal > 5.0 },
       { no: 16, key: 'roi', name: 'ROI %', val1: hasData1 ? roiTxt1 : '-', val: `${roiVal.toFixed(2)}%`, std: 'Return on Investment (EBIT / Total Aktiva) (Standar: > 0%)', scoreVal: scores.roi, pass: roiVal > 0 },
       { no: 17, key: 'gpm', name: 'Gross Profit Margin %', val1: hasData1 ? gpmTxt1 : '-', val: `${gpmVal.toFixed(2)}%`, std: 'Laba Kotor / Penjualan (Standar: > 0%)', scoreVal: scores.gpm, pass: rev2 > 0 && gpmVal > 0 },
       { no: 18, key: 'npm', name: 'Net Profit Margin % x', val1: hasData1 ? npmTxt1 : '-', val: `${npmVal.toFixed(2)}% (${npmX.toFixed(2)}x)`, std: 'Standar: > 10,00%', scoreVal: scores.npm, pass: rev2 > 0 && npmVal > 10.0 },
@@ -2507,7 +2507,7 @@ window.LaporModule = {
       { no: 24, key: 'ebitda', name: 'Ebitda', val1: hasData1 ? ebitdaTxt1 : '-', val: this.fmtRp(ebitdaVal), std: 'Laba Usaha (EBIT) + Akum. Penyusutan', scoreVal: scores.ebitda, pass: ebitdaVal > 0 },
       { no: 25, key: 'ebitdaInt', name: 'Ebitda to interest %', val1: hasData1 ? ebitdaIntTxt1 : '-', val: ebitdaIntVal !== null ? `${ebitdaIntVal.toFixed(2)}% (${ebitdaIntX.toFixed(2)}x)` : 'N/A (Bebas Bunga)', std: 'Interest Coverage Ratio (Standar: ≥ 2.0x)', scoreVal: scores.ebitdaInt, pass: ebitdaIntVal === null ? ebitdaVal >= 0 : ebitdaIntX >= 2.0 },
       { no: 26, key: 'ebitdaDebt', name: 'Ebitda to debt %', val1: hasData1 ? ebitdaDebtTxt1 : '-', val: ebitdaDebtVal !== null ? `${ebitdaDebtVal.toFixed(2)}%` : 'N/A (Bebas Hutang)', std: 'EBITDA / Total Hutang (Standar: ≥ 20%)', scoreVal: scores.ebitdaDebt, pass: ebitdaDebtVal === null ? ebitdaVal >= 0 : ebitdaDebtVal >= 20 },
-      { no: 27, key: 'nwc', name: 'Net Working Capital', val1: hasData1 ? nwcTxt1 : '-', val: this.fmtRp(nwcVal), std: 'Standar: > 40,00% Nilai Proyek', scoreVal: scores.nwc, pass: projectVal > 0 ? (nwcToProject > 40) : (nwcVal > 0) }
+      { no: 27, key: 'nwc', name: 'Net Working Capital', val1: hasData1 ? nwcTxt1 : '-', val: this.fmtRp(nwcVal), std: 'Standar: > 10,00% Nilai Proyek', scoreVal: scores.nwc, pass: projectVal > 0 ? (nwcToProject > 10) : (nwcVal > 0) }
     ];
 
     // Simpan objek analisis untuk lembar cetak
@@ -2665,11 +2665,11 @@ window.LaporModule = {
     if (!hasData2) {
       return [
         { no: 1, name: 'Current Ratio (CR)', formula: 'Aset Lancar / Liab. Lancar', rac: '&ge; 100,00%', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' },
-        { no: 2, name: 'Debt to Equity Ratio (DER)', formula: 'Total Liabilitas / Total Ekuitas', rac: '&lt; 200,00%', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' },
-        { no: 3, name: 'Return on Assets (ROA)', formula: 'EAT / Total Aset', rac: '&ge; 1,00%', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' },
-        { no: 4, name: 'Return on Equity (ROE)', formula: 'EAT / Total Ekuitas', rac: '&ge; 5,00%', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' },
+        { no: 2, name: 'Debt to Equity Ratio (DER)', formula: 'Total Liabilitas / Total Ekuitas', rac: '&le; 400,00%', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' },
+        { no: 3, name: 'Return on Assets (ROA)', formula: 'EAT / Total Aset', rac: '&gt; 1,00%', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' },
+        { no: 4, name: 'Return on Equity (ROE)', formula: 'EAT / Total Ekuitas', rac: '&gt; 5,00%', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' },
         { no: 5, name: 'Net Working Capital (NWC)', formula: 'Aset Lancar - Liab. Lancar', rac: '&gt; Rp 0', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' },
-        { no: 6, name: 'NWC / Nilai Proyek', formula: '(NWC / Nilai Proyek) &times; 100%', rac: '&gt; 40,00%', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' }
+        { no: 6, name: 'NWC / Nilai Proyek', formula: '(NWC / Nilai Proyek) &times; 100%', rac: '&gt; 10,00%', v1: '-', v2: '-', pass: false, ket: 'Belum ada data' }
       ];
     }
 
@@ -2684,17 +2684,17 @@ window.LaporModule = {
     // 2. Debt to Equity Ratio (DER)
     const der1 = (!hasData1 || totals1.eq <= 0) ? null : (totals1.tl / totals1.eq) * 100;
     const der2 = totals2.eq <= 0 ? null : (totals2.tl / totals2.eq) * 100;
-    const passDER = der2 !== null && der2 < 200;
+    const passDER = der2 !== null && der2 <= 400;
 
     // 3. Return on Assets (ROA)
     const roa1 = (!hasData1 || totals1.ta <= 0) ? null : (totals1.eat / totals1.ta) * 100;
     const roa2 = totals2.ta <= 0 ? null : (totals2.eat / totals2.ta) * 100;
-    const passROA = roa2 !== null && roa2 >= 1.0;
+    const passROA = roa2 !== null && roa2 > 1.0;
 
     // 4. Return on Equity (ROE)
     const roe1 = (!hasData1 || totals1.eq <= 0) ? null : (totals1.eat / totals1.eq) * 100;
     const roe2 = totals2.eq <= 0 ? null : (totals2.eat / totals2.eq) * 100;
-    const passROE = roe2 !== null && roe2 >= 5.0;
+    const passROE = roe2 !== null && roe2 > 5.0;
 
     // 5. Net Working Capital (NWC) & 6. NWC / Nilai Proyek (%)
     const nwc1 = totals1.ca - totals1.cl;
@@ -2702,7 +2702,7 @@ window.LaporModule = {
     const passNWC = nwc2 > 0;
     const nwcPct1 = (hasData1 && projectVal > 0) ? (nwc1 / projectVal) * 100 : null;
     const nwcPct2 = projectVal > 0 ? (nwc2 / projectVal) * 100 : null;
-    const passNwcProj = nwcPct2 !== null && nwcPct2 > 40;
+    const passNwcProj = nwcPct2 !== null && nwcPct2 > 10;
 
     return [
       {
@@ -2723,29 +2723,27 @@ window.LaporModule = {
         no: 2,
         name: 'Debt to Equity Ratio (DER)',
         formula: 'Total Liabilitas / Total Ekuitas',
-        rac: '&lt; 200,00%',
+        rac: '&le; 400,00%',
         v1: !hasData1 ? '-' : (der1 === null ? 'N/A' : `${this.fmtNum(der1, 2)}%`),
         v2: der2 === null ? 'N/A' : `${this.fmtNum(der2, 2)}%`,
         pass: passDER,
         ket: der2 === null
           ? 'Struktur modal negatif / tidak memadai.'
-          : (der2 < 200 ? `DER ${this.fmtNum(der2, 2)}% sangat sehat di bawah 200% (Skor 100 / Grade A).`
-            : (der2 < 250 ? `DER ${this.fmtNum(der2, 2)}% dalam batas wajar penjaminan (Skor 75 / Grade B).`
-            : (der2 < 300 ? `DER ${this.fmtNum(der2, 2)}% mendekati batas risiko (Skor 50 / Grade C).`
-            : `DER ${this.fmtNum(der2, 2)}% melebihi batas toleransi &ge; 300% (Skor 25 / Grade D).`)))
+          : (der2 <= 400 ? `DER ${this.fmtNum(der2, 2)}% memenuhi standar RAC &le; 400,00% (Skor 100 / Grade A).`
+            : `DER ${this.fmtNum(der2, 2)}% melebihi batas RAC &le; 400,00%.`)
       },
       {
         no: 3,
         name: 'Return on Assets (ROA)',
         formula: 'EAT / Total Aset',
-        rac: '&ge; 1,00%',
+        rac: '&gt; 1,00%',
         v1: roa1 === null ? '-' : `${this.fmtNum(roa1, 2)}%`,
         v2: roa2 === null ? '-' : `${this.fmtNum(roa2, 2)}%`,
         pass: passROA,
         ket: roa2 === null
           ? 'Data aset tidak memadai.'
-          : (roa2 >= 1.0 ? `ROA ${this.fmtNum(roa2, 2)}% memenuhi standar produktivitas aset (Skor 100 / Grade A).`
-            : (roa2 >= 0.5 ? `ROA ${this.fmtNum(roa2, 2)}% berada di kisaran wajar (Skor 60 / Grade B).`
+          : (roa2 > 1.0 ? `ROA ${this.fmtNum(roa2, 2)}% memenuhi standar RAC &gt; 1,00% (Skor 100 / Grade A).`
+            : (roa2 >= 0.5 ? `ROA ${this.fmtNum(roa2, 2)}% di bawah standar &gt; 1,00% (Skor 60 / Grade B).`
             : (roa2 >= 0.1 ? `ROA ${this.fmtNum(roa2, 2)}% relatif tipis (Skor 30 / Grade C).`
             : `ROA ${this.fmtNum(roa2, 2)}% di bawah standar minimum penjaminan.`)))
       },
@@ -2753,14 +2751,14 @@ window.LaporModule = {
         no: 4,
         name: 'Return on Equity (ROE)',
         formula: 'EAT / Total Ekuitas',
-        rac: '&ge; 5,00%',
+        rac: '&gt; 5,00%',
         v1: roe1 === null ? '-' : `${this.fmtNum(roe1, 2)}%`,
         v2: roe2 === null ? '-' : `${this.fmtNum(roe2, 2)}%`,
         pass: passROE,
         ket: roe2 === null
           ? 'Data ekuitas tidak memadai.'
-          : (roe2 >= 5.0 ? `ROE ${this.fmtNum(roe2, 2)}% memenuhi standar imbal hasil modal (Skor 100 / Grade A).`
-            : (roe2 >= 3.0 ? `ROE ${this.fmtNum(roe2, 2)}% cukup memadai (Skor 60 / Grade B).`
+          : (roe2 > 5.0 ? `ROE ${this.fmtNum(roe2, 2)}% memenuhi standar RAC &gt; 5,00% (Skor 100 / Grade A).`
+            : (roe2 >= 3.0 ? `ROE ${this.fmtNum(roe2, 2)}% di bawah standar &gt; 5,00% (Skor 60 / Grade B).`
             : (roe2 >= 0.1 ? `ROE ${this.fmtNum(roe2, 2)}% imbal modal tipis (Skor 30 / Grade C).`
             : `ROE ${this.fmtNum(roe2, 2)}% di bawah standar penjaminan.`)))
       },
@@ -2780,15 +2778,13 @@ window.LaporModule = {
         no: 6,
         name: 'NWC / Nilai Proyek',
         formula: '(NWC / Nilai Proyek) &times; 100%',
-        rac: '&gt; 40,00%',
+        rac: '&gt; 10,00%',
         v1: !hasData1 || nwcPct1 === null ? '-' : `${this.fmtNum(nwcPct1, 2)}%`,
         v2: nwcPct2 === null ? '-' : `${this.fmtNum(nwcPct2, 2)}%`,
         pass: passNwcProj,
         ket: projectVal > 0
-          ? (nwcPct2 > 40 ? `NWC ${this.fmtNum(nwcPct2, 2)}% dari Nilai Proyek memenuhi standar > 40,00% (Skor 100 / Grade A). Penyangga modal kerja sangat kuat.`
-            : (nwcPct2 > 20 ? `NWC ${this.fmtNum(nwcPct2, 2)}% dari Nilai Proyek di bawah standar > 40,00% namun cukup memadai (Skor 75 / Grade B).`
-            : (nwcPct2 > 10 ? `NWC ${this.fmtNum(nwcPct2, 2)}% dari Nilai Proyek relatif tipis terhadap batas > 40,00% (Skor 50 / Grade C).`
-            : `NWC ${this.fmtNum(nwcPct2, 2)}% dari Nilai Proyek di bawah 10% (Skor 25 / Grade D).`)))
+          ? (nwcPct2 > 10 ? `NWC ${this.fmtNum(nwcPct2, 2)}% dari Nilai Proyek memenuhi standar &gt; 10,00% (Skor 100 / Grade A).`
+            : `NWC ${this.fmtNum(nwcPct2, 2)}% dari Nilai Proyek di bawah standar &gt; 10,00%.`)
           : 'Nilai Proyek belum diisi. Masukkan Nilai Proyek untuk menghitung persentase NWC / Nilai Proyek.'
       }
     ];
