@@ -693,8 +693,13 @@ window.LaporModule = {
   },
 
   fmtNum(val, dec = 2) {
-    if (val === null || val === undefined || isNaN(val)) return '0,00';
-    return Number(val).toFixed(dec).replace('.', ',');
+    if (val === null || val === undefined || isNaN(val)) return dec > 0 ? ('0,' + '0'.repeat(dec)) : '0';
+    const num = Number(val);
+    const isNeg = num < 0;
+    const parts = Math.abs(num).toFixed(dec).split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    const formatted = parts.length > 1 ? `${parts[0]},${parts[1]}` : parts[0];
+    return isNeg ? `-${formatted}` : formatted;
   },
 
   handleDotInput(inputEl) {
@@ -1975,22 +1980,22 @@ window.LaporModule = {
     // 1. Current Ratio% x
     const crVal = cl2 > 0 ? (ca2 / cl2) * 100 : (ca2 > 0 ? 999 : 0);
     const crX = cl2 > 0 ? (ca2 / cl2) : (ca2 > 0 ? 99.9 : 0);
-    const crTxt = cl2 > 0 ? `${crVal.toFixed(2)}% (${crX.toFixed(2)}x)` : (ca2 > 0 ? 'N/A (Bebas Utang)' : '0.00%');
+    const crTxt = cl2 > 0 ? `${this.fmtNum(crVal)}% (${this.fmtNum(crX)}x)` : (ca2 > 0 ? 'N/A (Bebas Utang)' : '0,00%');
 
     const crVal1 = cl1 > 0 ? (ca1 / cl1) * 100 : (ca1 > 0 ? 999 : 0);
     const crX1 = cl1 > 0 ? (ca1 / cl1) : (ca1 > 0 ? 99.9 : 0);
-    const crTxt1 = cl1 > 0 ? `${crVal1.toFixed(2)}% (${crX1.toFixed(2)}x)` : (ca1 > 0 ? 'N/A (Bebas Utang)' : '0.00%');
+    const crTxt1 = cl1 > 0 ? `${this.fmtNum(crVal1)}% (${this.fmtNum(crX1)}x)` : (ca1 > 0 ? 'N/A (Bebas Utang)' : '0,00%');
 
     // 2. Quick Ratio % x
     const quickAssets = (d2.cash || 0) + (d2.ar || 0) + (d2.otherAr || 0);
     const qrVal = cl2 > 0 ? (quickAssets / cl2) * 100 : (quickAssets > 0 ? 999 : 0);
     const qrX = cl2 > 0 ? (quickAssets / cl2) : (quickAssets > 0 ? 99.9 : 0);
-    const qrTxt = cl2 > 0 ? `${qrVal.toFixed(2)}% (${qrX.toFixed(2)}x)` : (quickAssets > 0 ? 'N/A (Bebas Utang)' : '0.00%');
+    const qrTxt = cl2 > 0 ? `${this.fmtNum(qrVal)}% (${this.fmtNum(qrX)}x)` : (quickAssets > 0 ? 'N/A (Bebas Utang)' : '0,00%');
 
     const quickAssets1 = (d1.cash || 0) + (d1.ar || 0) + (d1.otherAr || 0);
     const qrVal1 = cl1 > 0 ? (quickAssets1 / cl1) * 100 : (quickAssets1 > 0 ? 999 : 0);
     const qrX1 = cl1 > 0 ? (quickAssets1 / cl1) : (quickAssets1 > 0 ? 99.9 : 0);
-    const qrTxt1 = cl1 > 0 ? `${qrVal1.toFixed(2)}% (${qrX1.toFixed(2)}x)` : (quickAssets1 > 0 ? 'N/A (Bebas Utang)' : '0.00%');
+    const qrTxt1 = cl1 > 0 ? `${this.fmtNum(qrVal1)}% (${this.fmtNum(qrX1)}x)` : (quickAssets1 > 0 ? 'N/A (Bebas Utang)' : '0,00%');
 
     // 3. Working Capital To Total Asset%
     const nwcVal = ca2 - cl2;
@@ -2127,12 +2132,12 @@ window.LaporModule = {
     const cashVal = d2.cash || 0;
     const cashRatioVal = cl2 > 0 ? (cashVal / cl2) * 100 : (cashVal > 0 ? 999 : 0);
     const cashRatioX = cl2 > 0 ? (cashVal / cl2) : (cashVal > 0 ? 99.9 : 0);
-    const cashRatioTxt = cl2 > 0 ? `${cashRatioVal.toFixed(2)}% (${cashRatioX.toFixed(2)}x)` : (cashVal > 0 ? 'N/A (Bebas Utang)' : '0.00%');
+    const cashRatioTxt = cl2 > 0 ? `${this.fmtNum(cashRatioVal)}% (${this.fmtNum(cashRatioX)}x)` : (cashVal > 0 ? 'N/A (Bebas Utang)' : '0,00%');
 
     const cashVal1 = d1.cash || 0;
     const cashRatioVal1 = cl1 > 0 ? (cashVal1 / cl1) * 100 : (cashVal1 > 0 ? 999 : 0);
     const cashRatioX1 = cl1 > 0 ? (cashVal1 / cl1) : (cashVal1 > 0 ? 99.9 : 0);
-    const cashRatioTxt1 = cl1 > 0 ? `${cashRatioVal1.toFixed(2)}% (${cashRatioX1.toFixed(2)}x)` : (cashVal1 > 0 ? 'N/A (Bebas Utang)' : '0.00%');
+    const cashRatioTxt1 = cl1 > 0 ? `${this.fmtNum(cashRatioVal1)}% (${this.fmtNum(cashRatioX1)}x)` : (cashVal1 > 0 ? 'N/A (Bebas Utang)' : '0,00%');
 
     // 22. Sales Growth % (sesuai aplikasi internal: tampil N/A)
     const salesGrowth = rev1 > 0 ? ((rev2 - rev1) / rev1) * 100 : 0;
@@ -2161,14 +2166,14 @@ window.LaporModule = {
     const intVal1 = d1.intExp || 0;
     const ebitdaIntVal1 = intVal1 > 0 ? ((ebitdaVal1 / intVal1) * 100) : null;
     const ebitdaIntX1 = intVal1 > 0 ? (ebitdaVal1 / intVal1) : null;
-    const ebitdaIntTxt1 = ebitdaIntVal1 !== null ? `${ebitdaIntVal1.toFixed(2)}% (${ebitdaIntX1.toFixed(2)}x)` : 'N/A (Bebas Bunga)';
+    const ebitdaIntTxt1 = ebitdaIntVal1 !== null ? `${this.fmtNum(ebitdaIntVal1)}% (${this.fmtNum(ebitdaIntX1)}x)` : 'N/A (Bebas Bunga)';
 
     // 26. Ebitda to debt %
     const ebitdaDebtVal = tl2 > 0 ? ((ebitdaVal / tl2) * 100) : null;
     const ebitdaDebtX = tl2 > 0 ? (ebitdaVal / tl2) : null;
 
     const ebitdaDebtVal1 = tl1 > 0 ? ((ebitdaVal1 / tl1) * 100) : null;
-    const ebitdaDebtTxt1 = ebitdaDebtVal1 !== null ? `${ebitdaDebtVal1.toFixed(2)}%` : 'N/A (Bebas Utang)';
+    const ebitdaDebtTxt1 = ebitdaDebtVal1 !== null ? `${this.fmtNum(ebitdaDebtVal1)}%` : 'N/A (Bebas Utang)';
 
     // 27. Net Working Capital (nwcVal)
     const nwcToProject = projectVal > 0 ? (nwcVal / projectVal) * 100 : 0;
@@ -2265,10 +2270,10 @@ window.LaporModule = {
     updateText('ratio-ebitda', this.fmtRp(ebitdaVal), ebitdaVal > 0 ? 'text-indigo-700' : 'text-rose-600');
     updateText1('ratio-ebitda', ebitdaTxt1, ebitdaVal1 > 0 ? 'text-indigo-700' : 'text-rose-600');
 
-    updateText('ratio-ebitda-int', ebitdaIntVal !== null ? `${ebitdaIntVal.toFixed(2)}% (${ebitdaIntX.toFixed(2)}x)` : 'N/A (Bebas Bunga)', (ebitdaIntX >= 2.0 || ebitdaIntVal === null) ? 'text-emerald-600' : 'text-rose-600');
+    updateText('ratio-ebitda-int', ebitdaIntVal !== null ? `${this.fmtNum(ebitdaIntVal)}% (${this.fmtNum(ebitdaIntX)}x)` : 'N/A (Bebas Bunga)', (ebitdaIntX >= 2.0 || ebitdaIntVal === null) ? 'text-emerald-600' : 'text-rose-600');
     updateText1('ratio-ebitda-int', ebitdaIntTxt1, (ebitdaIntX1 >= 2.0 || ebitdaIntVal1 === null) ? 'text-emerald-600' : 'text-rose-600');
 
-    updateText('ratio-ebitda-debt', ebitdaDebtVal !== null ? `${ebitdaDebtVal.toFixed(2)}%` : 'N/A (Bebas Utang)', 'text-indigo-600');
+    updateText('ratio-ebitda-debt', ebitdaDebtVal !== null ? `${this.fmtNum(ebitdaDebtVal)}%` : 'N/A (Bebas Utang)', 'text-indigo-600');
     updateText1('ratio-ebitda-debt', ebitdaDebtTxt1, 'text-indigo-600');
 
     updateText('ratio-nwc', `${this.fmtRp(nwcVal)}${projectVal > 0 ? ` (${nwcToProject.toFixed(1)}%)` : ''}`, (nwcToProject > 10 || (projectVal === 0 && nwcVal >= 0)) ? 'text-emerald-600' : (nwcToProject > 5 ? 'text-amber-600' : 'text-rose-600'));
@@ -2505,8 +2510,8 @@ window.LaporModule = {
       { no: 22, key: 'salesGrowth', name: 'Sales Growth %', val1: hasData1 ? 'N/A' : '-', val: 'N/A', std: 'Pertumbuhan Penjualan YoY (Standar: Positif)', scoreVal: scores.salesGrowth, pass: (!hasData1 || rev1 <= 0) ? rev2 > 0 : salesGrowth >= 0 },
       { no: 23, key: 'opm', name: 'Operating Profit Margin %', val1: hasData1 ? opmTxt1 : '-', val: `${opmVal.toFixed(2)}%`, std: 'Laba Bruto Operasional / Penjualan', scoreVal: scores.opm, pass: rev2 > 0 && opmVal > 0 },
       { no: 24, key: 'ebitda', name: 'Ebitda', val1: hasData1 ? ebitdaTxt1 : '-', val: this.fmtRp(ebitdaVal), std: 'Laba Usaha (EBIT) + Akum. Penyusutan', scoreVal: scores.ebitda, pass: ebitdaVal > 0 },
-      { no: 25, key: 'ebitdaInt', name: 'Ebitda to interest %', val1: hasData1 ? ebitdaIntTxt1 : '-', val: ebitdaIntVal !== null ? `${ebitdaIntVal.toFixed(2)}% (${ebitdaIntX.toFixed(2)}x)` : 'N/A (Bebas Bunga)', std: 'Interest Coverage Ratio (Standar: ≥ 2.0x)', scoreVal: scores.ebitdaInt, pass: ebitdaIntVal === null ? ebitdaVal >= 0 : ebitdaIntX >= 2.0 },
-      { no: 26, key: 'ebitdaDebt', name: 'Ebitda to debt %', val1: hasData1 ? ebitdaDebtTxt1 : '-', val: ebitdaDebtVal !== null ? `${ebitdaDebtVal.toFixed(2)}%` : 'N/A (Bebas Hutang)', std: 'EBITDA / Total Hutang (Standar: ≥ 20%)', scoreVal: scores.ebitdaDebt, pass: ebitdaDebtVal === null ? ebitdaVal >= 0 : ebitdaDebtVal >= 20 },
+      { no: 25, key: 'ebitdaInt', name: 'Ebitda to interest %', val1: hasData1 ? ebitdaIntTxt1 : '-', val: ebitdaIntVal !== null ? `${this.fmtNum(ebitdaIntVal)}% (${this.fmtNum(ebitdaIntX)}x)` : 'N/A (Bebas Bunga)', std: 'Interest Coverage Ratio (Standar: ≥ 2.0x)', scoreVal: scores.ebitdaInt, pass: ebitdaIntVal === null ? ebitdaVal >= 0 : ebitdaIntX >= 2.0 },
+      { no: 26, key: 'ebitdaDebt', name: 'Ebitda to debt %', val1: hasData1 ? ebitdaDebtTxt1 : '-', val: ebitdaDebtVal !== null ? `${this.fmtNum(ebitdaDebtVal)}%` : 'N/A (Bebas Hutang)', std: 'EBITDA / Total Hutang (Standar: ≥ 20%)', scoreVal: scores.ebitdaDebt, pass: ebitdaDebtVal === null ? ebitdaVal >= 0 : ebitdaDebtVal >= 20 },
       { no: 27, key: 'nwc', name: 'Net Working Capital', val1: hasData1 ? nwcTxt1 : '-', val: this.fmtRp(nwcVal), std: 'Standar: > 10,00% Nilai Proyek', scoreVal: scores.nwc, pass: projectVal > 0 ? (nwcToProject > 10) : (nwcVal > 0) }
     ];
 
