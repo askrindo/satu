@@ -4876,10 +4876,15 @@ ATURAN AKUNTANSI STANDAR INDONESIA:
    - Jika laporan menyajikan baris terpisah untuk Kas dan Bank, JUMLAHKAN KEDUANYA menjadi satu nilai total pada "cash".
    - Jelaskan rinciannya di field "cash_breakdown" (contoh: "Kas Rp 50.000.000 + Bank Mandiri Rp 450.000.000 = Rp 500.000.000").
 
-3. ATURAN PENYUSUTAN (depr):
+3. ATURAN PERSEDIAAN & WORK IN PROGRESS (inv):
+   - Pos "Persediaan Barang" (kode: inv) WAJIB menampung seluruh nilai Persediaan (Inventory) termasuk Work in Progress / Pekerjaan Dalam Proses / Barang Dalam Proses / WIP.
+   - Jika laporan keuangan hanya memiliki akun "Work in Progress" (WIP / Pekerjaan Dalam Proses), masukkan nilainya ke pos "inv" (Persediaan Barang), BUKAN ke "otherCa" atau "otherAr".
+   - Jika laporan menyajikan baris terpisah untuk "Persediaan" dan "Work in Progress" (WIP), JUMLAHKAN KEDUANYA menjadi satu nilai total pada "inv".
+
+4. ATURAN PENYUSUTAN (depr):
    - Nilai akumulasi penyusutan wajib bernilai POSITIF pada data JSON, karena sistem akan otomatis menguranginya dari Aktiva Tetap (fa - depr).
 
-4. DETEKSI STATUS AUDIT LAPORAN KEUANGAN:
+5. DETEKSI STATUS AUDIT LAPORAN KEUANGAN:
    - Identifikasi apakah Laporan Keuangan merupakan laporan AUDITED KAP (ada laporan auditor independen, opini auditor, nama KAP) atau IN-HOUSE / UNAUDITED.
    - Tentukan nilai audit_status: "audited" atau "unaudited".
    - Jika audited, temukan: auditor_kap_name, auditor_opinion (WTP, WDP, Tidak Wajar, dll.), dan audit_report_date.
@@ -5024,6 +5029,12 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
       d1[k] = cleanNum(d1[k]);
       d2[k] = cleanNum(d2[k]);
     });
+
+    // Pengaman tambahan: bila AI menyertakan field wip/work_in_progress terpisah, gabungkan ke inv (Persediaan)
+    const wip1 = cleanNum(d1.wip || d1.work_in_progress || d1.workInProgress || 0);
+    const wip2 = cleanNum(d2.wip || d2.work_in_progress || d2.workInProgress || 0);
+    if (wip1 > 0) d1.inv = (d1.inv || 0) + wip1;
+    if (wip2 > 0) d2.inv = (d2.inv || 0) + wip2;
 
     return {
       company_name: (raw.company_name || '').trim(),
