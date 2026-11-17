@@ -2295,7 +2295,7 @@ window.LaporModule = {
     scores.wcta = ta2 <= 0 ? 0 : (wctaVal >= 20 ? 100 : (wctaVal >= 10 ? 80 : (wctaVal > 0 ? 60 : (wctaVal === 0 ? 40 : (wctaVal >= -15 ? 20 : 0)))));
 
     // 4. Debt to Equity Ratio (DER) %
-    scores.der = eq2 <= 0 ? (tl2 > 0 ? 0 : 25) : (tl2 === 0 || derVal < 200 ? 100 : (derVal < 250 ? 75 : (derVal < 300 ? 50 : 25)));
+    scores.der = eq2 <= 0 ? (tl2 > 0 ? 0 : 25) : (tl2 === 0 || derVal <= 400 ? 100 : (derVal <= 450 ? 60 : (derVal <= 500 ? 35 : 15)));
 
     // 5. Debt to Asset Ratio (DAR) %
     scores.dar = ta2 <= 0 ? 0 : (darVal < 50 ? 100 : (darVal < 60 ? 85 : (darVal < 70 ? 70 : (darVal < 85 ? 40 : (darVal < 100 ? 15 : 0)))));
@@ -2325,10 +2325,10 @@ window.LaporModule = {
     scores.dpo = (rev2 <= 0 && curCogs <= 0) ? 0 : (apVal <= 0 ? 85 : (dpoVal <= 60 ? 100 : (dpoVal <= 90 ? 80 : (dpoVal <= 120 ? 55 : 25))));
 
     // 14. Return on Asset (ROA) %
-    scores.roa = ta2 <= 0 ? 0 : (roaVal >= 1.0 ? 100 : (roaVal >= 0.5 ? 60 : (roaVal >= 0.1 ? 30 : 0)));
+    scores.roa = ta2 <= 0 ? 0 : (roaVal > 1.0 ? 100 : (roaVal >= 0.5 ? 60 : (roaVal >= 0.1 ? 30 : 0)));
 
     // 15. Return on Equity (ROE) %
-    scores.roe = eq2 <= 0 ? 0 : (roeVal >= 5.0 ? 100 : (roeVal >= 3.0 ? 60 : (roeVal >= 0.1 ? 30 : 0)));
+    scores.roe = eq2 <= 0 ? 0 : (roeVal > 5.0 ? 100 : (roeVal >= 3.0 ? 60 : (roeVal >= 0.1 ? 30 : 0)));
 
     // 16. Return on Investment (ROI) %
     scores.roi = ta2 <= 0 ? 0 : (roiVal >= 5.0 ? 100 : (roiVal >= 1.0 ? 80 : (roiVal > 0 ? 60 : 0)));
@@ -2367,10 +2367,10 @@ window.LaporModule = {
     // 27. Net Working Capital (vs Nilai Proyek)
     if (projectVal > 0) {
       if (nwcVal < 0) scores.nwc = 0;
-      else if (nwcToProject > 40) scores.nwc = 100;
-      else if (nwcToProject > 20) scores.nwc = 75;
-      else if (nwcToProject > 10) scores.nwc = 50;
-      else scores.nwc = 25;
+      else if (nwcToProject > 10) scores.nwc = 100;
+      else if (nwcToProject > 5) scores.nwc = 60;
+      else if (nwcToProject > 0) scores.nwc = 35;
+      else scores.nwc = 15;
     } else {
       scores.nwc = nwcVal > 0 ? 100 : (nwcVal === 0 ? 50 : 20);
     }
