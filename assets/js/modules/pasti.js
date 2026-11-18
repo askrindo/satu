@@ -71,7 +71,8 @@ window.PastiModule = {
     this.updateSyncBadge();
 
     try {
-      const url = `${this.APPS_SCRIPT_URL}?token=${encodeURIComponent(this.API_TOKEN)}&_t=${Date.now()}`;
+      const forceParam = showNotification ? '&force=1' : '';
+      const url = `${this.APPS_SCRIPT_URL}?token=${encodeURIComponent(this.API_TOKEN)}${forceParam}&_t=${Date.now()}`;
       const resp = await fetch(url, { cache: 'no-store' });
       if (!resp.ok) {
         throw new Error(`HTTP ${resp.status}`);
