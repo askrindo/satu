@@ -1,26 +1,28 @@
 /**
  * Askrindo SATU - PASTI Module
  * Pemeriksaan Administrasi SPKMGR Terintegrasi
- * Pencarian dokumen & rincian status SPKMGR berbasis Google Sheets live sync.
+ * Pencarian dokumen & rincian status SPKMGR berbasis Google Apps Script (Restricted Sheet).
  */
 
 window.PastiModule = {
-  SHEET_ID: '1KeCuxCS0GaVP991eeZBF7uAsZeh4zpfHe-QsSjbemd4',
-  CSV_URL: 'https://docs.google.com/spreadsheets/d/1KeCuxCS0GaVP991eeZBF7uAsZeh4zpfHe-QsSjbemd4/export?format=csv',
-  SHEET_EDIT_URL: 'https://docs.google.com/spreadsheets/d/1KeCuxCS0GaVP991eeZBF7uAsZeh4zpfHe-QsSjbemd4/edit?usp=sharing',
-  CACHE_KEY: 'askrindo_satu_pasti_cache_v1',
+  SHEET_ID: '1vmO-6ydIXy2s6LnQmcVSUiu3LFtguU5_6IXf9rvcKz0',
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzBgHp3hZID-GV9BGQtslGyZIAKLUESPN7de92k9Z0cpE3AQ-DbkzxmUXLXJW-lnbkJvg/exec',
+  API_TOKEN: 'ASKRINDO-PASTI-2026',
+  SHEET_EDIT_URL: 'https://docs.google.com/spreadsheets/d/1vmO-6ydIXy2s6LnQmcVSUiu3LFtguU5_6IXf9rvcKz0/edit?usp=sharing',
+  CACHE_KEY: 'askrindo_satu_pasti_cache_v2',
 
   rows: [],
+  sheetUsedName: 'SPKMGR 2025 & 2026',
   syncedAt: null,
   isSyncing: false,
   syncError: null,
 
   // Filter & view state
   searchQuery: '',
-  quickFilter: 'all', // 'all' | 'belum_ada' | 'ada' | 'softfile' | 'belum_bayar' | 'sudah_bayar'
-  rmFilter: 'all',
+  quickFilter: 'all', // 'all' | 'done' | 'not_yet' | 'belum_ada' | 'ada' | 'softfile' | 'belum_bayar' | 'sudah_bayar' | 'di_notaris'
+  notarisFilter: 'all',
   cobFilter: 'all',
-  viewMode: 'auto', // 'auto' (cards when searching, table otherwise) | 'cards' | 'table'
+  viewMode: 'auto', // 'auto' (cards when searching/filtering, table otherwise) | 'cards' | 'table'
   currentPage: 1,
   pageSize: 25,
   selectedRecordIndex: null,
@@ -43,6 +45,7 @@ window.PastiModule = {
       if (Array.isArray(parsed.rows)) {
         this.rows = parsed.rows;
         this.syncedAt = parsed.syncedAt || null;
+        if (parsed.sheetUsedName) this.sheetUsedName = parsed.sheetUsedName;
       }
     } catch (e) {
       console.warn('[PASTI] Gagal membaca cache lokal:', e);
@@ -53,6 +56,7 @@ window.PastiModule = {
     try {
       localStorage.setItem(this.CACHE_KEY, JSON.stringify({
         rows: this.rows,
+        sheetUsedName: this.sheetUsedName,
         syncedAt: this.syncedAt
       }));
     } catch (e) {
@@ -67,32 +71,39 @@ window.PastiModule = {
     this.updateSyncBadge();
 
     try {
-      const url = `${this.CSV_URL}&_t=${Date.now()}`;
+      const url = `${this.APPS_SCRIPT_URL}?token=${encodeURIComponent(this.API_TOKEN)}&_t=${Date.now()}`;
       const resp = await fetch(url, { cache: 'no-store' });
       if (!resp.ok) {
         throw new Error(`HTTP ${resp.status}`);
       }
-      const csvText = await resp.text();
-      const parsedRows = this.parseSpkmgrCsv(csvText);
+      const payload = await resp.json();
+      if (!payload || !payload.ok) {
+        throw new Error((payload && payload.error) ? payload.error : 'Respons API tidak valid.');
+      }
+
+      const parsedRows = this.parseAppsScriptPayload(payload);
       if (!parsedRows.length) {
-        throw new Error('Data CSV kosong atau format header tidak sesuai.');
+        throw new Error('Data SPKMGR kosong pada sheet target.');
       }
 
       this.rows = parsedRows;
-      this.syncedAt = new Date().toISOString();
+      if (Array.isArray(payload.sheetsUsed) && payload.sheetsUsed.length) {
+        this.sheetUsedName = payload.sheetsUsed.join(', ');
+      }
+      this.syncedAt = payload.fetchedAt || new Date().toISOString();
       this.saveToCache();
 
       if (showNotification && window.askrindoApp) {
-        window.askrindoApp.showToast(`Database PASTI berhasil disinkronkan (${this.rows.length} data SPKMGR).`, 'success');
+        window.askrindoApp.showToast(`Database PASTI (${this.sheetUsedName}) tersinkron: ${this.rows.length} data.`, 'success');
       }
     } catch (err) {
-      console.warn('[PASTI] Gagal sinkronisasi Google Sheets:', err);
-      this.syncError = err.message || 'Gagal terhubung ke Google Sheets';
+      console.warn('[PASTI] Gagal sinkronisasi Apps Script:', err);
+      this.syncError = err.message || 'Gagal terhubung ke Google Apps Script';
       if (showNotification && window.askrindoApp) {
         window.askrindoApp.showToast(
           this.rows.length
             ? `Sinkronisasi gagal (${this.syncError}). Menampilkan data cache terakhir.`
-            : `Gagal memuat database Google Sheets (${this.syncError}).`,
+            : `Gagal memuat database (${this.syncError}).`,
           'warning'
         );
       }
@@ -102,99 +113,33 @@ window.PastiModule = {
     }
   },
 
-  parseCsv(text) {
-    const rows = [];
-    let row = [];
-    let field = '';
-    let inQuotes = false;
-    const cleanText = String(text || '').replace(/^\uFEFF/, '');
-
-    for (let i = 0; i < cleanText.length; i++) {
-      const ch = cleanText[i];
-      const next = cleanText[i + 1];
-
-      if (inQuotes) {
-        if (ch === '"' && next === '"') {
-          field += '"';
-          i++;
-        } else if (ch === '"') {
-          inQuotes = false;
-        } else {
-          field += ch;
-        }
-      } else {
-        if (ch === '"') {
-          inQuotes = true;
-        } else if (ch === ',') {
-          row.push(field);
-          field = '';
-        } else if (ch === '\r' && next === '\n') {
-          row.push(field);
-          rows.push(row);
-          row = [];
-          field = '';
-          i++;
-        } else if (ch === '\n' || ch === '\r') {
-          row.push(field);
-          rows.push(row);
-          row = [];
-          field = '';
-        } else {
-          field += ch;
-        }
-      }
-    }
-
-    if (field.length > 0 || row.length > 0) {
-      row.push(field);
-      rows.push(row);
-    }
-    return rows;
-  },
-
-  parseSpkmgrCsv(csvText) {
-    const matrix = this.parseCsv(csvText);
-    if (matrix.length < 2) return [];
-
-    // Header row: [, Nama, Jenis COB, Tanggal, JW Awal, JW Akhir, Status SPKMGR, Keterangan, Status Pembayaran, Nama RM, Biaya SPKMGR]
-    const headers = matrix[0].map(h => String(h || '').trim().toLowerCase());
-    const findCol = (keywords, fallbackIdx) => {
-      const idx = headers.findIndex(h => keywords.some(k => h.includes(k)));
-      return idx !== -1 ? idx : fallbackIdx;
-    };
-
-    const idxNo = 0;
-    const idxNama = findCol(['nama'], 1);
-    const idxCob = findCol(['cob'], 2);
-    const idxTanggal = findCol(['tanggal'], 3);
-    const idxJwAwal = findCol(['jw awal', 'awal'], 4);
-    const idxJwAkhir = findCol(['jw akhir', 'akhir'], 5);
-    const idxStatus = findCol(['status spkmgr'], 6);
-    const idxKet = findCol(['keterangan'], 7);
-    const idxBayar = findCol(['pembayaran', 'bayar'], 8);
-    const idxRm = findCol(['nama rm', 'rm'], 9);
-    const idxBiaya = findCol(['biaya'], 10);
-
+  parseAppsScriptPayload(payload) {
+    const rawRows = Array.isArray(payload.rows) ? payload.rows : [];
     const parsed = [];
-    for (let i = 1; i < matrix.length; i++) {
-      const cols = matrix[i];
-      const nama = String(cols[idxNama] || '').trim();
+
+    for (let i = 0; i < rawRows.length; i++) {
+      const item = rawRows[i];
+      const cols = Array.isArray(item) ? item : (item && Array.isArray(item.values) ? item.values : []);
+      const nama = String(cols[1] || '').trim();
       if (!nama) continue;
 
-      const no = String(cols[idxNo] || '').trim() || String(parsed.length + 1);
-      const jenisCob = String(cols[idxCob] || '').trim() || '-';
-      const tanggal = String(cols[idxTanggal] || '').trim() || '-';
-      const jwAwal = String(cols[idxJwAwal] || '').trim() || '-';
-      const jwAkhir = String(cols[idxJwAkhir] || '').trim() || '-';
-      const statusSpkmgr = String(cols[idxStatus] || '').trim() || '-';
-      const keterangan = String(cols[idxKet] || '').trim() || '-';
-      const statusPembayaran = String(cols[idxBayar] || '').trim() || '-';
-      const rawRm = String(cols[idxRm] || '').trim();
-      const namaRm = (!rawRm || rawRm === '#N/A') ? '-' : rawRm;
-      const biayaSpkmgr = String(cols[idxBiaya] || '').trim() || '-';
+      const no = String(cols[0] || '').trim() || String(parsed.length + 1);
+      const jenisCob = String(cols[2] || '').trim() || '-';
+      const tanggal = String(cols[3] || '').trim() || '-';
+      const jwAwal = String(cols[4] || '').trim() || '-';
+      const jwAkhir = String(cols[5] || '').trim() || '-';
+      const statusSpkmgr = String(cols[6] || '').trim() || '-';
+      const keterangan = String(cols[7] || '').trim() || '-';
+      const statusPembayaran = String(cols[8] || '').trim() || '-';
+      const statusNotaris = String(cols[9] || '').trim() || '-';
+      const catatan = String(cols[10] || '').trim();
+      const rawDone = String(cols[11] || '').trim();
+      const cekDaluarsa = String(cols[12] || '').trim();
+      const doneStatus = (rawDone && rawDone !== '#N/A') ? rawDone : (cekDaluarsa || '-');
 
       parsed.push({
         _idx: parsed.length,
+        sheet: (item && item._sheet) ? item._sheet : this.sheetUsedName,
         no,
         nama,
         jenisCob,
@@ -204,26 +149,14 @@ window.PastiModule = {
         statusSpkmgr,
         keterangan,
         statusPembayaran,
-        namaRm,
-        biayaSpkmgr,
-        biayaNum: this.parseRupiah(biayaSpkmgr)
+        statusNotaris,
+        catatan,
+        doneStatus,
+        cekDaluarsa
       });
     }
 
     return parsed;
-  },
-
-  parseRupiah(str) {
-    const digits = String(str || '').replace(/[^0-9]/g, '');
-    return digits ? Number(digits) : 0;
-  },
-
-  formatRupiah(num) {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      maximumFractionDigits: 0
-    }).format(Number(num) || 0);
   },
 
   escapeHtml(str) {
@@ -266,10 +199,18 @@ window.PastiModule = {
     return { label: 'Aktif', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
   },
 
-  getUniqueRms() {
+  getUniqueNotarisStatuses() {
     const set = new Set();
     this.rows.forEach(r => {
-      if (r.namaRm && r.namaRm !== '-') set.add(r.namaRm);
+      if (r.statusNotaris && r.statusNotaris !== '-') set.add(r.statusNotaris);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  },
+
+  getUniqueCobs() {
+    const set = new Set();
+    this.rows.forEach(r => {
+      if (r.jenisCob && r.jenisCob !== '-') set.add(r.jenisCob);
     });
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   },
@@ -279,15 +220,27 @@ window.PastiModule = {
     return this.rows.filter(r => {
       if (q) {
         const matchNama = r.nama.toLowerCase().includes(q);
-        const matchRm = r.namaRm.toLowerCase().includes(q);
+        const matchCatatan = r.catatan.toLowerCase().includes(q);
+        const matchNotaris = r.statusNotaris.toLowerCase().includes(q);
         const matchNo = r.no.toLowerCase() === q;
-        if (!matchNama && !matchRm && !matchNo) return false;
+        if (!matchNama && !matchCatatan && !matchNotaris && !matchNo) return false;
       }
 
-      if (this.rmFilter !== 'all' && r.namaRm !== this.rmFilter) return false;
+      if (this.notarisFilter !== 'all') {
+        if (this.notarisFilter === '__empty__') {
+          if (r.statusNotaris && r.statusNotaris !== '-') return false;
+        } else if (r.statusNotaris !== this.notarisFilter) {
+          return false;
+        }
+      }
+
       if (this.cobFilter !== 'all' && r.jenisCob !== this.cobFilter) return false;
 
-      if (this.quickFilter === 'belum_ada') {
+      if (this.quickFilter === 'done') {
+        if (r.doneStatus.toLowerCase() !== 'done') return false;
+      } else if (this.quickFilter === 'not_yet') {
+        if (r.doneStatus.toLowerCase() !== 'not yet') return false;
+      } else if (this.quickFilter === 'belum_ada') {
         if (!r.keterangan.toLowerCase().includes('belum ada')) return false;
       } else if (this.quickFilter === 'ada') {
         if (r.keterangan.toLowerCase() !== 'ada spkmgr') return false;
@@ -297,6 +250,8 @@ window.PastiModule = {
         if (!r.statusPembayaran.toLowerCase().includes('belum bayar')) return false;
       } else if (this.quickFilter === 'sudah_bayar') {
         if (!r.statusPembayaran.toLowerCase().includes('sudah bayar')) return false;
+      } else if (this.quickFilter === 'di_notaris') {
+        if (!r.statusNotaris.toLowerCase().includes('di notaris')) return false;
       }
 
       return true;
@@ -306,24 +261,28 @@ window.PastiModule = {
   getStats() {
     const total = this.rows.length;
     const uniquePrincipals = new Set(this.rows.map(r => r.nama.toUpperCase())).size;
+    const doneCount = this.rows.filter(r => r.doneStatus.toLowerCase() === 'done').length;
+    const notYetCount = this.rows.filter(r => r.doneStatus.toLowerCase() === 'not yet').length;
     const belumAda = this.rows.filter(r => r.keterangan.toLowerCase().includes('belum ada')).length;
-    const adaDokumen = this.rows.filter(r => {
-      const k = r.keterangan.toLowerCase();
-      return k.includes('ada spkmgr') && !k.includes('belum ada');
-    }).length;
-    const belumBayarRows = this.rows.filter(r => r.statusPembayaran.toLowerCase().includes('belum bayar'));
-    const belumBayar = belumBayarRows.length;
-    const totalBiayaBelumBayar = belumBayarRows.reduce((acc, r) => acc + r.biayaNum, 0);
+    const adaOnly = this.rows.filter(r => r.keterangan.toLowerCase() === 'ada spkmgr').length;
+    const softfile = this.rows.filter(r => r.keterangan.toLowerCase().includes('softfile')).length;
+    const adaDokumen = adaOnly + softfile;
+    const belumBayar = this.rows.filter(r => r.statusPembayaran.toLowerCase().includes('belum bayar')).length;
     const sudahBayar = this.rows.filter(r => r.statusPembayaran.toLowerCase().includes('sudah bayar')).length;
+    const diNotaris = this.rows.filter(r => r.statusNotaris.toLowerCase().includes('di notaris')).length;
 
     return {
       total,
       uniquePrincipals,
+      doneCount,
+      notYetCount,
       belumAda,
+      adaOnly,
+      softfile,
       adaDokumen,
       belumBayar,
-      totalBiayaBelumBayar,
-      sudahBayar
+      sudahBayar,
+      diNotaris
     };
   },
 
@@ -347,8 +306,8 @@ window.PastiModule = {
     this.updateView(false);
   },
 
-  setRmFilter(rm) {
-    this.rmFilter = rm;
+  setNotarisFilter(val) {
+    this.notarisFilter = val;
     this.currentPage = 1;
     this.updateView(false);
   },
@@ -374,7 +333,7 @@ window.PastiModule = {
   resetAllFilters() {
     this.searchQuery = '';
     this.quickFilter = 'all';
-    this.rmFilter = 'all';
+    this.notarisFilter = 'all';
     this.cobFilter = 'all';
     this.currentPage = 1;
     this.updateView(false);
@@ -383,78 +342,65 @@ window.PastiModule = {
   getKeteranganBadge(ket) {
     const lower = String(ket || '').toLowerCase();
     if (lower.includes('softfile')) {
-      return {
-        label: ket,
-        icon: 'file-text',
-        cls: 'bg-sky-50 text-sky-700 border-sky-200',
-        dot: 'bg-sky-500'
-      };
+      return { label: ket, icon: 'file-text', cls: 'bg-sky-50 text-sky-700 border-sky-200' };
     }
     if (lower.includes('belum ada')) {
-      return {
-        label: ket,
-        icon: 'alert-circle',
-        cls: 'bg-amber-50 text-amber-800 border-amber-200',
-        dot: 'bg-amber-500'
-      };
+      return { label: ket, icon: 'alert-circle', cls: 'bg-amber-50 text-amber-800 border-amber-200' };
     }
     if (lower.includes('ada spkmgr')) {
-      return {
-        label: ket,
-        icon: 'check-circle-2',
-        cls: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-        dot: 'bg-emerald-500'
-      };
+      return { label: ket, icon: 'check-circle-2', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
     }
-    return {
-      label: ket || '-',
-      icon: 'minus-circle',
-      cls: 'bg-slate-50 text-slate-600 border-slate-200',
-      dot: 'bg-slate-400'
-    };
+    return { label: ket || '-', icon: 'minus-circle', cls: 'bg-slate-50 text-slate-600 border-slate-200' };
   },
 
   getPembayaranBadge(status) {
     const lower = String(status || '').toLowerCase();
     if (lower.includes('sudah bayar')) {
-      return {
-        label: 'Sudah Bayar',
-        icon: 'badge-check',
-        cls: 'bg-emerald-50 text-emerald-700 border-emerald-200'
-      };
+      return { label: 'Sudah Bayar', icon: 'badge-check', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
     }
     if (lower.includes('belum bayar')) {
-      return {
-        label: 'Belum Bayar',
-        icon: 'clock',
-        cls: 'bg-rose-50 text-rose-700 border-rose-200'
-      };
+      return { label: 'Belum Bayar', icon: 'clock', cls: 'bg-rose-50 text-rose-700 border-rose-200' };
     }
-    return {
-      label: status === '-' || !status ? 'Tidak Ada Tagihan (-)' : status,
-      icon: 'minus',
-      cls: 'bg-slate-50 text-slate-500 border-slate-200'
-    };
+    return { label: status === '-' || !status ? 'Tidak Ada Tagihan (-)' : status, icon: 'minus', cls: 'bg-slate-50 text-slate-500 border-slate-200' };
   },
 
   getStatusSpkmgrBadge(status) {
     const lower = String(status || '').toLowerCase();
-    if (lower === 'waarmerking') {
-      return 'bg-indigo-50 text-indigo-700 border-indigo-200';
-    }
-    if (lower === 'legalisasi') {
-      return 'bg-purple-50 text-purple-700 border-purple-200';
-    }
-    if (lower.includes('tidak')) {
-      return 'bg-slate-100 text-slate-600 border-slate-200';
-    }
+    if (lower === 'waarmerking') return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+    if (lower === 'legalisasi') return 'bg-purple-50 text-purple-700 border-purple-200';
+    if (lower.includes('tidak')) return 'bg-slate-100 text-slate-600 border-slate-200';
     return 'bg-slate-50 text-slate-600 border-slate-200';
+  },
+
+  getNotarisBadge(status) {
+    const lower = String(status || '').toLowerCase();
+    if (lower === 'selesai') {
+      return { label: 'Selesai', icon: 'check-check', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+    }
+    if (lower.includes('tunggu ktp')) {
+      return { label: status, icon: 'id-card', cls: 'bg-amber-50 text-amber-800 border-amber-200' };
+    }
+    if (lower.includes('di notaris')) {
+      return { label: status, icon: 'stamp', cls: 'bg-violet-50 text-violet-700 border-violet-200' };
+    }
+    return { label: 'Belum Diproses (-)', icon: 'minus', cls: 'bg-slate-50 text-slate-500 border-slate-200' };
+  },
+
+  getDoneBadge(doneStatus) {
+    const lower = String(doneStatus || '').toLowerCase();
+    if (lower === 'done') {
+      return { label: 'Done', cls: 'bg-emerald-600 text-white border-emerald-600' };
+    }
+    if (lower === 'not yet') {
+      return { label: 'Not Yet', cls: 'bg-amber-100 text-amber-800 border-amber-300' };
+    }
+    return { label: doneStatus || '-', cls: 'bg-slate-100 text-slate-600 border-slate-200' };
   },
 
   copySummary(idx) {
     const r = this.rows[idx];
     if (!r) return;
-    const text = [
+    const lines = [
       `*Rincian Status SPKMGR - PASTI Askrindo*`,
       `• Nama Principal : ${r.nama}`,
       `• No. Urut       : #${r.no}`,
@@ -462,13 +408,15 @@ window.PastiModule = {
       `• Tanggal        : ${r.tanggal}`,
       `• Jangka Waktu   : ${r.jwAwal} s/d ${r.jwAkhir}`,
       `• Status SPKMGR  : ${r.statusSpkmgr}`,
-      `• Keterangan     : ${r.keterangan}`,
-      `• Pembayaran     : ${r.statusPembayaran}${r.biayaSpkmgr !== '-' ? ` (${r.biayaSpkmgr})` : ''}`,
-      `• Nama RM        : ${r.namaRm}`
-    ].join('\n');
+      `• Dokumen        : ${r.keterangan}`,
+      `• Pembayaran     : ${r.statusPembayaran}`,
+      `• Status Notaris : ${r.statusNotaris}`,
+      `• Status Done    : ${r.doneStatus}`
+    ];
+    if (r.catatan) lines.push(`• Catatan        : ${r.catatan}`);
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(() => {
+      navigator.clipboard.writeText(lines.join('\n')).then(() => {
         if (window.askrindoApp) {
           window.askrindoApp.showToast(`Ringkasan status ${r.nama} disalin ke clipboard!`, 'success');
         }
@@ -484,6 +432,8 @@ window.PastiModule = {
     const ketBadge = this.getKeteranganBadge(r.keterangan);
     const payBadge = this.getPembayaranBadge(r.statusPembayaran);
     const spkmgrCls = this.getStatusSpkmgrBadge(r.statusSpkmgr);
+    const notarisBadge = this.getNotarisBadge(r.statusNotaris);
+    const doneBadge = this.getDoneBadge(r.doneStatus);
     const jwStatus = this.getJwStatus(r.jwAkhir);
 
     const existing = document.getElementById('pasti-detail-modal');
@@ -508,12 +458,15 @@ window.PastiModule = {
               <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold ${r.jenisCob === 'KBG' ? 'bg-cyan-400/20 text-cyan-200 border border-cyan-300/30' : 'bg-amber-400/20 text-amber-200 border border-amber-300/30'}">
                 COB: ${this.escapeHtml(r.jenisCob)}
               </span>
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${doneBadge.cls}">
+                ${this.escapeHtml(doneBadge.label)}
+              </span>
               ${jwStatus ? `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-white/10 border border-white/20 text-white">${jwStatus.label}</span>` : ''}
             </div>
             <h3 class="text-xl font-black tracking-tight break-words">${this.escapeHtml(r.nama)}</h3>
             <p class="text-xs text-indigo-200 flex items-center gap-1.5">
-              <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
-              <span>Relationship Manager: <strong class="text-white">${this.escapeHtml(r.namaRm)}</strong></span>
+              <i data-lucide="sheet" class="w-3.5 h-3.5"></i>
+              <span>Sheet: <strong class="text-white">${this.escapeHtml(r.sheet)}</strong></span>
             </p>
           </div>
           <button onclick="document.getElementById('pasti-detail-modal').remove()" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition shrink-0">
@@ -522,9 +475,9 @@ window.PastiModule = {
         </div>
 
         <!-- Modal Body -->
-        <div class="p-6 space-y-5">
-          <!-- 3-Pillar Status Cards -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="p-6 space-y-4">
+          <!-- 4-Pillar Status Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div class="p-3.5 rounded-2xl border bg-slate-50/70 border-slate-200 space-y-1.5">
               <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Status SPKMGR</p>
               <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border ${spkmgrCls}">
@@ -542,34 +495,51 @@ window.PastiModule = {
 
             <div class="p-3.5 rounded-2xl border bg-slate-50/70 border-slate-200 space-y-1.5">
               <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Status Pembayaran</p>
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border ${payBadge.cls}">
-                  <i data-lucide="${payBadge.icon}" class="w-3.5 h-3.5"></i>
-                  ${this.escapeHtml(payBadge.label)}
-                </span>
-                ${r.biayaSpkmgr && r.biayaSpkmgr !== '-' ? `<span class="text-xs font-black text-rose-700">${this.escapeHtml(r.biayaSpkmgr)}</span>` : ''}
-              </div>
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border ${payBadge.cls}">
+                <i data-lucide="${payBadge.icon}" class="w-3.5 h-3.5"></i>
+                ${this.escapeHtml(payBadge.label)}
+              </span>
+            </div>
+
+            <div class="p-3.5 rounded-2xl border bg-slate-50/70 border-slate-200 space-y-1.5">
+              <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Status Notaris</p>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${notarisBadge.cls}">
+                <i data-lucide="${notarisBadge.icon}" class="w-3.5 h-3.5"></i>
+                ${this.escapeHtml(notarisBadge.label)}
+              </span>
             </div>
           </div>
 
+          ${r.catatan ? `
+            <div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex items-start gap-2.5">
+              <i data-lucide="message-square-warning" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5"></i>
+              <div class="text-xs">
+                <span class="font-bold text-amber-900 block">Catatan / Keterangan Tambahan</span>
+                <span class="text-amber-800 font-medium">${this.escapeHtml(r.catatan)}</span>
+              </div>
+            </div>
+          ` : ''}
+
           <!-- Detail Grid -->
           <div class="bg-slate-50 rounded-2xl border border-slate-200/80 divide-y divide-slate-200/70 text-xs">
-            <div class="grid grid-cols-3 p-3.5 gap-2">
+            <div class="grid grid-cols-3 p-3 gap-2">
               <span class="text-slate-500 font-medium">Tanggal Dokumen</span>
               <span class="col-span-2 font-bold text-slate-800">${this.escapeHtml(r.tanggal)}</span>
             </div>
-            <div class="grid grid-cols-3 p-3.5 gap-2">
+            <div class="grid grid-cols-3 p-3 gap-2">
               <span class="text-slate-500 font-medium">Jangka Waktu (JW)</span>
               <span class="col-span-2 font-bold text-slate-800">${this.escapeHtml(r.jwAwal)} &rarr; ${this.escapeHtml(r.jwAkhir)}</span>
             </div>
-            <div class="grid grid-cols-3 p-3.5 gap-2">
-              <span class="text-slate-500 font-medium">Biaya SPKMGR</span>
-              <span class="col-span-2 font-bold ${r.biayaNum > 0 ? 'text-rose-700' : 'text-slate-700'}">${this.escapeHtml(r.biayaSpkmgr)}</span>
+            <div class="grid grid-cols-3 p-3 gap-2">
+              <span class="text-slate-500 font-medium">Status Penyelesaian</span>
+              <span class="col-span-2 font-bold text-slate-800">${this.escapeHtml(r.doneStatus)}</span>
             </div>
-            <div class="grid grid-cols-3 p-3.5 gap-2">
-              <span class="text-slate-500 font-medium">Relationship Manager</span>
-              <span class="col-span-2 font-bold text-slate-800">${this.escapeHtml(r.namaRm)}</span>
-            </div>
+            ${r.cekDaluarsa ? `
+              <div class="grid grid-cols-3 p-3 gap-2">
+                <span class="text-slate-500 font-medium">Cek Daluarsa</span>
+                <span class="col-span-2 font-bold text-slate-800">${this.escapeHtml(r.cekDaluarsa)}</span>
+              </div>
+            ` : ''}
           </div>
 
           <!-- Footer Actions -->
@@ -606,7 +576,7 @@ window.PastiModule = {
       el.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span><span>Gagal Sinkron</span>`;
       el.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200';
     } else {
-      el.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span>Live Google Sheets · ${this.rows.length} Data</span>`;
+      el.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span>${this.escapeHtml(this.sheetUsedName)} · ${this.rows.length} Data</span>`;
       el.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200';
     }
   },
@@ -651,8 +621,9 @@ window.PastiModule = {
   renderInner() {
     const stats = this.getStats();
     const filtered = this.getFilteredRows();
-    const rms = this.getUniqueRms();
-    const hasActiveFilter = Boolean(this.searchQuery.trim() || this.quickFilter !== 'all' || this.rmFilter !== 'all' || this.cobFilter !== 'all');
+    const notarisList = this.getUniqueNotarisStatuses();
+    const cobList = this.getUniqueCobs();
+    const hasActiveFilter = Boolean(this.searchQuery.trim() || this.quickFilter !== 'all' || this.notarisFilter !== 'all' || this.cobFilter !== 'all');
     const effectiveMode = this.viewMode === 'auto'
       ? (hasActiveFilter ? 'cards' : 'table')
       : this.viewMode;
@@ -664,7 +635,7 @@ window.PastiModule = {
 
     const syncLabel = this.isSyncing
       ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200"><span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>Menyinkronkan Sheet...</span>`
-      : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>Live Google Sheets · ${stats.total} Data</span>`;
+      : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>${this.escapeHtml(this.sheetUsedName)} · ${stats.total} Data</span>`;
 
     const syncedTimeText = this.syncedAt
       ? new Date(this.syncedAt).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -672,11 +643,14 @@ window.PastiModule = {
 
     const quickFilterChips = [
       { key: 'all', label: 'Semua Data', count: stats.total, activeCls: 'bg-slate-900 text-white border-slate-900', idleCls: 'bg-white/10 text-slate-200 border-white/15 hover:bg-white/20' },
-      { key: 'belum_ada', label: 'Belum Ada SPKMGR', count: stats.belumAda, activeCls: 'bg-amber-400 text-slate-950 border-amber-300', idleCls: 'bg-amber-500/15 text-amber-200 border-amber-400/30 hover:bg-amber-500/25' },
-      { key: 'ada', label: 'Ada SPKMGR', count: this.rows.filter(r => r.keterangan.toLowerCase() === 'ada spkmgr').length, activeCls: 'bg-emerald-400 text-slate-950 border-emerald-300', idleCls: 'bg-emerald-500/15 text-emerald-200 border-emerald-400/30 hover:bg-emerald-500/25' },
-      { key: 'softfile', label: 'Ada Softfile', count: this.rows.filter(r => r.keterangan.toLowerCase().includes('softfile')).length, activeCls: 'bg-sky-400 text-slate-950 border-sky-300', idleCls: 'bg-sky-500/15 text-sky-200 border-sky-400/30 hover:bg-sky-500/25' },
+      { key: 'done', label: 'Done', count: stats.doneCount, activeCls: 'bg-emerald-400 text-slate-950 border-emerald-300', idleCls: 'bg-emerald-500/15 text-emerald-200 border-emerald-400/30 hover:bg-emerald-500/25' },
+      { key: 'not_yet', label: 'Not Yet', count: stats.notYetCount, activeCls: 'bg-amber-300 text-slate-950 border-amber-200', idleCls: 'bg-amber-500/15 text-amber-200 border-amber-400/30 hover:bg-amber-500/25' },
+      { key: 'belum_ada', label: 'Belum Ada SPKMGR', count: stats.belumAda, activeCls: 'bg-orange-400 text-slate-950 border-orange-300', idleCls: 'bg-orange-500/15 text-orange-200 border-orange-400/30 hover:bg-orange-500/25' },
+      { key: 'ada', label: 'Ada SPKMGR', count: stats.adaOnly, activeCls: 'bg-teal-400 text-slate-950 border-teal-300', idleCls: 'bg-teal-500/15 text-teal-200 border-teal-400/30 hover:bg-teal-500/25' },
+      { key: 'softfile', label: 'Softfile', count: stats.softfile, activeCls: 'bg-sky-400 text-slate-950 border-sky-300', idleCls: 'bg-sky-500/15 text-sky-200 border-sky-400/30 hover:bg-sky-500/25' },
       { key: 'belum_bayar', label: 'Belum Bayar', count: stats.belumBayar, activeCls: 'bg-rose-400 text-slate-950 border-rose-300', idleCls: 'bg-rose-500/15 text-rose-200 border-rose-400/30 hover:bg-rose-500/25' },
-      { key: 'sudah_bayar', label: 'Sudah Bayar', count: stats.sudahBayar, activeCls: 'bg-teal-400 text-slate-950 border-teal-300', idleCls: 'bg-teal-500/15 text-teal-200 border-teal-400/30 hover:bg-teal-500/25' }
+      { key: 'sudah_bayar', label: 'Sudah Bayar', count: stats.sudahBayar, activeCls: 'bg-cyan-400 text-slate-950 border-cyan-300', idleCls: 'bg-cyan-500/15 text-cyan-200 border-cyan-400/30 hover:bg-cyan-500/25' },
+      { key: 'di_notaris', label: 'Di Notaris', count: stats.diNotaris, activeCls: 'bg-violet-400 text-slate-950 border-violet-300', idleCls: 'bg-violet-500/15 text-violet-200 border-violet-400/30 hover:bg-violet-500/25' }
     ];
 
     return `
@@ -695,7 +669,7 @@ window.PastiModule = {
               <div id="pasti-sync-badge">${syncLabel}</div>
             </div>
             <p class="text-xs text-slate-500 mt-1">
-              Pencarian cepat dokumen SPKMGR berdasarkan nama principal untuk memantau kelengkapan dokumen, status waarmerking, dan status pembayaran secara real-time.
+              Pencarian cepat dokumen SPKMGR berdasarkan nama principal untuk memantau kelengkapan dokumen, status waarmerking, pembayaran, notaris, dan status Done secara real-time.
             </p>
           </div>
         </div>
@@ -740,7 +714,7 @@ window.PastiModule = {
                 type="text"
                 value="${this.escapeHtml(this.searchQuery)}"
                 oninput="window.PastiModule.setSearch(this.value)"
-                placeholder="Ketik nama principal (misal: CV. AR'SYERA, PT. PUTRA, BANGUN) atau nama RM..."
+                placeholder="Ketik nama principal (misal: CV. AR'SYERA, PT. PUTRA) atau catatan/kendala..."
                 class="w-full pl-12 pr-10 py-3.5 rounded-2xl bg-white text-slate-900 placeholder:text-slate-400 text-sm font-semibold shadow-lg focus:outline-none focus:ring-4 focus:ring-indigo-400/40"
               />
               ${this.searchQuery ? `
@@ -751,17 +725,17 @@ window.PastiModule = {
             </div>
 
             <div class="lg:col-span-3">
-              <select onchange="window.PastiModule.setRmFilter(this.value)" class="w-full h-full py-3.5 px-4 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                <option value="all" class="text-slate-900">Semua RM (${rms.length})</option>
-                ${rms.map(rm => `<option value="${this.escapeHtml(rm)}" ${this.rmFilter === rm ? 'selected' : ''} class="text-slate-900">RM: ${this.escapeHtml(rm)}</option>`).join('')}
+              <select onchange="window.PastiModule.setNotarisFilter(this.value)" class="w-full h-full py-3.5 px-4 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                <option value="all" class="text-slate-900">Semua Status Notaris</option>
+                ${notarisList.map(st => `<option value="${this.escapeHtml(st)}" ${this.notarisFilter === st ? 'selected' : ''} class="text-slate-900">${this.escapeHtml(st)}</option>`).join('')}
+                <option value="__empty__" ${this.notarisFilter === '__empty__' ? 'selected' : ''} class="text-slate-900">Belum Diproses / Kosong</option>
               </select>
             </div>
 
             <div class="lg:col-span-2">
               <select onchange="window.PastiModule.setCobFilter(this.value)" class="w-full h-full py-3.5 px-4 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-300">
                 <option value="all" class="text-slate-900">Semua COB</option>
-                <option value="SB" ${this.cobFilter === 'SB' ? 'selected' : ''} class="text-slate-900">SB (Surety Bond)</option>
-                <option value="KBG" ${this.cobFilter === 'KBG' ? 'selected' : ''} class="text-slate-900">KBG (Kontra BG)</option>
+                ${cobList.map(c => `<option value="${this.escapeHtml(c)}" ${this.cobFilter === c ? 'selected' : ''} class="text-slate-900">${this.escapeHtml(c)}</option>`).join('')}
               </select>
             </div>
           </div>
@@ -790,19 +764,30 @@ window.PastiModule = {
         <button onclick="window.PastiModule.setQuickFilter('all')" class="text-left bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm hover:shadow-md hover:border-indigo-300 transition flex items-center justify-between">
           <div>
             <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Dokumen</p>
-            <h3 class="text-2xl font-black text-slate-800 mt-0.5">${stats.total}</h3>
-            <p class="text-[11px] text-indigo-600 font-semibold mt-0.5">${stats.uniquePrincipals} principal unik</p>
+            <h3 class="text-2xl font-black text-slate-800 mt-0.5">${stats.total.toLocaleString('id-ID')}</h3>
+            <p class="text-[11px] text-indigo-600 font-semibold mt-0.5">${stats.uniquePrincipals.toLocaleString('id-ID')} principal unik</p>
           </div>
           <div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
             <i data-lucide="folder-kanban" class="w-5 h-5"></i>
           </div>
         </button>
 
+        <button onclick="window.PastiModule.setQuickFilter('done')" class="text-left bg-white rounded-2xl p-4 border ${this.quickFilter === 'done' ? 'border-emerald-400 ring-2 ring-emerald-200' : 'border-slate-200/80'} shadow-sm hover:shadow-md hover:border-emerald-300 transition flex items-center justify-between">
+          <div>
+            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Status Done</p>
+            <h3 class="text-2xl font-black text-emerald-700 mt-0.5">${stats.doneCount.toLocaleString('id-ID')}</h3>
+            <p class="text-[11px] text-emerald-600 font-semibold mt-0.5">${stats.total ? ((stats.doneCount / stats.total) * 100).toFixed(1) : '0.0'}% selesai · ${stats.notYetCount} Not Yet</p>
+          </div>
+          <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+          </div>
+        </button>
+
         <button onclick="window.PastiModule.setQuickFilter('belum_ada')" class="text-left bg-white rounded-2xl p-4 border ${this.quickFilter === 'belum_ada' ? 'border-amber-400 ring-2 ring-amber-200' : 'border-slate-200/80'} shadow-sm hover:shadow-md hover:border-amber-300 transition flex items-center justify-between">
           <div>
             <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Belum Ada SPKMGR</p>
-            <h3 class="text-2xl font-black text-amber-700 mt-0.5">${stats.belumAda}</h3>
-            <p class="text-[11px] text-amber-600 font-semibold mt-0.5">${stats.total ? ((stats.belumAda / stats.total) * 100).toFixed(1) : '0.0'}% dari total data</p>
+            <h3 class="text-2xl font-black text-amber-700 mt-0.5">${stats.belumAda.toLocaleString('id-ID')}</h3>
+            <p class="text-[11px] text-amber-600 font-semibold mt-0.5">${stats.adaDokumen} dokumen sudah ada</p>
           </div>
           <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
             <i data-lucide="file-warning" class="w-5 h-5"></i>
@@ -812,22 +797,11 @@ window.PastiModule = {
         <button onclick="window.PastiModule.setQuickFilter('belum_bayar')" class="text-left bg-white rounded-2xl p-4 border ${this.quickFilter === 'belum_bayar' ? 'border-rose-400 ring-2 ring-rose-200' : 'border-slate-200/80'} shadow-sm hover:shadow-md hover:border-rose-300 transition flex items-center justify-between">
           <div>
             <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Belum Bayar</p>
-            <h3 class="text-2xl font-black text-rose-700 mt-0.5">${stats.belumBayar}</h3>
-            <p class="text-[11px] text-rose-600 font-semibold mt-0.5">Total: ${this.formatRupiah(stats.totalBiayaBelumBayar)}</p>
+            <h3 class="text-2xl font-black text-rose-700 mt-0.5">${stats.belumBayar.toLocaleString('id-ID')}</h3>
+            <p class="text-[11px] text-rose-600 font-semibold mt-0.5">${stats.sudahBayar} tercatat sudah bayar</p>
           </div>
           <div class="w-11 h-11 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
             <i data-lucide="wallet" class="w-5 h-5"></i>
-          </div>
-        </button>
-
-        <button onclick="window.PastiModule.setQuickFilter('ada')" class="text-left bg-white rounded-2xl p-4 border ${this.quickFilter === 'ada' ? 'border-emerald-400 ring-2 ring-emerald-200' : 'border-slate-200/80'} shadow-sm hover:shadow-md hover:border-emerald-300 transition flex items-center justify-between">
-          <div>
-            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Dokumen Tersedia</p>
-            <h3 class="text-2xl font-black text-emerald-700 mt-0.5">${stats.adaDokumen}</h3>
-            <p class="text-[11px] text-emerald-600 font-semibold mt-0.5">${stats.sudahBayar} tercatat sudah bayar</p>
-          </div>
-          <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-            <i data-lucide="file-check-2" class="w-5 h-5"></i>
           </div>
         </button>
       </div>
@@ -876,7 +850,7 @@ window.PastiModule = {
           <i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i>
         </div>
         <h4 class="text-sm font-bold text-slate-800">Memuat Database SPKMGR dari Google Sheets...</h4>
-        <p class="text-xs text-slate-500">Mohon tunggu sebentar, sedang mengambil data terbaru.</p>
+        <p class="text-xs text-slate-500">Mohon tunggu sebentar, sedang menyinkronkan sheet ${this.escapeHtml(this.sheetUsedName)}.</p>
       </div>
     `;
   },
@@ -906,26 +880,27 @@ window.PastiModule = {
           const ketBadge = this.getKeteranganBadge(r.keterangan);
           const payBadge = this.getPembayaranBadge(r.statusPembayaran);
           const spkmgrCls = this.getStatusSpkmgrBadge(r.statusSpkmgr);
+          const notarisBadge = this.getNotarisBadge(r.statusNotaris);
+          const doneBadge = this.getDoneBadge(r.doneStatus);
           const jwStatus = this.getJwStatus(r.jwAkhir);
 
           return `
-            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-lg hover:border-indigo-300 transition-all p-5 flex flex-col justify-between gap-4">
+            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-lg hover:border-indigo-300 transition-all p-5 flex flex-col justify-between gap-3.5">
               <!-- Card Top -->
               <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5 flex-wrap mb-1.5">
                     <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 text-slate-600">#${this.escapeHtml(r.no)}</span>
                     <span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${r.jenisCob === 'KBG' ? 'bg-cyan-50 text-cyan-700 border border-cyan-200' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'}">${this.escapeHtml(r.jenisCob)}</span>
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${doneBadge.cls}">${this.escapeHtml(doneBadge.label)}</span>
                     ${jwStatus ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold border ${jwStatus.cls}">${jwStatus.label}</span>` : ''}
                   </div>
                   <h4 class="text-base font-black text-slate-900 leading-snug break-words">
                     ${this.highlightMatch(r.nama, this.searchQuery)}
                   </h4>
                   <p class="text-[11px] text-slate-500 mt-1 flex items-center gap-1.5">
-                    <i data-lucide="user" class="w-3.5 h-3.5 text-slate-400"></i>
-                    <span>RM: <strong class="text-slate-700">${this.highlightMatch(r.namaRm, this.searchQuery)}</strong></span>
-                    <span class="text-slate-300">·</span>
-                    <span>Tgl: <strong class="text-slate-700">${this.escapeHtml(r.tanggal)}</strong></span>
+                    <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i>
+                    <span>Tanggal: <strong class="text-slate-700">${this.escapeHtml(r.tanggal)}</strong></span>
                   </p>
                 </div>
 
@@ -934,8 +909,8 @@ window.PastiModule = {
                 </button>
               </div>
 
-              <!-- 3-Pillar Rincian Status -->
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-slate-50/90 p-3 rounded-xl border border-slate-200/70">
+              <!-- 4-Pillar Rincian Status -->
+              <div class="grid grid-cols-2 gap-2.5 bg-slate-50/90 p-3 rounded-xl border border-slate-200/70">
                 <div>
                   <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Status SPKMGR</span>
                   <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold border ${spkmgrCls}">
@@ -953,15 +928,27 @@ window.PastiModule = {
 
                 <div>
                   <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Pembayaran</span>
-                  <div class="flex items-center gap-1 flex-wrap">
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border ${payBadge.cls}">
-                      <i data-lucide="${payBadge.icon}" class="w-3 h-3 shrink-0"></i>
-                      <span>${this.escapeHtml(payBadge.label)}</span>
-                    </span>
-                    ${r.biayaNum > 0 ? `<span class="text-[11px] font-black text-rose-700">${this.escapeHtml(r.biayaSpkmgr)}</span>` : ''}
-                  </div>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border ${payBadge.cls}">
+                    <i data-lucide="${payBadge.icon}" class="w-3 h-3 shrink-0"></i>
+                    <span>${this.escapeHtml(payBadge.label)}</span>
+                  </span>
+                </div>
+
+                <div>
+                  <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Status Notaris</span>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border ${notarisBadge.cls}">
+                    <i data-lucide="${notarisBadge.icon}" class="w-3 h-3 shrink-0"></i>
+                    <span class="truncate">${this.escapeHtml(notarisBadge.label)}</span>
+                  </span>
                 </div>
               </div>
+
+              ${r.catatan ? `
+                <div class="px-3 py-2 rounded-xl bg-amber-50/80 border border-amber-200/80 text-[11px] text-amber-900 flex items-start gap-2">
+                  <i data-lucide="info" class="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5"></i>
+                  <span><strong>Catatan:</strong> ${this.highlightMatch(r.catatan, this.searchQuery)}</span>
+                </div>
+              ` : ''}
 
               <!-- Card Footer -->
               <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 text-xs">
@@ -993,9 +980,10 @@ window.PastiModule = {
                 <th class="py-3 px-3">COB</th>
                 <th class="py-3 px-3">Jangka Waktu</th>
                 <th class="py-3 px-3">Status SPKMGR</th>
-                <th class="py-3 px-3">Keterangan Dokumen</th>
-                <th class="py-3 px-3">Pembayaran & Biaya</th>
-                <th class="py-3 px-3">Nama RM</th>
+                <th class="py-3 px-3">Dokumen</th>
+                <th class="py-3 px-3">Pembayaran</th>
+                <th class="py-3 px-3">Notaris</th>
+                <th class="py-3 px-3">Done</th>
                 <th class="py-3 px-3.5 text-center">Aksi</th>
               </tr>
             </thead>
@@ -1004,13 +992,18 @@ window.PastiModule = {
                 const ketBadge = this.getKeteranganBadge(r.keterangan);
                 const payBadge = this.getPembayaranBadge(r.statusPembayaran);
                 const spkmgrCls = this.getStatusSpkmgrBadge(r.statusSpkmgr);
+                const notarisBadge = this.getNotarisBadge(r.statusNotaris);
+                const doneBadge = this.getDoneBadge(r.doneStatus);
 
                 return `
                   <tr onclick="window.PastiModule.openDetailModal(${r._idx})" class="hover:bg-indigo-50/40 cursor-pointer transition-colors">
                     <td class="py-3 px-3.5 font-mono text-slate-400 font-semibold whitespace-nowrap">${this.escapeHtml(r.no)}</td>
                     <td class="py-3 px-3.5">
                       <div class="font-bold text-slate-900">${this.highlightMatch(r.nama, this.searchQuery)}</div>
-                      <div class="text-[10px] text-slate-400">Tgl: ${this.escapeHtml(r.tanggal)}</div>
+                      <div class="text-[10px] text-slate-400">
+                        Tgl: ${this.escapeHtml(r.tanggal)}
+                        ${r.catatan ? ` · <span class="text-amber-700 font-semibold">${this.escapeHtml(r.catatan)}</span>` : ''}
+                      </div>
                     </td>
                     <td class="py-3 px-3 whitespace-nowrap">
                       <span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.jenisCob === 'KBG' ? 'bg-cyan-50 text-cyan-700 border border-cyan-200' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'}">
@@ -1032,15 +1025,22 @@ window.PastiModule = {
                       </span>
                     </td>
                     <td class="py-3 px-3 whitespace-nowrap">
-                      <div class="flex items-center gap-1.5">
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${payBadge.cls}">
-                          <i data-lucide="${payBadge.icon}" class="w-3 h-3"></i>
-                          ${this.escapeHtml(payBadge.label)}
-                        </span>
-                        ${r.biayaNum > 0 ? `<span class="text-[11px] font-bold text-rose-700">${this.escapeHtml(r.biayaSpkmgr)}</span>` : ''}
-                      </div>
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${payBadge.cls}">
+                        <i data-lucide="${payBadge.icon}" class="w-3 h-3"></i>
+                        ${this.escapeHtml(payBadge.label)}
+                      </span>
                     </td>
-                    <td class="py-3 px-3 whitespace-nowrap font-semibold text-slate-700">${this.highlightMatch(r.namaRm, this.searchQuery)}</td>
+                    <td class="py-3 px-3 whitespace-nowrap">
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${notarisBadge.cls}">
+                        <i data-lucide="${notarisBadge.icon}" class="w-3 h-3"></i>
+                        ${this.escapeHtml(notarisBadge.label)}
+                      </span>
+                    </td>
+                    <td class="py-3 px-3 whitespace-nowrap">
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border ${doneBadge.cls}">
+                        ${this.escapeHtml(doneBadge.label)}
+                      </span>
+                    </td>
                     <td class="py-3 px-3.5 text-center whitespace-nowrap" onclick="event.stopPropagation()">
                       <button onclick="window.PastiModule.openDetailModal(${r._idx})" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition">
                         Detail
