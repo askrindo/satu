@@ -591,6 +591,12 @@ window.AdminModule = {
     const resolvedRole = user
       ? (this.STANDARD_ROLES.includes(normalizedRole) ? normalizedRole : 'Officer')
       : '';
+    const resolvedUnit = user ? window.askrindoDB.getUserUnitKerja(user) : '';
+    const escAttr = (str) => String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
 
     container.innerHTML = `
       <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
@@ -639,19 +645,66 @@ window.AdminModule = {
               </div>
             ` : ''}
 
-            <div>
+            <div class="relative" id="unit-kerja-combobox">
               <label class="block font-semibold text-slate-700 mb-1">Unit Kerja</label>
-              <select id="modal-unit-kerja" required class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500 bg-white">
-                ${this.renderUnitKerjaOptions(user)}
-              </select>
+              <input type="hidden" id="modal-unit-kerja" value="${escAttr(resolvedUnit)}" />
+              <div class="relative">
+                <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                <input
+                  type="text"
+                  id="modal-unit-kerja-search"
+                  value="${escAttr(resolvedUnit)}"
+                  placeholder="Ketik untuk mencari Unit Kerja..."
+                  autocomplete="off"
+                  onfocus="window.AdminModule.openSearchDropdown('unit-kerja')"
+                  oninput="window.AdminModule.filterSearchDropdown('unit-kerja', this.value)"
+                  onblur="setTimeout(() => window.AdminModule.closeSearchDropdown('unit-kerja'), 160)"
+                  class="w-full pl-9 pr-8 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500 bg-white"
+                />
+                <button
+                  type="button"
+                  onclick="window.AdminModule.clearSearchDropdown('unit-kerja')"
+                  title="Kosongkan pilihan"
+                  class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  tabindex="-1"
+                >
+                  <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                </button>
+              </div>
+              <div id="unit-kerja-dropdown" class="hidden absolute left-0 right-0 mt-1 max-h-52 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl z-30 divide-y divide-slate-100">
+                ${this.renderSearchableUnitItems(resolvedUnit, '')}
+              </div>
             </div>
 
-            <div>
+            <div class="relative" id="role-combobox">
               <label class="block font-semibold text-slate-700 mb-1">Jabatan / Role</label>
-              <select id="modal-role" required class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500 bg-white">
-                ${!isEdit ? '<option value="" disabled selected>-- Pilih Jabatan / Role --</option>' : ''}
-                ${this.STANDARD_ROLES.map(r => `<option value="${r}" ${resolvedRole === r ? 'selected' : ''}>${r}</option>`).join('')}
-              </select>
+              <input type="hidden" id="modal-role" value="${escAttr(resolvedRole)}" />
+              <div class="relative">
+                <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                <input
+                  type="text"
+                  id="modal-role-search"
+                  value="${escAttr(resolvedRole)}"
+                  placeholder="Ketik untuk mencari Jabatan / Role..."
+                  autocomplete="off"
+                  onfocus="window.AdminModule.openSearchDropdown('role')"
+                  oninput="window.AdminModule.filterSearchDropdown('role', this.value)"
+                  onblur="setTimeout(() => window.AdminModule.closeSearchDropdown('role'), 160)"
+                  class="w-full pl-9 pr-8 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500 bg-white"
+                />
+                <button
+                  type="button"
+                  onclick="window.AdminModule.clearSearchDropdown('role')"
+                  title="Kosongkan pilihan"
+                  class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  tabindex="-1"
+                >
+                  <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                </button>
+              </div>
+              <div id="role-dropdown" class="hidden absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl z-30">
+                ${this.renderSearchableRoleItems(resolvedRole, '')}
+              </div>
             </div>
 
             <!-- Granular Application Permissions Checkboxes -->
@@ -712,6 +765,107 @@ window.AdminModule = {
     if (window.lucide) window.lucide.createIcons();
   },
 
+  renderSearchableUnitItems(selectedVal = '', query = '') {
+    const units = window.askrindoDB.getStandardUnitKerja();
+    const q = String(query || '').trim().toLowerCase();
+    const esc = (str) => String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    const groups = [
+      { label: 'Divisi (Kantor Pusat)', items: units.filter(u => u.startsWith('Divisi ')) },
+      { label: 'Regional Office', items: units.filter(u => u.startsWith('Regional Office ')) },
+      { label: 'Main Branch & Branch Office', items: units.filter(u => !u.startsWith('Divisi ') && !u.startsWith('Regional Office ')) }
+    ];
+
+    let html = '';
+    groups.forEach(g => {
+      const matched = g.items.filter(u => !q || u.toLowerCase().includes(q));
+      if (!matched.length) return;
+      html += `<div class="px-3 py-1.5 bg-slate-50 text-[10px] font-bold uppercase tracking-wider text-slate-400 sticky top-0">${esc(g.label)}</div>`;
+      html += matched.map(u => `
+        <button type="button" onmousedown="window.AdminModule.selectSearchOption('unit-kerja', '${esc(u)}')" class="w-full text-left px-3 py-2 text-xs hover:bg-orange-50 hover:text-orange-700 transition flex items-center justify-between ${selectedVal === u ? 'bg-orange-50/80 font-bold text-orange-700' : 'text-slate-700'}">
+          <span>${esc(u)}</span>
+          ${selectedVal === u ? '<span class="text-[10px] font-bold text-orange-600">&#10003;</span>' : ''}
+        </button>
+      `).join('');
+    });
+
+    if (!html) {
+      return `<div class="px-3 py-4 text-center text-xs text-slate-400">Unit Kerja tidak ditemukan.</div>`;
+    }
+    return html;
+  },
+
+  renderSearchableRoleItems(selectedVal = '', query = '') {
+    const q = String(query || '').trim().toLowerCase();
+    const esc = (str) => String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    const matched = this.STANDARD_ROLES.filter(r => !q || r.toLowerCase().includes(q));
+    if (!matched.length) {
+      return `<div class="px-3 py-4 text-center text-xs text-slate-400">Jabatan / Role tidak ditemukan.</div>`;
+    }
+    return matched.map(r => `
+      <button type="button" onmousedown="window.AdminModule.selectSearchOption('role', '${esc(r)}')" class="w-full text-left px-3 py-2 text-xs hover:bg-orange-50 hover:text-orange-700 transition flex items-center justify-between ${selectedVal === r ? 'bg-orange-50/80 font-bold text-orange-700' : 'text-slate-700'}">
+        <span>${esc(r)}</span>
+        ${selectedVal === r ? '<span class="text-[10px] font-bold text-orange-600">&#10003;</span>' : ''}
+      </button>
+    `).join('');
+  },
+
+  openSearchDropdown(type) {
+    const dd = document.getElementById(`${type}-dropdown`);
+    const hidden = document.getElementById(type === 'unit-kerja' ? 'modal-unit-kerja' : 'modal-role');
+    if (!dd) return;
+    const selectedVal = hidden ? hidden.value : '';
+    dd.innerHTML = type === 'unit-kerja'
+      ? this.renderSearchableUnitItems(selectedVal, '')
+      : this.renderSearchableRoleItems(selectedVal, '');
+    dd.classList.remove('hidden');
+  },
+
+  closeSearchDropdown(type) {
+    const dd = document.getElementById(`${type}-dropdown`);
+    if (dd) dd.classList.add('hidden');
+  },
+
+  filterSearchDropdown(type, query) {
+    const dd = document.getElementById(`${type}-dropdown`);
+    const hidden = document.getElementById(type === 'unit-kerja' ? 'modal-unit-kerja' : 'modal-role');
+    if (hidden) hidden.value = '';
+    if (!dd) return;
+    dd.innerHTML = type === 'unit-kerja'
+      ? this.renderSearchableUnitItems('', query)
+      : this.renderSearchableRoleItems('', query);
+    dd.classList.remove('hidden');
+  },
+
+  selectSearchOption(type, value) {
+    const hidden = document.getElementById(type === 'unit-kerja' ? 'modal-unit-kerja' : 'modal-role');
+    const searchInput = document.getElementById(type === 'unit-kerja' ? 'modal-unit-kerja-search' : 'modal-role-search');
+    if (hidden) hidden.value = value;
+    if (searchInput) searchInput.value = value;
+    this.closeSearchDropdown(type);
+  },
+
+  clearSearchDropdown(type) {
+    const hidden = document.getElementById(type === 'unit-kerja' ? 'modal-unit-kerja' : 'modal-role');
+    const searchInput = document.getElementById(type === 'unit-kerja' ? 'modal-unit-kerja-search' : 'modal-role-search');
+    if (hidden) hidden.value = '';
+    if (searchInput) {
+      searchInput.value = '';
+      searchInput.focus();
+    }
+    this.openSearchDropdown(type);
+  },
+
   renderUnitKerjaOptions(user = null) {
     const units = window.askrindoDB.getStandardUnitKerja();
     const resolvedUnit = user ? window.askrindoDB.getUserUnitKerja(user) : '';
@@ -744,6 +898,17 @@ window.AdminModule = {
     const email = document.getElementById('modal-email').value.trim();
     const unitKerja = document.getElementById('modal-unit-kerja').value;
     const role = document.getElementById('modal-role').value;
+
+    if (!unitKerja) {
+      window.askrindoApp.showToast('Silakan pilih Unit Kerja dari daftar.', 'warning');
+      document.getElementById('modal-unit-kerja-search')?.focus();
+      return;
+    }
+    if (!role) {
+      window.askrindoApp.showToast('Silakan pilih Jabatan / Role dari daftar.', 'warning');
+      document.getElementById('modal-role-search')?.focus();
+      return;
+    }
 
     const allowedApps = [];
     if (document.getElementById('perm-lapor').checked) allowedApps.push('lapor');
