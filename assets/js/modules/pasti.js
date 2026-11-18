@@ -373,7 +373,9 @@ window.PastiModule = {
   },
 
   setPage(page) {
-    this.currentPage = page;
+    const totalPages = Math.max(1, Math.ceil(this.getFilteredRows().length / this.pageSize));
+    const target = Math.max(1, Math.min(totalPages, parseInt(page, 10) || 1));
+    this.currentPage = target;
     this.updateView(false);
     const container = document.getElementById('pasti-results-anchor');
     if (container) container.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1111,19 +1113,46 @@ window.PastiModule = {
   renderPagination(totalItems, totalPages) {
     const startItem = (this.currentPage - 1) * this.pageSize + 1;
     const endItem = Math.min(totalItems, this.currentPage * this.pageSize);
+    const cur = this.currentPage;
+
+    // Build compact page list: 1 ... cur-1 cur cur+1 ... totalPages
+    const pages = [];
+    for (let p = 1; p <= totalPages; p++) {
+      if (p === 1 || p === totalPages || (p >= cur - 2 && p <= cur + 2)) {
+        pages.push(p);
+      } else if (pages[pages.length - 1] !== '...') {
+        pages.push('...');
+      }
+    }
+
     return `
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white rounded-2xl px-4 py-3 border border-slate-200/80 shadow-sm text-xs">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-3 bg-white rounded-2xl px-4 py-3 border border-slate-200/80 shadow-sm text-xs">
         <span class="text-slate-500">
           Menampilkan <strong class="text-slate-800">${startItem}–${endItem}</strong> dari <strong class="text-slate-800">${totalItems}</strong> data
         </span>
-        <div class="flex items-center gap-1.5">
-          <button onclick="window.PastiModule.setPage(${this.currentPage - 1})" ${this.currentPage <= 1 ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg font-bold border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition">
+
+        <div class="flex items-center gap-1.5 flex-wrap justify-center">
+          <button onclick="window.PastiModule.setPage(${cur - 1})" ${cur <= 1 ? 'disabled' : ''} class="px-2.5 py-1.5 rounded-lg font-bold border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition">
             &larr; Sebelumnya
           </button>
-          <span class="px-3 py-1.5 font-bold text-slate-700">Hal ${this.currentPage} / ${totalPages}</span>
-          <button onclick="window.PastiModule.setPage(${this.currentPage + 1})" ${this.currentPage >= totalPages ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg font-bold border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition">
+
+          ${pages.map(p => p === '...'
+            ? `<span class="px-2 py-1.5 text-slate-400 font-bold select-none">&hellip;</span>`
+            : `<button onclick="window.PastiModule.setPage(${p})" class="min-w-[32px] px-2.5 py-1.5 rounded-lg font-bold border transition ${p === cur ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'border-slate-200 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200'}">${p}</button>`
+          ).join('')}
+
+          <button onclick="window.PastiModule.setPage(${cur + 1})" ${cur >= totalPages ? 'disabled' : ''} class="px-2.5 py-1.5 rounded-lg font-bold border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition">
             Berikutnya &rarr;
           </button>
+
+          ${totalPages > 5 ? `
+            <div class="flex items-center gap-1.5 ml-2 pl-2 border-l border-slate-200">
+              <span class="text-slate-400 font-medium">Lompat:</span>
+              <select onchange="window.PastiModule.setPage(this.value)" class="px-2 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                ${Array.from({ length: totalPages }, (_, i) => i + 1).map(p => `<option value="${p}" ${p === cur ? 'selected' : ''}>Hal ${p}</option>`).join('')}
+              </select>
+            </div>
+          ` : ''}
         </div>
       </div>
     `;
