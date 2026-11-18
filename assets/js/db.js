@@ -583,7 +583,11 @@ class AskrindoDB {
           const ov = overrides[`id:${u.id}`] || (u.nip ? overrides[`nip:${String(u.nip).toLowerCase().trim()}`] : null);
           const resolvedAllowed = ov && Array.isArray(ov.allowedApps)
             ? this.normalizeAllowedApps(ov.allowedApps)
-            : this.normalizeAllowedApps(u.allowed_apps || ['lapor']);
+            : this.normalizeAllowedApps(u.allowed_apps || ['lapor', 'pasti']);
+          const isPastiRevoked = localStorage.getItem(`askrindo_pasti_revoked_${u.id}`) === '1';
+          if (!isPastiRevoked && !resolvedAllowed.includes('pasti')) {
+            resolvedAllowed.push('pasti');
+          }
           return {
             id: u.id,
             nip: ov?.nip || u.nip,

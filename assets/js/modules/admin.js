@@ -534,6 +534,11 @@ window.AdminModule = {
     };
     const appDisplayName = displayNames[canonicalId] || canonicalId.toUpperCase();
 
+    if (canonicalId === 'pasti') {
+      if (isChecked) localStorage.removeItem(`askrindo_pasti_revoked_${userId}`);
+      else localStorage.setItem(`askrindo_pasti_revoked_${userId}`, '1');
+    }
+
     window.askrindoDB.updateUserPermissions(userId, apps);
     if (window.askrindoApp) window.askrindoApp.updateActiveNavs();
     window.askrindoDB.logActivity('ADMIN', 'Update Hak Akses (Matrix)', `Akses modul ${appDisplayName} untuk ${user.name} diubah menjadi: ${isChecked ? 'Diberikan' : 'Dicabut'}`);
@@ -742,7 +747,12 @@ window.AdminModule = {
 
     const allowedApps = [];
     if (document.getElementById('perm-lapor').checked) allowedApps.push('lapor');
-    if (document.getElementById('perm-pasti')?.checked) allowedApps.push('pasti');
+    const pastiChecked = !!document.getElementById('perm-pasti')?.checked;
+    if (pastiChecked) allowedApps.push('pasti');
+    if (existingId) {
+      if (pastiChecked) localStorage.removeItem(`askrindo_pasti_revoked_${existingId}`);
+      else localStorage.setItem(`askrindo_pasti_revoked_${existingId}`, '1');
+    }
     if (document.getElementById('perm-kabar').checked) allowedApps.push('kabar');
     if (document.getElementById('perm-akur').checked) allowedApps.push('akur');
     if (document.getElementById('perm-sedia').checked) allowedApps.push('sedia');
