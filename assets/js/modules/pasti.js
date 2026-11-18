@@ -14,8 +14,12 @@ window.PastiModule = {
   rows: [],
   sheetUsedName: 'SPKMGR 2025 & 2026',
   syncedAt: null,
+  lastSyncAttemptAt: 0,
+  lastDataHash: '',
   isSyncing: false,
   syncError: null,
+  autoSyncTimer: null,
+  listenersBound: false,
 
   // Filter & view state
   searchQuery: '',
@@ -30,11 +34,33 @@ window.PastiModule = {
 
   init() {
     this.loadFromCache();
-    this.updateView();
-    if (!this.hasInitialized) {
+    this.updateView(true);
+    this.bindAutoSyncListeners();
+
+    const now = Date.now();
+    if (!this.hasInitialized || (now - this.lastSyncAttemptAt > 15000)) {
       this.hasInitialized = true;
       this.syncFromSheet(false);
     }
+  },
+
+  bindAutoSyncListeners() {
+    if (this.listenersBound) return;
+    this.listenersBound = true;
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && window.location.hash.startsWith('#/pasti')) {
+        if (Date.now() - this.lastSyncAttemptAt > 15000) {
+          this.syncFromSheet(false);
+        }
+      }
+    });
+
+    this.autoSyncTimer = setInterval(() => {
+      if (document.visibilityState === 'visible' && window.location.hash.startsWith('#/pasti') && !this.isSyncing) {
+        this.syncFromSheet(false);
+      }
+    }, 45000);
   },
 
   loadFromCache() {
@@ -67,6 +93,7 @@ window.PastiModule = {
   async syncFromSheet(showNotification = true) {
     if (this.isSyncing) return;
     this.isSyncing = true;
+    this.lastSyncAttemptAt = Date.now();
     this.syncError = null;
     this.updateSyncBadge();
 
@@ -87,6 +114,10 @@ window.PastiModule = {
         throw new Error('Data SPKMGR kosong pada sheet target.');
       }
 
+      const nextHash = JSON.stringify(parsedRows);
+      const hasDataChanged = nextHash !== this.lastDataHash;
+      this.lastDataHash = nextHash;
+
       this.rows = parsedRows;
       if (Array.isArray(payload.sheetsUsed) && payload.sheetsUsed.length) {
         this.sheetUsedName = payload.sheetsUsed.join(', ');
@@ -97,9 +128,12 @@ window.PastiModule = {
       if (showNotification && window.askrindoApp) {
         window.askrindoApp.showToast(`Database PASTI (${this.sheetUsedName}) tersinkron: ${this.rows.length} data.`, 'success');
       }
+
+      this._lastSyncChanged = hasDataChanged;
     } catch (err) {
       console.warn('[PASTI] Gagal sinkronisasi Apps Script:', err);
       this.syncError = err.message || 'Gagal terhubung ke Google Apps Script';
+      this._lastSyncChanged = true;
       if (showNotification && window.askrindoApp) {
         window.askrindoApp.showToast(
           this.rows.length
@@ -110,7 +144,11 @@ window.PastiModule = {
       }
     } finally {
       this.isSyncing = false;
-      this.updateView(true);
+      if (this._lastSyncChanged || !this.rows.length || showNotification) {
+        this.updateView(true);
+      } else {
+        this.updateSyncBadge();
+      }
     }
   },
 
