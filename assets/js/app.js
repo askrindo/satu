@@ -652,7 +652,7 @@ class AskrindoApp {
                       id="login-nip" 
                       required 
                       value="admin.satu@askrindo.co.id"
-                      placeholder="Contoh: 19850101 atau nama@askrindo.co.id" 
+                      placeholder="Contoh: 1922 atau nama@askrindo.co.id" 
                       class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#F37021] bg-slate-50 focus:bg-white text-xs transition"
                     />
                   </div>

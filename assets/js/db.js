@@ -29,8 +29,8 @@ const DEFAULT_AVATAR = 'assets/images/default-avatar.svg';
 const INITIAL_USERS = [
   {
     id: 'USR-001',
-    nip: '19850101',
-    name: 'Ahmad Faisal, S.E., M.M.',
+    nip: 'admin',
+    name: 'Admin',
     email: 'admin.satu@askrindo.co.id',
     password: 'password123',
     role: 'Super Administrator',
@@ -41,21 +41,6 @@ const INITIAL_USERS = [
     status: 'active',
     createdAt: '2026-01-10T08:00:00Z',
     lastLogin: '2026-11-12T09:30:00Z'
-  },
-  {
-    id: 'USR-002',
-    nip: '19900315',
-    name: 'Budi Santoso, AAIJ',
-    email: 'budi.santoso@askrindo.co.id',
-    password: 'password123',
-    role: 'Underwriter',
-    division: 'Main Branch Office (Kantor Cabang Utama)',
-    branch: 'Main Branch Office (Kantor Cabang Utama)',
-    avatar: DEFAULT_AVATAR,
-    allowedApps: ['kabar', 'sedia', 'lapor', 'cepat', 'pasti'],
-    status: 'active',
-    createdAt: '2026-02-15T09:00:00Z',
-    lastLogin: '2026-11-12T08:15:00Z'
   },
   {
     id: 'USR-003',
@@ -86,21 +71,6 @@ const INITIAL_USERS = [
     status: 'active',
     createdAt: '2026-05-12T11:00:00Z',
     lastLogin: '2026-11-10T14:20:00Z'
-  },
-  {
-    id: 'USR-005',
-    nip: '20010910',
-    name: 'Rizky Pratama',
-    email: 'rizky.pratama@askrindo.co.id',
-    password: 'password123',
-    role: 'Branch Support',
-    division: 'Branch Office Bandung',
-    branch: 'Branch Office Bandung',
-    avatar: DEFAULT_AVATAR,
-    allowedApps: ['kabar'],
-    status: 'active',
-    createdAt: '2026-08-01T08:30:00Z',
-    lastLogin: '2026-11-09T11:10:00Z'
   }
 ];
 
@@ -223,42 +193,8 @@ const INITIAL_COVER_NOTES = [
   }
 ];
 
-// Seed Audit Logs
-const INITIAL_AUDIT = [
-  {
-    id: 'LOG-1001',
-    timestamp: '2026-11-12T09:35:10Z',
-    userId: 'USR-001',
-    userNip: '19850101',
-    user: 'Ahmad Faisal, S.E., M.M.',
-    role: 'Super Administrator',
-    subApp: 'ADMIN',
-    action: 'Konfigurasi Hak Akses',
-    details: 'Memperbarui hak akses aplikasi untuk user Rizky Pratama (NIP 20010910)'
-  },
-  {
-    id: 'LOG-1002',
-    timestamp: '2026-11-12T09:12:44Z',
-    userId: 'USR-002',
-    userNip: '19900315',
-    user: 'Budi Santoso, AAIJ',
-    role: 'Underwriter',
-    subApp: 'KABAR',
-    action: 'Simulasi Premi Kebakaran',
-    details: 'Melakukan kalkulasi tarif kebakaran okupasi Industri Garmen TSI Rp 12.000.000.000'
-  },
-  {
-    id: 'LOG-1003',
-    timestamp: '2026-11-12T08:45:20Z',
-    userId: 'USR-003',
-    userNip: '19940722',
-    user: 'Siti Rahmawati, S.E.',
-    role: 'Relationship Manager',
-    subApp: 'AKUR',
-    action: 'Simulasi Angsuran KUR',
-    details: 'Simulasi KUR Mikro Rp 50.000.000 tenor 36 bulan suku bunga subsidi 6%'
-  }
-];
+// Seed Audit Logs (kosong secara default)
+const INITIAL_AUDIT = [];
 
 // Status Rilis & Deployment Sub-Aplikasi (Pengembangan Bertahap)
 const APP_DEPLOYMENT_STATUS = {
@@ -443,6 +379,32 @@ class AskrindoDB {
   }
 
   init() {
+    // 0. One-time cleanup: hapus akun demo (Ahmad Faisal, Budi Santoso, Rizky Pratama) & reset audit trail lokal lama
+    if (!localStorage.getItem('askrindo_cleanup_demo_20261118')) {
+      try {
+        const isRemovedDemoUser = (u) => {
+          const nip = String(u?.nip || '').trim();
+          const name = String(u?.name || '').toLowerCase();
+          return ['19850101', '19900315', '20010910'].includes(nip) ||
+            name.includes('ahmad faisal') ||
+            name.includes('budi santoso') ||
+            name.includes('rizky pratama');
+        };
+        const rawUsers = JSON.parse(localStorage.getItem(DB_KEYS.USERS) || 'null');
+        if (Array.isArray(rawUsers)) {
+          localStorage.setItem(DB_KEYS.USERS, JSON.stringify(rawUsers.filter(u => !isRemovedDemoUser(u))));
+        }
+        const curSess = this.getCurrentSession();
+        if (curSess && isRemovedDemoUser(curSess)) {
+          localStorage.removeItem(DB_KEYS.SESSION);
+        }
+        localStorage.setItem(DB_KEYS.AUDIT, JSON.stringify([]));
+        localStorage.setItem('askrindo_cleanup_demo_20261118', '1');
+      } catch (e) {
+        console.warn('[DB Cleanup Error]:', e);
+      }
+    }
+
     // 1. Inisialisasi Cache Lokal jika kosong
     if (!localStorage.getItem(DB_KEYS.USERS)) {
       localStorage.setItem(DB_KEYS.USERS, JSON.stringify(INITIAL_USERS));
@@ -667,7 +629,7 @@ class AskrindoDB {
         .order('created_at', { ascending: false })
         .limit(100);
 
-      if (auditData && auditData.length > 0) {
+      if (Array.isArray(auditData)) {
         const mappedLogs = auditData.map(l => ({
           id: l.id,
           timestamp: l.timestamp,
