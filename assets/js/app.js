@@ -508,7 +508,7 @@ class AskrindoApp {
 
             <div class="space-y-6 relative z-10">
               <div class="flex items-center gap-3">
-                <img src="assets/images/logo-satu.png" alt="Askrindo SATU" class="h-11 object-contain bg-white/95 px-3 py-1.5 rounded-xl shadow-md" />
+                <img src="assets/images/logo-satu-white.png" alt="Askrindo SATU" class="h-11 object-contain" />
               </div>
 
               <div>
