@@ -508,7 +508,7 @@ class AskrindoApp {
 
             <div class="space-y-6 relative z-10">
               <div class="flex items-center gap-3">
-                <img src="assets/images/logo-corporate-white.png" alt="Askrindo Corporate Logo" class="h-11 object-contain" />
+                <img src="assets/images/logo-satu.png" alt="Askrindo SATU" class="h-11 object-contain bg-white/95 px-3 py-1.5 rounded-xl shadow-md" />
               </div>
 
               <div>
@@ -633,7 +633,7 @@ class AskrindoApp {
           <!-- Right Col: Login Form (50% Width, Proportional & Centered) -->
           <div class="p-8 sm:p-10 flex flex-col justify-between bg-white">
             <div class="flex items-center justify-between">
-              <img src="assets/images/logo-satu.png" alt="SATU" class="h-10 object-contain" />
+              <img src="assets/images/logo-corporate.png" alt="Askrindo Corporate Logo" class="h-11 object-contain" />
               <span class="text-[11px] font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">Single Sign-On (SSO)</span>
             </div>
 
