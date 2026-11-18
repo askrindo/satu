@@ -1147,6 +1147,35 @@ window.PastiModule = {
     `;
   },
 
+  togglePageJumpPopover(e) {
+    if (e) e.stopPropagation();
+    const pop = document.getElementById('pasti-page-jump-popover');
+    if (!pop) return;
+    const isHidden = pop.classList.contains('hidden');
+    pop.classList.toggle('hidden');
+    if (isHidden) {
+      const inp = document.getElementById('pasti-page-jump-input');
+      if (inp) {
+        inp.focus();
+        inp.select();
+      }
+      const closeOnce = (ev) => {
+        const wrap = document.getElementById('pasti-page-jump-wrap');
+        if (wrap && !wrap.contains(ev.target)) {
+          pop.classList.add('hidden');
+          document.removeEventListener('click', closeOnce);
+        }
+      };
+      setTimeout(() => document.addEventListener('click', closeOnce), 0);
+    }
+  },
+
+  jumpToInputPage() {
+    const inp = document.getElementById('pasti-page-jump-input');
+    if (!inp) return;
+    this.setPage(inp.value);
+  },
+
   renderPagination(totalItems, totalPages) {
     const startItem = (this.currentPage - 1) * this.pageSize + 1;
     const endItem = Math.min(totalItems, this.currentPage * this.pageSize);
@@ -1183,11 +1212,57 @@ window.PastiModule = {
           </button>
 
           ${totalPages > 5 ? `
-            <div class="flex items-center gap-1.5 ml-2 pl-2 border-l border-slate-200">
-              <span class="text-slate-400 font-medium">Lompat:</span>
-              <select onchange="window.PastiModule.setPage(this.value)" class="px-2 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                ${Array.from({ length: totalPages }, (_, i) => i + 1).map(p => `<option value="${p}" ${p === cur ? 'selected' : ''}>Hal ${p}</option>`).join('')}
-              </select>
+            <div id="pasti-page-jump-wrap" class="relative ml-2 pl-2 border-l border-slate-200">
+              <button
+                type="button"
+                onclick="window.PastiModule.togglePageJumpPopover(event)"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition shadow-sm"
+              >
+                <i data-lucide="compass" class="w-3.5 h-3.5"></i>
+                <span>Lompat: Hal ${cur}/${totalPages}</span>
+                <i data-lucide="chevron-up" class="w-3.5 h-3.5 opacity-70"></i>
+              </button>
+
+              <div id="pasti-page-jump-popover" class="hidden absolute bottom-full right-0 mb-2 w-64 bg-white rounded-2xl border border-slate-200 shadow-2xl p-3.5 z-40">
+                <div class="flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-slate-100">
+                  <div>
+                    <p class="text-[11px] font-black text-slate-800">Pilih Halaman</p>
+                    <p class="text-[10px] text-slate-400">Halaman 1 s/d ${totalPages}</p>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <input
+                      id="pasti-page-jump-input"
+                      type="number"
+                      min="1"
+                      max="${totalPages}"
+                      value="${cur}"
+                      onkeydown="if(event.key==='Enter'){event.preventDefault();window.PastiModule.jumpToInputPage();}"
+                      class="w-12 px-2 py-1 rounded-lg border border-slate-200 text-center text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500"
+                    />
+                    <button
+                      type="button"
+                      onclick="window.PastiModule.jumpToInputPage()"
+                      class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition"
+                    >
+                      Go
+                    </button>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-5 gap-1.5 max-h-48 overflow-y-auto pr-0.5">
+                  ${Array.from({ length: totalPages }, (_, i) => i + 1).map(p => `
+                    <button
+                      type="button"
+                      onclick="window.PastiModule.setPage(${p})"
+                      class="py-1.5 rounded-xl text-xs font-bold transition ${p === cur
+                        ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-sm'
+                        : 'bg-slate-50 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200/70'}"
+                    >
+                      ${p}
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
             </div>
           ` : ''}
         </div>
