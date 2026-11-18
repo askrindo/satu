@@ -5,10 +5,8 @@
  */
 
 window.PastiModule = {
-  SHEET_ID: '1vmO-6ydIXy2s6LnQmcVSUiu3LFtguU5_6IXf9rvcKz0',
   APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzBgHp3hZID-GV9BGQtslGyZIAKLUESPN7de92k9Z0cpE3AQ-DbkzxmUXLXJW-lnbkJvg/exec',
   API_TOKEN: 'ASKRINDO-PASTI-2026',
-  SHEET_EDIT_URL: 'https://docs.google.com/spreadsheets/d/1vmO-6ydIXy2s6LnQmcVSUiu3LFtguU5_6IXf9rvcKz0/edit?usp=sharing',
   CACHE_KEY: 'askrindo_satu_pasti_cache_v2',
 
   rows: [],
@@ -632,20 +630,14 @@ window.PastiModule = {
           </div>
 
           <!-- Footer Actions -->
-          <div class="flex items-center justify-between gap-3 pt-1">
-            <a href="${this.SHEET_EDIT_URL}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition">
-              <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-              <span>Buka di Google Sheets</span>
-            </a>
-            <div class="flex items-center gap-2">
-              <button onclick="window.PastiModule.copySummary(${r._idx})" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition">
-                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-                <span>Salin Ringkasan</span>
-              </button>
-              <button onclick="document.getElementById('pasti-detail-modal').remove()" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 transition">
-                Tutup
-              </button>
-            </div>
+          <div class="flex items-center justify-end gap-2 pt-1">
+            <button onclick="window.PastiModule.copySummary(${r._idx})" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              <span>Salin Ringkasan</span>
+            </button>
+            <button onclick="document.getElementById('pasti-detail-modal').remove()" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 transition">
+              Tutup
+            </button>
           </div>
         </div>
       </div>
@@ -769,10 +761,6 @@ window.PastiModule = {
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5 ${this.isSyncing ? 'animate-spin' : ''}"></i>
             <span>Sinkronkan Ulang</span>
           </button>
-          <a href="${this.SHEET_EDIT_URL}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition">
-            <i data-lucide="sheet" class="w-3.5 h-3.5 text-emerald-600"></i>
-            <span>Buka Google Sheet</span>
-          </a>
         </div>
       </div>
 
