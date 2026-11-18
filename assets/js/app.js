@@ -429,16 +429,19 @@ class AskrindoApp {
       { id: 'nav-admin', hashes: ['#/admin'], title: 'Web Admin Portal' }
     ];
 
+    const activeClasses = 'text-orange-700 font-bold bg-gradient-to-r from-orange-500/20 via-orange-100/80 to-amber-50 border-l-4 border-l-orange-500 ring-1 ring-orange-300 shadow-md shadow-orange-500/10';
     navItems.forEach(item => {
       const el = document.getElementById(item.id);
       if (!el) return;
       const isMatch = item.hashes.some(h => route.startsWith(h));
       if (isMatch) {
-        el.className = el.className.replace('text-slate-600', 'text-orange-600 font-bold bg-orange-50/80 shadow-sm');
+        if (!el.className.includes(activeClasses)) {
+          el.className = el.className.replace('text-slate-600', activeClasses);
+        }
         const bc = document.getElementById('breadcrumb-current');
         if (bc) bc.innerText = item.title;
       } else {
-        el.className = el.className.replace('text-orange-600 font-bold bg-orange-50/80 shadow-sm', 'text-slate-600');
+        el.className = el.className.replace(activeClasses, 'text-slate-600');
       }
     });
 
