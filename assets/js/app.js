@@ -633,7 +633,7 @@ class AskrindoApp {
           <!-- Right Col: Login Form (50% Width, Proportional & Centered) -->
           <div class="p-8 sm:p-10 flex flex-col justify-between bg-white">
             <div class="flex items-center justify-between gap-4">
-              <img src="assets/images/logo-corporate.png" alt="Askrindo Corporate Logo" class="h-14 sm:h-16 object-contain" />
+              <img src="assets/images/logo-corporate.png" alt="Askrindo Corporate Logo" class="h-20 sm:h-24 object-contain" />
               <span class="text-[11px] font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full shrink-0">Single Sign-On (SSO)</span>
             </div>
 
