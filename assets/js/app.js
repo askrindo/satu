@@ -419,29 +419,28 @@ class AskrindoApp {
   updateActiveNavs() {
     const route = this.currentRoute;
     const navItems = [
-      { id: 'nav-dashboard', hashes: ['#/dashboard'], title: 'Beranda Terpadu' },
-      { id: 'nav-kabar', hashes: ['#/kabar'], title: 'KABAR (Kalkulator Asuransi Kebakaran)' },
-      { id: 'nav-akur', hashes: ['#/akur'], title: 'AKUR (Analisis Kredit Usaha Rakyat)' },
-      { id: 'nav-sedia', hashes: ['#/sedia'], title: 'SEDIA (Sistem Elektronik Dokumen dan Informasi Asuransi)' },
-      { id: 'nav-cepat', hashes: ['#/cepat'], title: 'CEPAT (Cover Note Pertanggungan Asuransi Terintegrasi)' },
-      { id: 'nav-lapor', hashes: ['#/lapor'], title: 'LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)' },
-      { id: 'nav-pasti', hashes: ['#/pasti'], title: 'PASTI (Pemeriksaan Administrasi SPKMGR Terintegrasi)' },
-      { id: 'nav-admin', hashes: ['#/admin'], title: 'Web Admin Portal' }
+      { id: 'nav-dashboard', hashes: ['#/dashboard'], title: 'Beranda Terpadu', activeCls: 'text-slate-900 font-bold bg-slate-100 shadow-sm' },
+      { id: 'nav-kabar', hashes: ['#/kabar'], title: 'KABAR (Kalkulator Asuransi Kebakaran)', activeCls: 'text-orange-600 font-bold bg-orange-50 shadow-sm' },
+      { id: 'nav-akur', hashes: ['#/akur'], title: 'AKUR (Analisis Kredit Usaha Rakyat)', activeCls: 'text-blue-600 font-bold bg-blue-50 shadow-sm' },
+      { id: 'nav-sedia', hashes: ['#/sedia'], title: 'SEDIA (Sistem Elektronik Dokumen dan Informasi Asuransi)', activeCls: 'text-emerald-600 font-bold bg-emerald-50 shadow-sm' },
+      { id: 'nav-cepat', hashes: ['#/cepat'], title: 'CEPAT (Cover Note Pertanggungan Asuransi Terintegrasi)', activeCls: 'text-cyan-600 font-bold bg-cyan-50 shadow-sm' },
+      { id: 'nav-lapor', hashes: ['#/lapor'], title: 'LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)', activeCls: 'text-purple-600 font-bold bg-purple-50 shadow-sm' },
+      { id: 'nav-pasti', hashes: ['#/pasti'], title: 'PASTI (Pemeriksaan Administrasi SPKMGR Terintegrasi)', activeCls: 'text-indigo-600 font-bold bg-indigo-50 shadow-sm' },
+      { id: 'nav-admin', hashes: ['#/admin'], title: 'Web Admin Portal', activeCls: 'text-amber-700 font-bold bg-amber-50 shadow-sm' }
     ];
 
-    const activeClasses = 'bg-[#002B49] text-white font-bold shadow-md shadow-slate-900/15';
     navItems.forEach(item => {
       const el = document.getElementById(item.id);
       if (!el) return;
       const isMatch = item.hashes.some(h => route.startsWith(h));
       if (isMatch) {
-        if (!el.className.includes(activeClasses)) {
-          el.className = el.className.replace('text-slate-600', activeClasses);
+        if (!el.className.includes(item.activeCls)) {
+          el.className = el.className.replace('text-slate-600', item.activeCls);
         }
         const bc = document.getElementById('breadcrumb-current');
         if (bc) bc.innerText = item.title;
       } else {
-        el.className = el.className.replace(activeClasses, 'text-slate-600');
+        el.className = el.className.replace(item.activeCls, 'text-slate-600');
       }
     });
 
