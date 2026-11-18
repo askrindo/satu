@@ -115,27 +115,58 @@ window.PastiModule = {
 
   parseAppsScriptPayload(payload) {
     const rawRows = Array.isArray(payload.rows) ? payload.rows : [];
+    const headers = Array.isArray(payload.headers)
+      ? payload.headers.map(h => String(h || '').trim().toLowerCase())
+      : [];
+
+    const findCol = (exactOrPartial, fallbackIdx, afterIdx = -1) => {
+      let idx = headers.findIndex((h, i) => i > afterIdx && h === exactOrPartial);
+      if (idx === -1) {
+        idx = headers.findIndex((h, i) => i > afterIdx && h.includes(exactOrPartial));
+      }
+      return idx !== -1 ? idx : fallbackIdx;
+    };
+
+    const idxNo = findCol('no', 0);
+    const idxNama = findCol('nama', 1);
+    const idxCob = findCol('cob', 2);
+    const idxTanggal = findCol('tanggal', 3);
+    const idxJwAwal = findCol('jw awal', 4);
+    const idxJwAkhir = findCol('jw akhir', 5);
+    const idxStatus = findCol('status spkmgr', 6);
+    const idxKet1 = findCol('keterangan', 7);
+    const idxBayar = findCol('status pembayaran', 8);
+    const idxNotaris = findCol('status notaris', 9);
+    const idxKet2 = findCol('keterangan', 10, idxKet1);
+    const idxRm = findCol('nama rm', 11);
+    const idxBiaya = findCol('biaya', 12);
+    const idxDone = findCol('done', 13);
+    const idxDaluarsa = findCol('daluarsa', 14);
+
     const parsed = [];
 
     for (let i = 0; i < rawRows.length; i++) {
       const item = rawRows[i];
       const cols = Array.isArray(item) ? item : (item && Array.isArray(item.values) ? item.values : []);
-      const nama = String(cols[1] || '').trim();
+      const nama = String(cols[idxNama] || '').trim();
       if (!nama) continue;
 
-      const no = String(cols[0] || '').trim() || String(parsed.length + 1);
-      const jenisCob = String(cols[2] || '').trim() || '-';
-      const tanggal = String(cols[3] || '').trim() || '-';
-      const jwAwal = String(cols[4] || '').trim() || '-';
-      const jwAkhir = String(cols[5] || '').trim() || '-';
-      const statusSpkmgr = String(cols[6] || '').trim() || '-';
-      const keterangan = String(cols[7] || '').trim() || '-';
-      const statusPembayaran = String(cols[8] || '').trim() || '-';
-      const statusNotaris = String(cols[9] || '').trim() || '-';
-      const catatan = String(cols[10] || '').trim();
-      const rawDone = String(cols[11] || '').trim();
-      const cekDaluarsa = String(cols[12] || '').trim();
-      const doneStatus = (rawDone && rawDone !== '#N/A') ? rawDone : (cekDaluarsa || '-');
+      const no = String(cols[idxNo] || '').trim() || String(parsed.length + 1);
+      const jenisCob = String(cols[idxCob] || '').trim() || '-';
+      const tanggal = String(cols[idxTanggal] || '').trim() || '-';
+      const jwAwal = String(cols[idxJwAwal] || '').trim() || '-';
+      const jwAkhir = String(cols[idxJwAkhir] || '').trim() || '-';
+      const statusSpkmgr = String(cols[idxStatus] || '').trim() || '-';
+      const keterangan = String(cols[idxKet1] || '').trim() || '-';
+      const statusPembayaran = String(cols[idxBayar] || '').trim() || '-';
+      const statusNotaris = String(cols[idxNotaris] || '').trim() || '-';
+      const catatan = idxKet2 !== idxKet1 ? String(cols[idxKet2] || '').trim() : '';
+      const rawRm = String(cols[idxRm] || '').trim();
+      const namaRm = (!rawRm || rawRm === '#N/A') ? '-' : rawRm;
+      const biayaSpkmgr = String(cols[idxBiaya] || '').trim() || '-';
+      const rawDone = String(cols[idxDone] || '').trim();
+      const cekDaluarsa = String(cols[idxDaluarsa] || '').trim();
+      const doneStatus = (rawDone && rawDone !== '#N/A') ? rawDone : '-';
 
       parsed.push({
         _idx: parsed.length,
@@ -151,12 +182,28 @@ window.PastiModule = {
         statusPembayaran,
         statusNotaris,
         catatan,
+        namaRm,
+        biayaSpkmgr,
+        biayaNum: this.parseRupiah(biayaSpkmgr),
         doneStatus,
         cekDaluarsa
       });
     }
 
     return parsed;
+  },
+
+  parseRupiah(str) {
+    const digits = String(str || '').replace(/[^0-9]/g, '');
+    return digits ? Number(digits) : 0;
+  },
+
+  formatRupiah(num) {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      maximumFractionDigits: 0
+    }).format(Number(num) || 0);
   },
 
   escapeHtml(str) {
@@ -220,10 +267,11 @@ window.PastiModule = {
     return this.rows.filter(r => {
       if (q) {
         const matchNama = r.nama.toLowerCase().includes(q);
+        const matchRm = (r.namaRm || '').toLowerCase().includes(q);
         const matchCatatan = r.catatan.toLowerCase().includes(q);
         const matchNotaris = r.statusNotaris.toLowerCase().includes(q);
         const matchNo = r.no.toLowerCase() === q;
-        if (!matchNama && !matchCatatan && !matchNotaris && !matchNo) return false;
+        if (!matchNama && !matchRm && !matchCatatan && !matchNotaris && !matchNo) return false;
       }
 
       if (this.notarisFilter !== 'all') {
@@ -898,9 +946,12 @@ window.PastiModule = {
                   <h4 class="text-base font-black text-slate-900 leading-snug break-words">
                     ${this.highlightMatch(r.nama, this.searchQuery)}
                   </h4>
-                  <p class="text-[11px] text-slate-500 mt-1 flex items-center gap-1.5">
-                    <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i>
-                    <span>Tanggal: <strong class="text-slate-700">${this.escapeHtml(r.tanggal)}</strong></span>
+                  <p class="text-[11px] text-slate-500 mt-1 flex items-center gap-1.5 flex-wrap">
+                    <i data-lucide="user" class="w-3.5 h-3.5 text-slate-400"></i>
+                    <span>RM: <strong class="text-slate-700">${this.highlightMatch(r.namaRm || '-', this.searchQuery)}</strong></span>
+                    <span class="text-slate-300">·</span>
+                    <span>Tgl: <strong class="text-slate-700">${this.escapeHtml(r.tanggal)}</strong></span>
+                    ${r.biayaNum > 0 ? `<span class="text-slate-300">·</span><span class="font-bold text-rose-700">${this.escapeHtml(r.biayaSpkmgr)}</span>` : ''}
                   </p>
                 </div>
 
