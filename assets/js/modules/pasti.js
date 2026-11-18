@@ -21,8 +21,8 @@ window.PastiModule = {
 
   // Filter & view state
   searchQuery: '',
-  quickFilter: 'all', // 'all' | 'done' | 'not_yet' | 'belum_ada' | 'ada' | 'softfile' | 'belum_bayar' | 'sudah_bayar' | 'di_notaris'
-  notarisFilter: 'all',
+  quickFilter: 'all', // 'all' | 'done' | 'not_yet' | 'belum_ada' | 'ada' | 'softfile' | 'belum_bayar' | 'sudah_bayar'
+  rmFilter: 'all',
   cobFilter: 'all',
   viewMode: 'auto', // 'auto' (cards when searching/filtering, table otherwise) | 'cards' | 'table'
   currentPage: 1,
@@ -283,10 +283,10 @@ window.PastiModule = {
     return { label: 'Aktif', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
   },
 
-  getUniqueNotarisStatuses() {
+  getUniqueRms() {
     const set = new Set();
     this.rows.forEach(r => {
-      if (r.statusNotaris && r.statusNotaris !== '-') set.add(r.statusNotaris);
+      if (r.namaRm && r.namaRm !== '-') set.add(r.namaRm);
     });
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   },
@@ -311,10 +311,10 @@ window.PastiModule = {
         if (!matchNama && !matchRm && !matchCatatan && !matchNotaris && !matchNo) return false;
       }
 
-      if (this.notarisFilter !== 'all') {
-        if (this.notarisFilter === '__empty__') {
-          if (r.statusNotaris && r.statusNotaris !== '-') return false;
-        } else if (r.statusNotaris !== this.notarisFilter) {
+      if (this.rmFilter !== 'all') {
+        if (this.rmFilter === '__empty__') {
+          if (r.namaRm && r.namaRm !== '-') return false;
+        } else if (r.namaRm !== this.rmFilter) {
           return false;
         }
       }
@@ -335,8 +335,6 @@ window.PastiModule = {
         if (!r.statusPembayaran.toLowerCase().includes('belum bayar')) return false;
       } else if (this.quickFilter === 'sudah_bayar') {
         if (!r.statusPembayaran.toLowerCase().includes('sudah bayar')) return false;
-      } else if (this.quickFilter === 'di_notaris') {
-        if (!r.statusNotaris.toLowerCase().includes('di notaris')) return false;
       }
 
       return true;
@@ -391,8 +389,8 @@ window.PastiModule = {
     this.updateView(false);
   },
 
-  setNotarisFilter(val) {
-    this.notarisFilter = val;
+  setRmFilter(val) {
+    this.rmFilter = val;
     this.currentPage = 1;
     this.updateView(false);
   },
@@ -420,7 +418,7 @@ window.PastiModule = {
   resetAllFilters() {
     this.searchQuery = '';
     this.quickFilter = 'all';
-    this.notarisFilter = 'all';
+    this.rmFilter = 'all';
     this.cobFilter = 'all';
     this.currentPage = 1;
     this.updateView(false);
@@ -496,8 +494,8 @@ window.PastiModule = {
       `• Jangka Waktu   : ${r.jwAwal} s/d ${r.jwAkhir}`,
       `• Status SPKMGR  : ${r.statusSpkmgr}`,
       `• Dokumen        : ${r.keterangan}`,
-      `• Pembayaran     : ${r.statusPembayaran}`,
-      `• Status Notaris : ${r.statusNotaris}`,
+      `• Pembayaran     : ${r.statusPembayaran}${r.biayaSpkmgr && r.biayaSpkmgr !== '-' ? ` (${r.biayaSpkmgr})` : ''}`,
+      `• Nama RM        : ${r.namaRm || '-'}`,
       `• Status Done    : ${r.doneStatus}`
     ];
     if (r.catatan) lines.push(`• Catatan        : ${r.catatan}`);
@@ -581,18 +579,21 @@ window.PastiModule = {
             </div>
 
             <div class="p-3.5 rounded-2xl border bg-slate-50/70 border-slate-200 space-y-1.5">
-              <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Status Pembayaran</p>
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border ${payBadge.cls}">
-                <i data-lucide="${payBadge.icon}" class="w-3.5 h-3.5"></i>
-                ${this.escapeHtml(payBadge.label)}
-              </span>
+              <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Status Pembayaran &amp; Biaya</p>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border ${payBadge.cls}">
+                  <i data-lucide="${payBadge.icon}" class="w-3.5 h-3.5"></i>
+                  ${this.escapeHtml(payBadge.label)}
+                </span>
+                ${r.biayaSpkmgr && r.biayaSpkmgr !== '-' ? `<span class="text-xs font-black text-rose-700">${this.escapeHtml(r.biayaSpkmgr)}</span>` : ''}
+              </div>
             </div>
 
             <div class="p-3.5 rounded-2xl border bg-slate-50/70 border-slate-200 space-y-1.5">
-              <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Status Notaris</p>
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${notarisBadge.cls}">
-                <i data-lucide="${notarisBadge.icon}" class="w-3.5 h-3.5"></i>
-                ${this.escapeHtml(notarisBadge.label)}
+              <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Nama RM</p>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border bg-indigo-50 text-indigo-700 border-indigo-200">
+                <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
+                ${this.escapeHtml(r.namaRm || '-')}
               </span>
             </div>
           </div>
@@ -616,6 +617,14 @@ window.PastiModule = {
             <div class="grid grid-cols-3 p-3 gap-2">
               <span class="text-slate-500 font-medium">Jangka Waktu (JW)</span>
               <span class="col-span-2 font-bold text-slate-800">${this.escapeHtml(r.jwAwal)} &rarr; ${this.escapeHtml(r.jwAkhir)}</span>
+            </div>
+            <div class="grid grid-cols-3 p-3 gap-2">
+              <span class="text-slate-500 font-medium">Biaya SPKMGR</span>
+              <span class="col-span-2 font-bold ${r.biayaNum > 0 ? 'text-rose-700' : 'text-slate-800'}">${this.escapeHtml(r.biayaSpkmgr && r.biayaSpkmgr !== '-' ? r.biayaSpkmgr : '-')}</span>
+            </div>
+            <div class="grid grid-cols-3 p-3 gap-2">
+              <span class="text-slate-500 font-medium">Nama RM</span>
+              <span class="col-span-2 font-bold text-slate-800">${this.escapeHtml(r.namaRm || '-')}</span>
             </div>
             <div class="grid grid-cols-3 p-3 gap-2">
               <span class="text-slate-500 font-medium">Status Penyelesaian</span>
@@ -702,9 +711,9 @@ window.PastiModule = {
   renderInner() {
     const stats = this.getStats();
     const filtered = this.getFilteredRows();
-    const notarisList = this.getUniqueNotarisStatuses();
+    const rmList = this.getUniqueRms();
     const cobList = this.getUniqueCobs();
-    const hasActiveFilter = Boolean(this.searchQuery.trim() || this.quickFilter !== 'all' || this.notarisFilter !== 'all' || this.cobFilter !== 'all');
+    const hasActiveFilter = Boolean(this.searchQuery.trim() || this.quickFilter !== 'all' || this.rmFilter !== 'all' || this.cobFilter !== 'all');
     const effectiveMode = this.viewMode === 'auto'
       ? (hasActiveFilter ? 'cards' : 'table')
       : this.viewMode;
@@ -730,8 +739,7 @@ window.PastiModule = {
       { key: 'ada', label: 'Ada SPKMGR', count: stats.adaOnly, activeCls: 'bg-teal-400 text-slate-950 border-teal-300', idleCls: 'bg-teal-500/15 text-teal-200 border-teal-400/30 hover:bg-teal-500/25' },
       { key: 'softfile', label: 'Softfile', count: stats.softfile, activeCls: 'bg-sky-400 text-slate-950 border-sky-300', idleCls: 'bg-sky-500/15 text-sky-200 border-sky-400/30 hover:bg-sky-500/25' },
       { key: 'belum_bayar', label: 'Belum Bayar', count: stats.belumBayar, activeCls: 'bg-rose-400 text-slate-950 border-rose-300', idleCls: 'bg-rose-500/15 text-rose-200 border-rose-400/30 hover:bg-rose-500/25' },
-      { key: 'sudah_bayar', label: 'Sudah Bayar', count: stats.sudahBayar, activeCls: 'bg-cyan-400 text-slate-950 border-cyan-300', idleCls: 'bg-cyan-500/15 text-cyan-200 border-cyan-400/30 hover:bg-cyan-500/25' },
-      { key: 'di_notaris', label: 'Di Notaris', count: stats.diNotaris, activeCls: 'bg-violet-400 text-slate-950 border-violet-300', idleCls: 'bg-violet-500/15 text-violet-200 border-violet-400/30 hover:bg-violet-500/25' }
+      { key: 'sudah_bayar', label: 'Sudah Bayar', count: stats.sudahBayar, activeCls: 'bg-cyan-400 text-slate-950 border-cyan-300', idleCls: 'bg-cyan-500/15 text-cyan-200 border-cyan-400/30 hover:bg-cyan-500/25' }
     ];
 
     return `
@@ -750,7 +758,7 @@ window.PastiModule = {
               <div id="pasti-sync-badge">${syncLabel}</div>
             </div>
             <p class="text-xs text-slate-500 mt-1">
-              Pencarian cepat dokumen SPKMGR berdasarkan nama principal untuk memantau kelengkapan dokumen, status waarmerking, pembayaran, notaris, dan status Done secara real-time.
+              Pencarian cepat dokumen SPKMGR berdasarkan nama principal untuk memantau kelengkapan dokumen, status waarmerking, pembayaran, biaya SPKMGR, Nama RM, dan status Done secara real-time.
             </p>
           </div>
         </div>
@@ -802,10 +810,10 @@ window.PastiModule = {
             </div>
 
             <div class="lg:col-span-3">
-              <select onchange="window.PastiModule.setNotarisFilter(this.value)" class="w-full h-full py-3.5 px-4 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                <option value="all" class="text-slate-900">Semua Status Notaris</option>
-                ${notarisList.map(st => `<option value="${this.escapeHtml(st)}" ${this.notarisFilter === st ? 'selected' : ''} class="text-slate-900">${this.escapeHtml(st)}</option>`).join('')}
-                <option value="__empty__" ${this.notarisFilter === '__empty__' ? 'selected' : ''} class="text-slate-900">Belum Diproses / Kosong</option>
+              <select onchange="window.PastiModule.setRmFilter(this.value)" class="w-full h-full py-3.5 px-4 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                <option value="all" class="text-slate-900">Semua Nama RM (${rmList.length})</option>
+                ${rmList.map(rm => `<option value="${this.escapeHtml(rm)}" ${this.rmFilter === rm ? 'selected' : ''} class="text-slate-900">RM: ${this.escapeHtml(rm)}</option>`).join('')}
+                <option value="__empty__" ${this.rmFilter === '__empty__' ? 'selected' : ''} class="text-slate-900">RM Kosong (-)</option>
               </select>
             </div>
 
@@ -1007,18 +1015,21 @@ window.PastiModule = {
                 </div>
 
                 <div>
-                  <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Pembayaran</span>
-                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border ${payBadge.cls}">
-                    <i data-lucide="${payBadge.icon}" class="w-3 h-3 shrink-0"></i>
-                    <span>${this.escapeHtml(payBadge.label)}</span>
-                  </span>
+                  <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Pembayaran &amp; Biaya</span>
+                  <div class="flex items-center gap-1 flex-wrap">
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border ${payBadge.cls}">
+                      <i data-lucide="${payBadge.icon}" class="w-3 h-3 shrink-0"></i>
+                      <span>${this.escapeHtml(payBadge.label)}</span>
+                    </span>
+                    ${r.biayaSpkmgr && r.biayaSpkmgr !== '-' ? `<span class="text-[11px] font-black text-rose-700">${this.escapeHtml(r.biayaSpkmgr)}</span>` : ''}
+                  </div>
                 </div>
 
                 <div>
-                  <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Status Notaris</span>
-                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border ${notarisBadge.cls}">
-                    <i data-lucide="${notarisBadge.icon}" class="w-3 h-3 shrink-0"></i>
-                    <span class="truncate">${this.escapeHtml(notarisBadge.label)}</span>
+                  <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Nama RM</span>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border bg-indigo-50 text-indigo-700 border-indigo-200">
+                    <i data-lucide="user-check" class="w-3 h-3 shrink-0"></i>
+                    <span class="truncate">${this.highlightMatch(r.namaRm || '-', this.searchQuery)}</span>
                   </span>
                 </div>
               </div>
@@ -1061,8 +1072,8 @@ window.PastiModule = {
                 <th class="py-3 px-3">Jangka Waktu</th>
                 <th class="py-3 px-3">Status SPKMGR</th>
                 <th class="py-3 px-3">Dokumen</th>
-                <th class="py-3 px-3">Pembayaran</th>
-                <th class="py-3 px-3">Notaris</th>
+                <th class="py-3 px-3">Pembayaran &amp; Biaya</th>
+                <th class="py-3 px-3">Nama RM</th>
                 <th class="py-3 px-3">Done</th>
                 <th class="py-3 px-3.5 text-center">Aksi</th>
               </tr>
@@ -1105,16 +1116,16 @@ window.PastiModule = {
                       </span>
                     </td>
                     <td class="py-3 px-3 whitespace-nowrap">
-                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${payBadge.cls}">
-                        <i data-lucide="${payBadge.icon}" class="w-3 h-3"></i>
-                        ${this.escapeHtml(payBadge.label)}
-                      </span>
+                      <div class="flex items-center gap-1.5">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${payBadge.cls}">
+                          <i data-lucide="${payBadge.icon}" class="w-3 h-3"></i>
+                          ${this.escapeHtml(payBadge.label)}
+                        </span>
+                        ${r.biayaSpkmgr && r.biayaSpkmgr !== '-' ? `<span class="text-[11px] font-bold text-rose-700">${this.escapeHtml(r.biayaSpkmgr)}</span>` : ''}
+                      </div>
                     </td>
-                    <td class="py-3 px-3 whitespace-nowrap">
-                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${notarisBadge.cls}">
-                        <i data-lucide="${notarisBadge.icon}" class="w-3 h-3"></i>
-                        ${this.escapeHtml(notarisBadge.label)}
-                      </span>
+                    <td class="py-3 px-3 whitespace-nowrap font-semibold text-slate-700">
+                      ${this.highlightMatch(r.namaRm || '-', this.searchQuery)}
                     </td>
                     <td class="py-3 px-3 whitespace-nowrap">
                       <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border ${doneBadge.cls}">
