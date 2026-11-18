@@ -253,6 +253,7 @@ window.AdminModule = {
                           sedia: 'bg-emerald-100 text-emerald-800 border-emerald-200',
                           cepat: 'bg-cyan-100 text-cyan-800 border-cyan-200',
                           lapor: 'bg-purple-100 text-purple-800 border-purple-200',
+                          pasti: 'bg-indigo-100 text-indigo-800 border-indigo-200',
                           admin: 'bg-amber-100 text-amber-800 border-amber-200'
                         };
                         const canonicalApps = window.askrindoDB
@@ -299,6 +300,7 @@ window.AdminModule = {
   renderMatrixTab(allUsers) {
     const appsList = [
       { id: 'lapor', name: 'LAPOR', label: 'Layanan Analisis dan Perhitungan Rasio Keuangan', color: 'text-purple-600' },
+      { id: 'pasti', name: 'PASTI', label: 'Pemeriksaan Administrasi SPKMGR Terintegrasi', color: 'text-indigo-600' },
       { id: 'kabar', name: 'KABAR', label: 'Kalkulator Asuransi Kebakaran', color: 'text-orange-600' },
       { id: 'akur', name: 'AKUR', label: 'Analisis Kredit Usaha Rakyat', color: 'text-blue-600' },
       { id: 'sedia', name: 'SEDIA', label: 'Sistem Elektronik Dokumen dan Informasi Asuransi', color: 'text-emerald-600' },
@@ -525,6 +527,7 @@ window.AdminModule = {
       akur: 'AKUR',
       sedia: 'SEDIA',
       lapor: 'LAPOR',
+      pasti: 'PASTI',
       kabar: 'KABAR',
       cepat: 'CEPAT',
       admin: 'ADMIN'
@@ -656,6 +659,11 @@ window.AdminModule = {
                   <span class="text-slate-500 text-[11px]">— Layanan Analisis dan Perhitungan Rasio Keuangan</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="perm-pasti" value="pasti" ${window.askrindoDB.normalizeAllowedApps(allowedApps).includes('pasti') ? 'checked' : ''} class="w-4 h-4 text-indigo-600 rounded" />
+                  <span class="font-semibold text-slate-800">PASTI</span>
+                  <span class="text-slate-500 text-[11px]">— Pemeriksaan Administrasi SPKMGR Terintegrasi</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" id="perm-kabar" value="kabar" ${allowedApps.includes('kabar') ? 'checked' : ''} class="w-4 h-4 text-orange-600 rounded" />
                   <span class="font-semibold text-slate-800">KABAR</span>
                   <span class="text-slate-500 text-[11px]">— Kalkulator Asuransi Kebakaran</span>
@@ -734,6 +742,7 @@ window.AdminModule = {
 
     const allowedApps = [];
     if (document.getElementById('perm-lapor').checked) allowedApps.push('lapor');
+    if (document.getElementById('perm-pasti')?.checked) allowedApps.push('pasti');
     if (document.getElementById('perm-kabar').checked) allowedApps.push('kabar');
     if (document.getElementById('perm-akur').checked) allowedApps.push('akur');
     if (document.getElementById('perm-sedia').checked) allowedApps.push('sedia');

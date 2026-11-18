@@ -37,7 +37,7 @@ const INITIAL_USERS = [
     division: 'Divisi Teknologi Informasi (Technology Information Division)',
     branch: 'Divisi Teknologi Informasi (Technology Information Division)',
     avatar: DEFAULT_AVATAR,
-    allowedApps: ['kabar', 'akur', 'sedia', 'lapor', 'cepat', 'admin'],
+    allowedApps: ['kabar', 'akur', 'sedia', 'lapor', 'cepat', 'pasti', 'admin'],
     status: 'active',
     createdAt: '2026-01-10T08:00:00Z',
     lastLogin: '2026-11-12T09:30:00Z'
@@ -52,7 +52,7 @@ const INITIAL_USERS = [
     division: 'Main Branch Office (Kantor Cabang Utama)',
     branch: 'Main Branch Office (Kantor Cabang Utama)',
     avatar: DEFAULT_AVATAR,
-    allowedApps: ['kabar', 'sedia', 'lapor', 'cepat'],
+    allowedApps: ['kabar', 'sedia', 'lapor', 'cepat', 'pasti'],
     status: 'active',
     createdAt: '2026-02-15T09:00:00Z',
     lastLogin: '2026-11-12T08:15:00Z'
@@ -67,7 +67,7 @@ const INITIAL_USERS = [
     division: 'Branch Office Surabaya',
     branch: 'Branch Office Surabaya',
     avatar: DEFAULT_AVATAR,
-    allowedApps: ['akur', 'lapor'],
+    allowedApps: ['akur', 'lapor', 'pasti'],
     status: 'active',
     createdAt: '2026-03-01T10:00:00Z',
     lastLogin: '2026-11-11T16:45:00Z'
@@ -82,7 +82,7 @@ const INITIAL_USERS = [
     division: 'Branch Office Medan',
     branch: 'Branch Office Medan',
     avatar: DEFAULT_AVATAR,
-    allowedApps: ['kabar', 'sedia', 'cepat'],
+    allowedApps: ['kabar', 'sedia', 'cepat', 'pasti'],
     status: 'active',
     createdAt: '2026-05-12T11:00:00Z',
     lastLogin: '2026-11-10T14:20:00Z'
@@ -269,6 +269,13 @@ const APP_DEPLOYMENT_STATUS = {
     badge: 'Aktif',
     isPublic: true
   },
+  pasti: {
+    status: 'active',
+    label: 'Rilis Penuh (Aktif)',
+    phase: 'Tahap 1 (Live Operasional)',
+    badge: 'Aktif',
+    isPublic: true
+  },
   kabar: {
     status: 'coming_soon',
     label: 'Segera Hadir',
@@ -361,6 +368,18 @@ const SUB_APPS_CATALOG = {
     route: '#/cepat',
     description: 'Pembuatan Cover Note (Nota Penutupan Asuransi Sementara) asuransi umum secara cepat, otomatis berstempel digital, Banker\'s Clause QQ Bank, dan QR code resmi untuk kebutuhan kredit perbankan atau proyek mendesak.',
     features: ['Penerbitan Cover Note Kilat', 'Format Standar Perbankan (Banker\'s Clause)', 'Pratinjau & Cetak PDF Berstempel', 'Arsip & Konversi ke SPPA Definitif']
+  },
+  pasti: {
+    id: 'pasti',
+    name: 'PASTI',
+    tagline: 'Pemeriksaan Administrasi SPKMGR Terintegrasi',
+    badge: 'Monitoring Dokumen SPKMGR',
+    category: 'Administrasi & Suretyship',
+    color: 'indigo',
+    icon: 'file-search',
+    route: '#/pasti',
+    description: 'Aplikasi pencarian dokumen SPKMGR berbasis database Google Sheets real-time. Petugas cukup mengetik nama principal untuk melihat rincian status waarmerking, kelengkapan dokumen, pembayaran, dan nama RM.',
+    features: ['Pencarian Instan Nama Principal', 'Sinkronisasi Real-Time Google Sheets', 'Status SPKMGR, Dokumen & Pembayaran', 'Filter RM, COB & Salin Ringkasan']
   }
 };
 
@@ -435,6 +454,9 @@ class AskrindoDB {
           if ((u.id === 'USR-001' || u.id === 'USR-002' || u.id === 'USR-004' || u.role === 'Super Administrator') && !(u.allowedApps || []).includes('cepat')) {
             u.allowedApps = [...(u.allowedApps || []), 'cepat'];
           }
+          if (!(u.allowedApps || []).includes('pasti')) {
+            u.allowedApps = [...(u.allowedApps || []), 'pasti'];
+          }
           u.allowedApps = this.normalizeAllowedApps(u.allowedApps);
           if (u.role) {
             u.role = this.normalizeLegacyRole(u.role);
@@ -457,6 +479,9 @@ class AskrindoDB {
           const normalizedApps = this.normalizeAllowedApps(sess.allowedApps);
           if ((sess.id === 'USR-001' || sess.id === 'USR-002' || sess.id === 'USR-004' || sess.role === 'Super Administrator') && !normalizedApps.includes('cepat')) {
             normalizedApps.push('cepat');
+          }
+          if (!normalizedApps.includes('pasti')) {
+            normalizedApps.push('pasti');
           }
           if (JSON.stringify(normalizedApps) !== JSON.stringify(sess.allowedApps || [])) {
             sess.allowedApps = normalizedApps;

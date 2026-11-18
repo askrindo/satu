@@ -19,7 +19,7 @@ window.DashboardModule = {
     const totalSppaCount = sppaList.length;
     const totalTsiValue = sppaList.reduce((acc, curr) => acc + (Number(curr.totalTsi) || 0), 0);
     const formattedTsi = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(totalTsiValue);
-    const coreAppIds = ['lapor', 'kabar', 'akur', 'sedia', 'cepat'];
+    const coreAppIds = ['lapor', 'pasti', 'kabar', 'akur', 'sedia', 'cepat'];
     const accessibleCoreApps = coreAppIds.filter(id => window.authService.hasAccess(id));
     const activeAppCount = accessibleCoreApps.length;
     const restrictedAppCount = coreAppIds.length - activeAppCount;
@@ -65,6 +65,13 @@ window.DashboardModule = {
           iconBg: 'bg-gradient-to-tr from-purple-700 to-indigo-500 text-white',
           btnBg: 'bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-800 hover:to-indigo-800 text-white',
           borderAccent: 'border-l-4 border-l-purple-600'
+        },
+        indigo: {
+          bg: 'hover:border-indigo-500/80 group-hover:text-indigo-600',
+          badgeBg: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+          iconBg: 'bg-gradient-to-tr from-indigo-600 to-violet-500 text-white',
+          btnBg: 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white',
+          borderAccent: 'border-l-4 border-l-indigo-600'
         }
       };
 
@@ -188,6 +195,12 @@ window.DashboardModule = {
                     <span>Buka Modul LAPOR</span>
                   </a>
                 ` : ''}
+                ${window.authService.hasAccess('pasti') ? `
+                  <a href="#/pasti" title="PASTI (Pemeriksaan Administrasi SPKMGR Terintegrasi)" class="col-span-2 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition shadow-md shadow-indigo-600/30">
+                    <i data-lucide="file-search" class="w-4 h-4 text-white"></i>
+                    <span>Buka Modul PASTI</span>
+                  </a>
+                ` : ''}
                 ${window.authService.hasAccess('kabar') ? `
                   <a href="#/kabar" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="KABAR (Kalkulator Asuransi Kebakaran)">
                     <i data-lucide="flame" class="w-3.5 h-3.5 text-orange-400"></i>
@@ -292,6 +305,7 @@ window.DashboardModule = {
           <!-- Application Cards Grid -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             ${renderAppCard('lapor')}
+            ${renderAppCard('pasti')}
             ${renderAppCard('kabar')}
             ${renderAppCard('akur')}
             ${renderAppCard('sedia')}

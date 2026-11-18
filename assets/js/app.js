@@ -223,6 +223,18 @@ class AskrindoApp {
                     </div>
                     <span id="nav-badge-lapor" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('lapor') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('lapor') ? 'Aktif' : 'Terkunci'}</span>
                   </a>
+
+                  <!-- PASTI -->
+                  <a href="#/pasti" id="nav-pasti" title="PASTI (Pemeriksaan Administrasi SPKMGR Terintegrasi)" class="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl transition text-slate-600 hover:text-indigo-600 hover:bg-indigo-50">
+                    <div class="flex items-center gap-3 min-w-0">
+                      <i data-lucide="file-search" class="w-4 h-4 text-indigo-500 shrink-0"></i>
+                      <div class="sidebar-text min-w-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
+                        <span class="font-bold">PASTI</span>
+                        <span class="text-[10px] block font-normal text-slate-400 leading-snug">Pemeriksaan Administrasi SPKMGR Terintegrasi</span>
+                      </div>
+                    </div>
+                    <span id="nav-badge-pasti" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('pasti') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('pasti') ? 'Aktif' : 'Terkunci'}</span>
+                  </a>
                 </div>
 
                 <!-- Section 3: Administrasi -->
@@ -413,6 +425,7 @@ class AskrindoApp {
       { id: 'nav-sedia', hashes: ['#/sedia'], title: 'SEDIA (Sistem Elektronik Dokumen dan Informasi Asuransi)' },
       { id: 'nav-cepat', hashes: ['#/cepat'], title: 'CEPAT (Cover Note Pertanggungan Asuransi Terintegrasi)' },
       { id: 'nav-lapor', hashes: ['#/lapor'], title: 'LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)' },
+      { id: 'nav-pasti', hashes: ['#/pasti'], title: 'PASTI (Pemeriksaan Administrasi SPKMGR Terintegrasi)' },
       { id: 'nav-admin', hashes: ['#/admin'], title: 'Web Admin Portal' }
     ];
 
@@ -430,7 +443,7 @@ class AskrindoApp {
     });
 
     // Sync sidebar access status badges dynamically
-    ['kabar', 'akur', 'sedia', 'cepat', 'lapor'].forEach(appId => {
+    ['kabar', 'akur', 'sedia', 'cepat', 'lapor', 'pasti'].forEach(appId => {
       const badgeEl = document.getElementById(`nav-badge-${appId}`);
       if (!badgeEl || !window.authService) return;
       const allowed = window.authService.hasAccess(appId);
@@ -464,6 +477,8 @@ class AskrindoApp {
       main.innerHTML = window.LaporModule.render();
       window.LaporModule.updateYearLabels();
       window.LaporModule.calculateRatios();
+    } else if (route.startsWith('#/pasti')) {
+      main.innerHTML = window.PastiModule.render();
     } else if (route.startsWith('#/admin')) {
       main.innerHTML = window.AdminModule.render();
     } else {
@@ -533,6 +548,20 @@ class AskrindoApp {
                         <span class="px-1.5 py-0.2 rounded text-[7px] font-extrabold bg-emerald-500 text-white uppercase tracking-wider">Aktif</span>
                       </div>
                       <span class="text-[10px] text-slate-200 block leading-snug">Layanan Analisis dan Perhitungan Rasio Keuangan</span>
+                    </div>
+                  </div>
+
+                  <!-- PASTI (AKTIF PENUH) -->
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-gradient-to-r from-indigo-500/25 to-cyan-500/25 hover:from-indigo-500/35 hover:to-cyan-500/35 transition border border-indigo-400/40 shadow-sm relative overflow-hidden" title="PASTI: Pemeriksaan Administrasi SPKMGR Terintegrasi">
+                    <div class="w-7 h-7 rounded-lg bg-indigo-500 flex items-center justify-center shrink-0 shadow-md">
+                      <i data-lucide="file-search" class="w-4 h-4 text-white"></i>
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1">
+                        <span class="font-black text-indigo-200 text-xs">PASTI</span>
+                        <span class="px-1.5 py-0.2 rounded text-[7px] font-extrabold bg-emerald-500 text-white uppercase tracking-wider">Aktif</span>
+                      </div>
+                      <span class="text-[10px] text-slate-200 block leading-snug">Pemeriksaan Administrasi SPKMGR Terintegrasi</span>
                     </div>
                   </div>
 
@@ -743,7 +772,7 @@ class AskrindoApp {
               type="text" 
               id="cmd-input" 
               autofocus 
-              placeholder="Ketik nama aplikasi (KABAR, AKUR, SEDIA, CEPAT, LAPOR) atau aksi..." 
+              placeholder="Ketik nama aplikasi (KABAR, AKUR, SEDIA, CEPAT, LAPOR, PASTI) atau aksi..." 
               oninput="window.askrindoApp.filterCommandPalette(this.value)"
               class="w-full text-sm font-medium focus:outline-none bg-transparent"
             />
@@ -796,6 +825,16 @@ class AskrindoApp {
                 <i data-lucide="calculator" class="w-4 h-4 text-purple-500"></i>
                 <div>
                   <span class="font-bold">LAPOR</span> — Layanan Analisis dan Perhitungan Rasio Keuangan
+                </div>
+              </div>
+              <span class="text-[10px] text-slate-400">Buka Modul &rarr;</span>
+            </a>
+
+            <a href="#/pasti" onclick="window.askrindoApp.closeAllModals()" class="flex items-center justify-between p-3 rounded-xl hover:bg-indigo-50 text-slate-800 transition">
+              <div class="flex items-center gap-3">
+                <i data-lucide="file-search" class="w-4 h-4 text-indigo-500"></i>
+                <div>
+                  <span class="font-bold">PASTI</span> — Pemeriksaan Administrasi SPKMGR Terintegrasi
                 </div>
               </div>
               <span class="text-[10px] text-slate-400">Buka Modul &rarr;</span>
