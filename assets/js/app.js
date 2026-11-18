@@ -429,7 +429,7 @@ class AskrindoApp {
       { id: 'nav-admin', hashes: ['#/admin'], title: 'Web Admin Portal' }
     ];
 
-    const activeClasses = 'text-orange-700 font-bold bg-gradient-to-r from-orange-500/20 via-orange-100/80 to-amber-50 border-l-4 border-l-orange-500 ring-1 ring-orange-300 shadow-md shadow-orange-500/10';
+    const activeClasses = 'bg-[#002B49] text-white font-bold shadow-md shadow-slate-900/15';
     navItems.forEach(item => {
       const el = document.getElementById(item.id);
       if (!el) return;
