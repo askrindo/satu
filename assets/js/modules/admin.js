@@ -778,7 +778,7 @@ window.AdminModule = {
     const groups = [
       { label: 'Divisi (Kantor Pusat)', items: units.filter(u => u.startsWith('Divisi ')) },
       { label: 'Regional Office', items: units.filter(u => u.startsWith('Regional Office ')) },
-      { label: 'Main Branch & Branch Office', items: units.filter(u => !u.startsWith('Divisi ') && !u.startsWith('Regional Office ')) }
+      { label: 'Branch Office', items: units.filter(u => !u.startsWith('Divisi ') && !u.startsWith('Regional Office ')) }
     ];
 
     let html = '';
@@ -879,7 +879,7 @@ window.AdminModule = {
     const groups = [
       { label: 'Divisi (Kantor Pusat)', items: units.filter(u => u.startsWith('Divisi ')) },
       { label: 'Regional Office', items: units.filter(u => u.startsWith('Regional Office ')) },
-      { label: 'Main Branch & Branch Office', items: units.filter(u => !u.startsWith('Divisi ') && !u.startsWith('Regional Office ')) }
+      { label: 'Branch Office', items: units.filter(u => !u.startsWith('Divisi ') && !u.startsWith('Regional Office ')) }
     ];
 
     const placeholder = !user ? '<option value="" disabled selected>-- Pilih Unit Kerja --</option>' : '';
