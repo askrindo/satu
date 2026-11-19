@@ -35,6 +35,7 @@ window.AkurModule = {
   threads: [],
   activeThreadId: null,
   historySearchQuery: '',
+  cloudThreadsStatus: 'unknown', // 'available' | 'missing_table' | 'offline'
   selectedYear: null,
   pendingQuestion: '',
   isThinking: false,
@@ -110,6 +111,110 @@ window.AkurModule = {
     }
   },
 
+  getSupabaseClient() {
+    return window.askrindoDB && window.askrindoDB.supabase ? window.askrindoDB.supabase : null;
+  },
+
+  async syncThreadsWithSupabase() {
+    const sb = this.getSupabaseClient();
+    const u = window.authService?.getCurrentUser?.();
+    if (!sb || !u) return;
+
+    const uid = u.id || u.nip || 'guest';
+    try {
+      const { data, error } = await sb
+        .from('akur_threads')
+        .select('*')
+        .eq('user_id', uid)
+        .order('updated_at', { ascending: false })
+        .limit(40);
+
+      if (error) {
+        if (String(error.message || '').toLowerCase().includes('does not exist') || error.code === '42P01' || error.code === 'PGRST205') {
+          this.cloudThreadsStatus = 'missing_table';
+          console.info('[AKUR] Tabel Supabase akur_threads belum dibuat; menggunakan cache lokal.');
+        } else {
+          console.warn('[AKUR] Gagal sinkronisasi riwayat Supabase:', error.message);
+        }
+        return;
+      }
+
+      this.cloudThreadsStatus = 'available';
+      const cloudThreads = (data || []).map(row => ({
+        id: row.id,
+        title: row.title || 'Percakapan Permenko KUR',
+        year: row.year || null,
+        updatedAt: row.updated_at || new Date().toISOString(),
+        messages: Array.isArray(row.messages) ? row.messages : []
+      }));
+
+      const cloudMap = new Map(cloudThreads.map(t => [t.id, t]));
+      const mergedMap = new Map();
+
+      cloudThreads.forEach(t => mergedMap.set(t.id, t));
+      this.threads.forEach(localT => {
+        if (!localT || !localT.id) return;
+        const existing = mergedMap.get(localT.id);
+        if (!existing || new Date(localT.updatedAt || 0) > new Date(existing.updatedAt || 0)) {
+          mergedMap.set(localT.id, localT);
+          // Push local-only or newer thread to Supabase
+          if (!cloudMap.has(localT.id) || new Date(localT.updatedAt || 0) > new Date(existing.updatedAt || 0)) {
+            this.syncThreadToCloud(localT);
+          }
+        }
+      });
+
+      this.threads = Array.from(mergedMap.values())
+        .sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0))
+        .slice(0, 40);
+
+      this.saveThreads();
+      this.updateHistorySidebar();
+    } catch (e) {
+      console.warn('[AKUR] Cloud sync error:', e);
+    }
+  },
+
+  async syncThreadToCloud(threadObj) {
+    const sb = this.getSupabaseClient();
+    const u = window.authService?.getCurrentUser?.();
+    if (!sb || !u || !threadObj || this.cloudThreadsStatus === 'missing_table') return;
+
+    try {
+      const { error } = await sb.from('akur_threads').upsert({
+        id: threadObj.id,
+        user_id: u.id || u.nip || 'guest',
+        user_nip: u.nip || null,
+        title: threadObj.title,
+        year: threadObj.year || null,
+        messages: threadObj.messages || [],
+        updated_at: threadObj.updatedAt || new Date().toISOString()
+      }, { onConflict: 'id' });
+
+      if (error) {
+        if (String(error.message || '').toLowerCase().includes('does not exist') || error.code === '42P01' || error.code === 'PGRST205') {
+          this.cloudThreadsStatus = 'missing_table';
+        } else {
+          console.warn('[AKUR] Gagal simpan riwayat ke Supabase:', error.message);
+        }
+      } else {
+        this.cloudThreadsStatus = 'available';
+      }
+    } catch (e) {
+      console.warn('[AKUR] Upsert cloud error:', e);
+    }
+  },
+
+  async deleteThreadFromCloud(threadId) {
+    const sb = this.getSupabaseClient();
+    if (!sb || !threadId || this.cloudThreadsStatus === 'missing_table') return;
+    try {
+      await sb.from('akur_threads').delete().eq('id', threadId);
+    } catch (e) {
+      console.warn('[AKUR] Hapus cloud error:', e);
+    }
+  },
+
   persistActiveThread() {
     const hasUserMsg = this.messages.some(m => m.role === 'user');
     if (!hasUserMsg) return;
@@ -140,6 +245,7 @@ window.AkurModule = {
     }
     this.threads.unshift(threadObj);
     this.saveThreads();
+    this.syncThreadToCloud(threadObj);
     this.updateHistorySidebar();
   },
 
@@ -150,6 +256,7 @@ window.AkurModule = {
       this.startNewChat(false);
       this.loadManifest();
     }
+    this.syncThreadsWithSupabase();
     this.updateHeaderMeta();
     this.updateHistorySidebar();
     this.updateChatUI();
@@ -304,6 +411,7 @@ window.AkurModule = {
     if (e) e.stopPropagation();
     this.threads = this.threads.filter(t => t.id !== threadId);
     this.saveThreads();
+    this.deleteThreadFromCloud(threadId);
     if (this.activeThreadId === threadId) {
       this.startNewChat(true);
     } else {

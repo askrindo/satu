@@ -148,6 +148,23 @@ CREATE POLICY "Allow public all access on system_settings" ON public.system_sett
 DROP POLICY IF EXISTS "Allow public all access on lapor_analyses" ON public.lapor_analyses;
 CREATE POLICY "Allow public all access on lapor_analyses" ON public.lapor_analyses FOR ALL USING (true) WITH CHECK (true);
 
+-- 7. Tabel Riwayat Pertanyaan AKUR (Asisten AI Regulasi KUR)
+CREATE TABLE IF NOT EXISTS public.akur_threads (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    user_nip TEXT,
+    title TEXT NOT NULL,
+    year TEXT,
+    messages JSONB NOT NULL DEFAULT '[]'::jsonb,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_akur_threads_user_id ON public.akur_threads (user_id);
+ALTER TABLE public.akur_threads ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow public all access on akur_threads" ON public.akur_threads;
+CREATE POLICY "Allow public all access on akur_threads" ON public.akur_threads FOR ALL USING (true) WITH CHECK (true);
+
 -- ========================================================
 -- SEED DATA AWAL (Pengguna & Data SPPA Bawaan Askrindo SATU)
 -- ========================================================
