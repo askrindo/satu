@@ -157,16 +157,64 @@ window.AkurModule = {
       .replace(/'/g, '&#39;');
   },
 
+  formatInlineMarkdown(escapedLine) {
+    let s = escapedLine;
+    s = s.replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold text-slate-900">$1</strong>');
+    s = s.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em class="italic text-slate-600">$1</em>');
+    s = s.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded bg-slate-100 text-blue-800 font-mono text-xs">$1</code>');
+    return s;
+  },
+
   formatMarkdownSafe(text) {
-    let html = this.escapeHtml(text || '');
-    html = html.replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold text-slate-900">$1</strong>');
-    html = html.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em class="italic text-slate-600">$1</em>');
-    html = html.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded bg-slate-100 text-blue-800 font-mono text-xs">$1</code>');
-    html = html.replace(/^(?:\s*[-•*]\s+)(.+)$/gm, '<div class="flex items-start gap-2 my-1"><span class="text-blue-600 font-bold mt-0.5">&bull;</span><span>$1</span></div>');
-    html = html.replace(/^(\s*\d+\.\s+)(.+)$/gm, '<div class="flex items-start gap-2 my-1"><span class="text-blue-700 font-bold shrink-0">$1</span><span>$2</span></div>');
-    html = html.replace(/\n\n/g, '<div class="h-2"></div>');
-    html = html.replace(/\n/g, '<br/>');
-    return html;
+    const rawLines = String(text || '').replace(/\r\n/g, '\n').split('\n');
+    const out = [];
+    let inNumberedBlock = false;
+
+    for (let i = 0; i < rawLines.length; i++) {
+      const rawLine = rawLines[i];
+      const trimmed = rawLine.trim();
+
+      if (!trimmed) {
+        if (out.length && !out[out.length - 1].includes('akur-spacer')) {
+          out.push('<div class="akur-spacer h-2"></div>');
+        }
+        continue;
+      }
+
+      // Markdown heading (### / ##)
+      const headMatch = trimmed.match(/^#{1,4}\s+(.+)$/);
+      if (headMatch) {
+        inNumberedBlock = false;
+        out.push(`<div class="font-bold text-slate-900 mt-2 mb-1">${this.formatInlineMarkdown(this.escapeHtml(headMatch[1]))}</div>`);
+        continue;
+      }
+
+      // Numbered list item: "1. Text" or "1.  **Title**"
+      const numMatch = rawLine.match(/^[ \t]*(\d+\.)[ \t]+(.+)$/);
+      if (numMatch) {
+        inNumberedBlock = true;
+        const num = this.escapeHtml(numMatch[1]);
+        const content = this.formatInlineMarkdown(this.escapeHtml(numMatch[2].trim()));
+        out.push(`<div class="flex items-start gap-2 mt-2 mb-1"><span class="text-blue-700 font-bold shrink-0 min-w-[1.5rem]">${num}</span><div class="flex-1 min-w-0">${content}</div></div>`);
+        continue;
+      }
+
+      // Bullet list item: "- Text" or "* Text" or "• Text"
+      const bulletMatch = rawLine.match(/^([ \t]*)[-•*][ \t]+(.+)$/);
+      if (bulletMatch) {
+        const isIndented = bulletMatch[1].length >= 2 || inNumberedBlock;
+        const content = this.formatInlineMarkdown(this.escapeHtml(bulletMatch[2].trim()));
+        out.push(`<div class="flex items-start gap-2 my-1 ${isIndented ? 'pl-6' : 'pl-2'}"><span class="text-blue-600 font-bold shrink-0">&bull;</span><div class="flex-1 min-w-0">${content}</div></div>`);
+        continue;
+      }
+
+      // Regular paragraph line (indent softly if continuing a numbered item)
+      const content = this.formatInlineMarkdown(this.escapeHtml(trimmed));
+      const isIndentedText = /^[ \t]{2,}/.test(rawLine) && inNumberedBlock;
+      out.push(`<div class="my-0.5 ${isIndentedText ? 'pl-8' : ''}">${content}</div>`);
+    }
+
+    return out.join('');
   },
 
   startNewChat(rerender = true) {
