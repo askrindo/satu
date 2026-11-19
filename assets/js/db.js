@@ -266,8 +266,8 @@ const SUB_APPS_CATALOG = {
     color: 'blue',
     icon: 'book-open-check',
     route: '#/akur',
-    description: 'Asisten AI khusus regulasi Permenko KUR (2015–2026). Ajukan pertanyaan bebas terkait aturan KUR dan dapatkan jawaban faktual mengacu ketat pada pasal resmi Permenko sesuai tahunnya tanpa opini.',
-    features: ['Tanya Bebas (Free Text) Regulasi KUR', '20 Dokumen Permenko KUR (2015–2026)', 'Wajib Acuan Tahun & Pasal Resmi', 'Kutipan Teks Asli Tanpa Opini']
+    description: 'Asisten AI khusus regulasi Permenko KUR (2015–2026). Ajukan pertanyaan bebas terkait aturan KUR dan dapatkan jawaban faktual mengacu ketat pada pasal resmi Permenko sesuai tahunnya.',
+    features: ['Tanya Bebas (Free Text) Regulasi KUR', '20 Dokumen Permenko KUR (2015–2026)', 'Wajib Acuan Tahun & Pasal Resmi', 'Kutipan Teks Asli Permenko']
   },
   sedia: {
     id: 'sedia',

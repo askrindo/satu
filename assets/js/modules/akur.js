@@ -179,7 +179,7 @@ window.AkurModule = {
         id: 'welcome',
         role: 'assistant',
         type: 'welcome',
-        text: 'Halo! Selamat datang di **Tanya-Tanya Permenko KUR**. Jawaban saya **hanya mengacu pada teks resmi Permenko Perekonomian tentang KUR** (tanpa opini).\n\nPilih **Tahun Permenko KUR** pada bar di atas lalu ketik pertanyaan Anda.',
+        text: 'Halo! Selamat datang di **Tanya-Tanya Permenko KUR**. Jawaban saya **hanya mengacu pada teks resmi Permenko Perekonomian tentang KUR**.\n\nPilih **Tahun Permenko KUR** pada bar di atas lalu ketik pertanyaan Anda.',
         timestamp: new Date().toISOString()
       }
     ];
@@ -509,7 +509,7 @@ ${contextText}`;
 
       if (!answerText) {
         const top3 = relevantChunks.slice(0, 3);
-        answerText = `Koneksi AI sedang tidak tersedia, berikut **kutipan langsung** paling relevan dari **Permenko KUR Tahun ${year}** (tanpa opini):\n\n` +
+        answerText = `Koneksi AI sedang tidak tersedia, berikut **kutipan langsung** paling relevan dari **Permenko KUR Tahun ${year}**:\n\n` +
           top3.map((c, i) => `**${i + 1}. ${c.doc} — ${c.section}**\n${c.text.slice(0, 450)}${c.text.length > 450 ? '...' : ''}`).join('\n\n');
       }
 
@@ -781,7 +781,7 @@ ${contextText}`;
                 ${msg.year ? `<span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs">Tahun ${this.escapeHtml(msg.year)}</span>` : ''}
               </span>
               <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
-                Berbasis Permenko · Tanpa Opini
+                Berbasis Permenko Resmi
               </span>
             </div>
 
@@ -889,7 +889,7 @@ ${contextText}`;
                 Tanya-Tanya Permenko KUR
               </span>
               <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hidden sm:inline-flex">
-                20 Permenko (2015–2026) · Tanpa Opini
+                20 Permenko (2015–2026)
               </span>
             </div>
           </div>
