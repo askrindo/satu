@@ -47,7 +47,50 @@ window.AkurModule = {
     return `askrindo_akur_threads_v1_${uid}`;
   },
 
+  migrateAdminHistoryTo1922() {
+    const flagKey = 'askrindo_akur_migrated_admin_to_1922_v1';
+    if (localStorage.getItem(flagKey) === '1') return;
+    try {
+      const adminKeys = ['askrindo_akur_threads_v1_USR-001', 'askrindo_akur_threads_v1_admin'];
+      const targetKey = 'askrindo_akur_threads_v1_USR-002';
+
+      let adminThreads = [];
+      adminKeys.forEach(k => {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(k) || '[]');
+          if (Array.isArray(parsed) && parsed.length) {
+            adminThreads = adminThreads.concat(parsed);
+          }
+        } catch (_) {}
+      });
+
+      if (adminThreads.length) {
+        let targetThreads = [];
+        try {
+          const parsedTarget = JSON.parse(localStorage.getItem(targetKey) || '[]');
+          if (Array.isArray(parsedTarget)) targetThreads = parsedTarget;
+        } catch (_) {}
+
+        const map = new Map();
+        [...targetThreads, ...adminThreads].forEach(t => {
+          if (t && t.id && !map.has(t.id)) map.set(t.id, t);
+        });
+        const merged = Array.from(map.values())
+          .sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0))
+          .slice(0, 40);
+
+        localStorage.setItem(targetKey, JSON.stringify(merged));
+        adminKeys.forEach(k => localStorage.removeItem(k));
+      }
+
+      localStorage.setItem(flagKey, '1');
+    } catch (e) {
+      console.warn('[AKUR] Gagal migrasi riwayat admin ke 1922:', e);
+    }
+  },
+
   loadThreads() {
+    this.migrateAdminHistoryTo1922();
     try {
       const raw = localStorage.getItem(this.getHistoryStorageKey());
       const parsed = raw ? JSON.parse(raw) : [];
