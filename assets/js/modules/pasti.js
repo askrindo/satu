@@ -856,6 +856,262 @@ window.PastiModule = {
     }
   },
 
+  formatInputDateToId(isoDateStr) {
+    const m = String(isoDateStr || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return String(isoDateStr || '').trim() || '-';
+    return `${m[3]}/${m[2]}/${m[1]}`;
+  },
+
+  openAddModal() {
+    if (!this.canEdit()) {
+      if (window.askrindoApp) window.askrindoApp.showToast('Anda hanya memiliki akses melihat data PASTI.', 'warning');
+      return;
+    }
+
+    const existing = document.getElementById('pasti-add-modal');
+    if (existing) existing.remove();
+
+    const rmList = this.getUniqueRms();
+    const today = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const todayIso = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+    const nextYearIso = `${today.getFullYear() + 1}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+
+    const maxNo = this.rows.reduce((max, r) => {
+      const n = parseInt(String(r.no || '').replace(/[^0-9]/g, ''), 10);
+      return (!Number.isNaN(n) && n > max) ? n : max;
+    }, this.rows.length);
+    const nextNoPreview = maxNo + 1;
+
+    const modal = document.createElement('div');
+    modal.id = 'pasti-add-modal';
+    modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in';
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+    modal.innerHTML = `
+      <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden max-h-[92vh] flex flex-col">
+        <div class="bg-gradient-to-r from-[#002B49] via-emerald-900 to-teal-900 text-white p-5 flex items-start justify-between gap-4 shrink-0">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/15 border border-white/20">No. Urut Otomatis: #${nextNoPreview}</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-400/25 border border-emerald-300/30">Masuk Baris Paling Bawah Sheet</span>
+            </div>
+            <h3 class="text-lg font-black tracking-tight">Tambah Data SPKMGR Baru</h3>
+            <p class="text-[11px] text-emerald-100 mt-0.5">Data akan langsung ditambahkan ke baris paling bawah sheet SPKMGR 2025 &amp; 2026.</p>
+          </div>
+          <button type="button" onclick="document.getElementById('pasti-add-modal').remove()" class="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition shrink-0">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <form onsubmit="window.PastiModule.submitAddForm(event)" class="p-5 space-y-3.5 text-xs overflow-y-auto">
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
+            <div class="sm:col-span-8">
+              <label class="block font-bold text-slate-700 mb-1">Nama Principal <span class="text-rose-500">*</span></label>
+              <input id="pasti-add-nama" type="text" required placeholder="Contoh: PT. MAJU BERSAMA KONSTRUKSI" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-500 font-semibold text-slate-800" />
+            </div>
+
+            <div class="sm:col-span-4">
+              <label class="block font-bold text-slate-700 mb-1">Jenis COB <span class="text-rose-500">*</span></label>
+              <select id="pasti-add-cob" required class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-500 font-semibold text-slate-800">
+                <option value="SB">SB (Surety Bond)</option>
+                <option value="KBG">KBG (Kontra BG)</option>
+              </select>
+            </div>
+
+            <div class="sm:col-span-4">
+              <label class="block font-bold text-slate-700 mb-1">Tanggal</label>
+              <input id="pasti-add-tanggal" type="date" value="${todayIso}" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-500 font-semibold text-slate-800" />
+            </div>
+
+            <div class="sm:col-span-4">
+              <label class="block font-bold text-slate-700 mb-1">JW Awal</label>
+              <input id="pasti-add-jw-awal" type="date" value="${todayIso}" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-500 font-semibold text-slate-800" />
+            </div>
+
+            <div class="sm:col-span-4">
+              <label class="block font-bold text-slate-700 mb-1">JW Akhir</label>
+              <input id="pasti-add-jw-akhir" type="date" value="${nextYearIso}" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-500 font-semibold text-slate-800" />
+            </div>
+
+            <div class="sm:col-span-4">
+              <label class="block font-bold text-slate-700 mb-1">Status SPKMGR</label>
+              <select id="pasti-add-status" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-500 font-semibold text-slate-800">
+                <option value="Waarmerking">Waarmerking</option>
+                <option value="Tidak Di Warmeking">Tidak Di Warmeking</option>
+                <option value="Legalisasi">Legalisasi</option>
+              </select>
+            </div>
+
+            <div class="sm:col-span-4">
+              <label class="block font-bold text-slate-700 mb-1">Kelengkapan Dokumen</label>
+              <select id="pasti-add-keterangan" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-500 font-semibold text-slate-800">
+                <option value="Belum Ada SPKMGR">Belum Ada SPKMGR</option>
+                <option value="Ada SPKMGR">Ada SPKMGR</option>
+                <option value="Ada SPKMGR (Softfile)">Ada SPKMGR (Softfile)</option>
+              </select>
+            </div>
+
+            <div class="sm:col-span-4">
+              <label class="block font-bold text-slate-700 mb-1">Status Pembayaran</label>
+              <select id="pasti-add-pembayaran" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-500 font-semibold text-slate-800">
+                <option value="Belum Bayar">Belum Bayar</option>
+                <option value="Sudah Bayar">Sudah Bayar</option>
+                <option value="-">-</option>
+              </select>
+            </div>
+
+            <div class="sm:col-span-4">
+              <label class="block font-bold text-slate-700 mb-1">Nama RM</label>
+              <input id="pasti-add-rm" list="pasti-add-rm-list" type="text" placeholder="Contoh: Cherry / Marsella" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-500 font-semibold text-slate-800" />
+              <datalist id="pasti-add-rm-list">
+                ${rmList.map(rm => `<option value="${this.escapeHtml(rm)}"></option>`).join('')}
+              </datalist>
+            </div>
+
+            <div class="sm:col-span-4">
+              <label class="block font-bold text-slate-700 mb-1">Biaya SPKMGR (opsional)</label>
+              <input id="pasti-add-biaya" type="text" placeholder="Kosongkan jika otomatis di Sheet" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-500 font-semibold text-slate-800" />
+            </div>
+
+            <div class="sm:col-span-4">
+              <label class="block font-bold text-slate-700 mb-1">Catatan (opsional)</label>
+              <input id="pasti-add-catatan" type="text" placeholder="Catatan tambahan" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-500 font-semibold text-slate-800" />
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+            <button type="button" onclick="document.getElementById('pasti-add-modal').remove()" class="px-4 py-2 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition">
+              Batal
+            </button>
+            <button id="pasti-add-submit-btn" type="submit" class="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-md transition">
+              <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+              <span>Tambah ke Spreadsheet</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    if (window.lucide) window.lucide.createIcons();
+    setTimeout(() => document.getElementById('pasti-add-nama')?.focus(), 50);
+  },
+
+  async submitAddForm(e) {
+    if (e) e.preventDefault();
+    if (!this.canEdit()) return;
+
+    const nama = (document.getElementById('pasti-add-nama')?.value || '').trim();
+    if (!nama) {
+      if (window.askrindoApp) window.askrindoApp.showToast('Nama Principal wajib diisi.', 'warning');
+      return;
+    }
+
+    const btn = document.getElementById('pasti-add-submit-btn');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span>Menambahkan ke Spreadsheet...</span>';
+    }
+
+    const jenisCob = document.getElementById('pasti-add-cob')?.value || 'SB';
+    const tanggal = this.formatInputDateToId(document.getElementById('pasti-add-tanggal')?.value);
+    const jwAwal = this.formatInputDateToId(document.getElementById('pasti-add-jw-awal')?.value);
+    const jwAkhir = this.formatInputDateToId(document.getElementById('pasti-add-jw-akhir')?.value);
+    const statusSpkmgr = document.getElementById('pasti-add-status')?.value || 'Waarmerking';
+    const keterangan = document.getElementById('pasti-add-keterangan')?.value || 'Belum Ada SPKMGR';
+    const statusPembayaran = document.getElementById('pasti-add-pembayaran')?.value || 'Belum Bayar';
+    const namaRm = (document.getElementById('pasti-add-rm')?.value || '').trim();
+    const biayaInput = (document.getElementById('pasti-add-biaya')?.value || '').trim();
+    const catatan = (document.getElementById('pasti-add-catatan')?.value || '').trim();
+
+    const currentUser = window.authService?.getCurrentUser?.();
+    const payload = {
+      token: this.API_TOKEN,
+      action: 'create',
+      createdBy: currentUser ? `${currentUser.name} (${currentUser.nip})` : 'Petugas',
+      record: {
+        nama,
+        jenisCob,
+        tanggal,
+        jwAwal,
+        jwAkhir,
+        statusSpkmgr,
+        keterangan,
+        statusPembayaran,
+        namaRm,
+        biayaSpkmgr: biayaInput,
+        catatan
+      }
+    };
+
+    try {
+      const resp = await fetch(this.APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      const resJson = await resp.json();
+      if (!resJson || !resJson.ok) {
+        throw new Error((resJson && resJson.error) ? resJson.error : 'Gagal menambahkan data ke Spreadsheet.');
+      }
+
+      const assignedNo = String(resJson.no || (this.rows.length + 1));
+      const finalBiaya = resJson.biayaSpkmgr || biayaInput || '-';
+      const newRow = {
+        _idx: this.rows.length,
+        _rowNumber: resJson.rowNumber || null,
+        sheet: this.sheetUsedName,
+        no: assignedNo,
+        nama,
+        jenisCob,
+        tanggal,
+        jwAwal,
+        jwAkhir,
+        statusSpkmgr,
+        keterangan,
+        statusPembayaran,
+        statusNotaris: '-',
+        catatan,
+        namaRm: namaRm || '-',
+        biayaSpkmgr: finalBiaya,
+        biayaNum: this.parseRupiah(finalBiaya),
+        doneStatus: resJson.doneStatus || 'Not Yet',
+        cekDaluarsa: ''
+      };
+
+      this.rows.push(newRow);
+      this.syncedAt = new Date().toISOString();
+      this.lastDataHash = JSON.stringify(this.rows);
+      this.saveToCache();
+
+      if (window.askrindoDB?.logActivity) {
+        window.askrindoDB.logActivity('PASTI', 'Tambah Data SPKMGR', `Menambahkan SPKMGR #${assignedNo} — ${nama} (${jenisCob}, ${statusSpkmgr})`);
+      }
+
+      const modal = document.getElementById('pasti-add-modal');
+      if (modal) modal.remove();
+
+      // Arahkan langsung ke pencarian nama principal yang baru ditambah agar langsung terlihat
+      this.searchQuery = nama;
+      this.currentPage = 1;
+      this.updateView(false);
+
+      if (window.askrindoApp) {
+        window.askrindoApp.showToast(`SPKMGR #${assignedNo} (${nama}) berhasil ditambahkan ke baris ${resJson.rowNumber || 'terakhir'} Spreadsheet!`, 'success');
+      }
+    } catch (err) {
+      console.warn('[PASTI] Create error:', err);
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Tambah ke Spreadsheet</span>';
+      }
+      if (window.askrindoApp) {
+        window.askrindoApp.showToast(`Gagal menambah data: ${err.message}`, 'error');
+      }
+    }
+  },
+
   updateSyncBadge() {
     const el = document.getElementById('pasti-sync-badge');
     if (!el) return;
@@ -965,6 +1221,12 @@ window.PastiModule = {
 
         <div class="flex items-center gap-2 shrink-0 flex-wrap">
           <span class="text-[11px] text-slate-400 font-medium hidden sm:inline mr-1">Sync: ${syncedTimeText}</span>
+          ${this.canEdit() ? `
+            <button onclick="window.PastiModule.openAddModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-sm shadow-emerald-600/20 transition">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              <span>Tambah SPKMGR</span>
+            </button>
+          ` : ''}
           <button onclick="window.PastiModule.syncFromSheet(true)" ${this.isSyncing ? 'disabled' : ''} class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white shadow-sm shadow-indigo-600/20 transition">
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5 ${this.isSyncing ? 'animate-spin' : ''}"></i>
             <span>Sinkronkan Ulang</span>
