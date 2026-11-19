@@ -773,13 +773,13 @@ ${contextText}`;
           </form>
 
           <!-- Suggested Quick Questions -->
-          <div class="flex items-center gap-2 overflow-x-auto pb-0.5">
-            <span class="text-[10px] font-bold uppercase tracking-wider text-blue-200 shrink-0">Contoh:</span>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-blue-200">Contoh:</span>
             ${quickPrompts.map(q => `
               <button
                 type="button"
                 onclick="window.AkurModule.askQuickQuestion('${this.escapeHtml(q)}')"
-                class="px-3 py-1.5 rounded-full text-[11px] font-semibold bg-white/10 hover:bg-white/20 text-blue-50 border border-white/15 whitespace-nowrap transition shrink-0"
+                class="px-3 py-1.5 rounded-full text-[11px] font-semibold bg-white/10 hover:bg-white/20 text-blue-50 border border-white/15 text-left transition"
               >
                 ${this.escapeHtml(q)}
               </button>
