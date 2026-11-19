@@ -351,7 +351,7 @@ window.CeklistModule = {
     const isEdit = !!existingEntry;
     const officers = isEdit && Array.isArray(existingEntry.officers) && existingEntry.officers.length
       ? existingEntry.officers
-      : [{ name: '', role: 'Direktur Utama', nik: '' }];
+      : [{ name: '', role: '', nik: '' }];
 
     const old = document.getElementById('ceklist-entry-modal');
     if (old) old.remove();
@@ -360,8 +360,6 @@ window.CeklistModule = {
     modal.id = 'ceklist-entry-modal';
     modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fadeIn';
     modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
-
-    const todayIso = new Date().toISOString().slice(0, 10);
 
     modal.innerHTML = `
       <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden max-h-[92vh] flex flex-col">
@@ -388,7 +386,8 @@ window.CeklistModule = {
             <div class="sm:col-span-4">
               <label class="block font-bold text-slate-700 mb-1">Status Blokir</label>
               <select id="bl-status" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-rose-500 font-semibold text-slate-800">
-                ${['Terblokir Aktif', 'Dalam Pengawasan', 'Dipulihkan'].map(st => `<option value="${st}" ${(existingEntry?.status || 'Terblokir Aktif') === st ? 'selected' : ''}>${st}</option>`).join('')}
+                <option value="">-- Pilih Status --</option>
+                ${['Terblokir Aktif', 'Dalam Pengawasan', 'Dipulihkan'].map(st => `<option value="${st}" ${(existingEntry?.status || '') === st ? 'selected' : ''}>${st}</option>`).join('')}
               </select>
             </div>
 
@@ -407,7 +406,7 @@ window.CeklistModule = {
 
             <div class="sm:col-span-3">
               <label class="block font-bold text-slate-700 mb-1">Tanggal Blacklist</label>
-              <input id="bl-date" type="date" value="${this.escapeHtml(existingEntry?.blacklistDate || todayIso)}" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-rose-500 font-semibold text-slate-800" />
+              <input id="bl-date" type="date" value="${this.escapeHtml(existingEntry?.blacklistDate || '')}" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-rose-500 font-semibold text-slate-800" />
             </div>
 
             <div class="sm:col-span-12">
@@ -463,7 +462,8 @@ window.CeklistModule = {
         </div>
         <div class="sm:col-span-3">
           <select data-field="role" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-rose-500 font-semibold text-slate-700">
-            ${this.JABATAN_OPTIONS.map(j => `<option value="${this.escapeHtml(j)}" ${(officer.role || 'Direktur') === j ? 'selected' : ''}>${this.escapeHtml(j)}</option>`).join('')}
+            <option value="">-- Pilih Jabatan --</option>
+            ${this.JABATAN_OPTIONS.map(j => `<option value="${this.escapeHtml(j)}" ${(officer.role || '') === j ? 'selected' : ''}>${this.escapeHtml(j)}</option>`).join('')}
           </select>
         </div>
         <div class="sm:col-span-3">
@@ -482,7 +482,7 @@ window.CeklistModule = {
     const container = document.getElementById('bl-officers-container');
     if (!container) return;
     const div = document.createElement('div');
-    div.innerHTML = this.renderOfficerInputRow({ name: '', role: 'Komisaris', nik: '' });
+    div.innerHTML = this.renderOfficerInputRow({ name: '', role: '', nik: '' });
     container.appendChild(div.firstElementChild);
     if (window.lucide) window.lucide.createIcons();
   },
