@@ -177,12 +177,12 @@ class AskrindoApp {
                   </a>
 
                   <!-- AKUR -->
-                  <a href="#/akur" id="nav-akur" title="AKUR (Analisis Kredit Usaha Rakyat)" class="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl transition text-slate-600 hover:text-blue-600 hover:bg-blue-50">
+                  <a href="#/akur" id="nav-akur" title="AKUR (Asisten AI Regulasi KUR)" class="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl transition text-slate-600 hover:text-blue-600 hover:bg-blue-50">
                     <div class="flex items-center gap-3 min-w-0">
                       <i data-lucide="help-circle" class="w-4 h-4 text-blue-500 shrink-0"></i>
                       <div class="sidebar-text min-w-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">AKUR</span>
-                        <span class="text-[10px] block font-normal text-slate-400 leading-snug">Analisis Kredit Usaha Rakyat</span>
+                        <span class="text-[10px] block font-normal text-slate-400 leading-snug">Asisten AI Regulasi KUR</span>
                       </div>
                     </div>
                     <span id="nav-badge-akur" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('akur') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('akur') ? 'Aktif' : 'Terkunci'}</span>
@@ -421,7 +421,7 @@ class AskrindoApp {
     const navItems = [
       { id: 'nav-dashboard', hashes: ['#/dashboard'], title: 'Beranda Terpadu', activeCls: 'text-slate-900 font-bold bg-slate-100 shadow-sm' },
       { id: 'nav-kabar', hashes: ['#/kabar'], title: 'KABAR (Kalkulator Asuransi Kebakaran)', activeCls: 'text-orange-600 font-bold bg-orange-50 shadow-sm' },
-      { id: 'nav-akur', hashes: ['#/akur'], title: 'AKUR (Analisis Kredit Usaha Rakyat)', activeCls: 'text-blue-600 font-bold bg-blue-50 shadow-sm' },
+      { id: 'nav-akur', hashes: ['#/akur'], title: 'AKUR (Asisten AI Regulasi KUR)', activeCls: 'text-blue-600 font-bold bg-blue-50 shadow-sm' },
       { id: 'nav-sedia', hashes: ['#/sedia'], title: 'SEDIA (Sistem Elektronik Dokumen dan Informasi Asuransi)', activeCls: 'text-emerald-600 font-bold bg-emerald-50 shadow-sm' },
       { id: 'nav-cepat', hashes: ['#/cepat'], title: 'CEPAT (Cover Note Pertanggungan Asuransi Terintegrasi)', activeCls: 'text-cyan-600 font-bold bg-cyan-50 shadow-sm' },
       { id: 'nav-lapor', hashes: ['#/lapor'], title: 'LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)', activeCls: 'text-purple-600 font-bold bg-purple-50 shadow-sm' },
@@ -581,7 +581,7 @@ class AskrindoApp {
                   </div>
 
                   <!-- AKUR (SEGERA HADIR) -->
-                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-dashed border-white/20 hover:bg-white/10 transition group" title="AKUR: Analisis Kredit Usaha Rakyat">
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 border border-dashed border-white/20 hover:bg-white/10 transition group" title="AKUR: Asisten AI Regulasi KUR">
                     <div class="w-7 h-7 rounded-lg bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0">
                       <i data-lucide="help-circle" class="w-4 h-4 text-blue-300"></i>
                     </div>
@@ -590,7 +590,7 @@ class AskrindoApp {
                         <span class="font-bold text-slate-300 text-xs">AKUR</span>
                         <span class="px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">Segera</span>
                       </div>
-                      <span class="text-[10px] text-slate-400 block leading-snug">Analisis Kredit Usaha Rakyat</span>
+                      <span class="text-[10px] text-slate-400 block leading-snug">Asisten AI Regulasi KUR</span>
                     </div>
                   </div>
 
@@ -795,7 +795,7 @@ class AskrindoApp {
               <div class="flex items-center gap-3">
                 <i data-lucide="help-circle" class="w-4 h-4 text-blue-500"></i>
                 <div>
-                  <span class="font-bold">AKUR</span> — Analisis Kredit Usaha Rakyat
+                  <span class="font-bold">AKUR</span> — Asisten AI Regulasi KUR
                 </div>
               </div>
               <span class="text-[10px] text-slate-400">Buka Modul &rarr;</span>

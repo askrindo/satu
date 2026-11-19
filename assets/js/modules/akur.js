@@ -1,5 +1,5 @@
 /**
- * Askrindo SATU - AKUR Module (Analisis Kredit Usaha Rakyat)
+ * Askrindo SATU - AKUR Module (Asisten AI Regulasi KUR)
  * Tanya-Tanya Permenko KUR — Asisten AI Regulasi Permenko KUR (2015–2026)
  * Layout 1-view ringkas bergaya Gemini dengan riwayat percakapan tersimpan & jawaban ketat tanpa opini.
  */

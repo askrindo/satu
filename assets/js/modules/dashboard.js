@@ -220,7 +220,7 @@ window.DashboardModule = {
                   </a>
                 ` : ''}
                 ${window.authService.hasAccess('akur') ? `
-                  <a href="#/akur" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="AKUR (Analisis Kredit Usaha Rakyat)">
+                  <a href="#/akur" class="flex items-center gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors" title="AKUR (Asisten AI Regulasi KUR)">
                     <i data-lucide="help-circle" class="w-3.5 h-3.5 text-blue-400"></i>
                     <span>AKUR</span>
                   </a>

@@ -302,7 +302,7 @@ window.AdminModule = {
       { id: 'lapor', name: 'LAPOR', label: 'Layanan Analisis dan Perhitungan Rasio Keuangan', color: 'text-purple-600' },
       { id: 'pasti', name: 'PASTI', label: 'Pemeriksaan Administrasi SPKMGR Terintegrasi', color: 'text-indigo-600' },
       { id: 'kabar', name: 'KABAR', label: 'Kalkulator Asuransi Kebakaran', color: 'text-orange-600' },
-      { id: 'akur', name: 'AKUR', label: 'Analisis Kredit Usaha Rakyat', color: 'text-blue-600' },
+      { id: 'akur', name: 'AKUR', label: 'Asisten AI Regulasi KUR', color: 'text-blue-600' },
       { id: 'sedia', name: 'SEDIA', label: 'Sistem Elektronik Dokumen dan Informasi Asuransi', color: 'text-emerald-600' },
       { id: 'cepat', name: 'CEPAT', label: 'Cover Note Pertanggungan Asuransi Terintegrasi', color: 'text-cyan-600' },
       { id: 'admin', name: 'ADMIN', label: 'Web Admin Portal', color: 'text-amber-600' }
@@ -729,7 +729,7 @@ window.AdminModule = {
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" id="perm-akur" value="akur" ${window.askrindoDB.normalizeAllowedApps(allowedApps).includes('akur') ? 'checked' : ''} class="w-4 h-4 text-blue-600 rounded" />
                   <span class="font-semibold text-slate-800">AKUR</span>
-                  <span class="text-slate-500 text-[11px]">— Analisis Kredit Usaha Rakyat</span>
+                  <span class="text-slate-500 text-[11px]">— Asisten AI Regulasi KUR</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" id="perm-sedia" value="sedia" ${window.askrindoDB.normalizeAllowedApps(allowedApps).includes('sedia') ? 'checked' : ''} class="w-4 h-4 text-emerald-600 rounded" />

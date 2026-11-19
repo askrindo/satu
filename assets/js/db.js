@@ -260,7 +260,7 @@ const SUB_APPS_CATALOG = {
   akur: {
     id: 'akur',
     name: 'AKUR',
-    tagline: 'Analisis Kredit Usaha Rakyat',
+    tagline: 'Asisten AI Regulasi KUR',
     badge: 'Tanya-Tanya Permenko KUR',
     category: 'Asisten AI Regulasi KUR',
     color: 'blue',
