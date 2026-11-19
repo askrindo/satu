@@ -119,8 +119,8 @@ window.AkurModule = {
       {
         id: 'welcome',
         role: 'assistant',
-        type: 'ask_year',
-        text: 'Halo! Selamat datang di **Tanya-Tanya Permenko KUR**. Saya akan menjawab pertanyaan Anda **hanya berdasarkan teks resmi Permenko Perekonomian tentang KUR** (tanpa opini).\n\nKarena ketentuan KUR berbeda-beda di setiap tahun, **Permenko KUR tahun berapa** yang ingin Anda tanyakan?',
+        type: 'welcome',
+        text: 'Halo! Selamat datang di **Tanya-Tanya Permenko KUR**. Saya akan menjawab pertanyaan Anda **hanya berdasarkan teks resmi Permenko Perekonomian tentang KUR** (tanpa opini).\n\nSilakan pilih **Tahun Permenko KUR** pada panel di atas terlebih dahulu, lalu ketik pertanyaan Anda.',
         timestamp: new Date().toISOString()
       }
     ];
@@ -617,7 +617,7 @@ ${contextText}`;
 
             <div>${this.formatMarkdownSafe(msg.text)}</div>
 
-            ${msg.type === 'ask_year' ? `
+            ${msg.type === 'ask_year' && !this.selectedYear ? `
               <div class="pt-2 border-t border-slate-100">
                 <p class="text-[11px] font-bold text-slate-500 mb-2">Pilih Tahun Permenko KUR:</p>
                 <div class="flex flex-wrap gap-1.5">
@@ -625,9 +625,7 @@ ${contextText}`;
                     <button
                       type="button"
                       onclick="window.AkurModule.selectYear('${yr}')"
-                      class="px-3 py-1.5 rounded-xl text-xs font-bold border transition ${this.selectedYear === yr
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white border-blue-200'}"
+                      class="px-3 py-1.5 rounded-xl text-xs font-bold border transition bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white border-blue-200"
                     >
                       Tahun ${yr}
                     </button>
