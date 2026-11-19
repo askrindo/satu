@@ -220,11 +220,11 @@ const APP_DEPLOYMENT_STATUS = {
     isPublic: false
   },
   akur: {
-    status: 'coming_soon',
-    label: 'Segera Hadir',
-    phase: 'Roadmap Pengembangan',
-    badge: 'Segera Hadir',
-    isPublic: false
+    status: 'active',
+    label: 'Rilis Penuh (Aktif)',
+    phase: 'Tahap 1 (Live Operasional)',
+    badge: 'Aktif',
+    isPublic: true
   },
   sedia: {
     status: 'coming_soon',
@@ -261,13 +261,13 @@ const SUB_APPS_CATALOG = {
     id: 'akur',
     name: 'AKUR',
     tagline: 'Analisis Kredit Usaha Rakyat',
-    badge: 'Penjaminan KUR & UMKM',
-    category: 'Konsultasi & Simulasi',
+    badge: 'Tanya-Tanya Permenko KUR',
+    category: 'Asisten AI Regulasi KUR',
     color: 'blue',
-    icon: 'help-circle',
+    icon: 'book-open-check',
     route: '#/akur',
-    description: 'Pusat informasi dan asisten penjaminan Kredit Usaha Rakyat (Super Mikro, Mikro, Kecil). Simulasi angsuran, suku bunga subsidi, dan cek kelayakan debitur.',
-    features: ['Simulasi Angsuran & IJP Askrindo', 'Cek Kelayakan Calon Debitur', 'Jadwal Amortisasi Lengkap', 'Smart Knowledge Base Peraturan']
+    description: 'Asisten AI khusus regulasi Permenko KUR (2015–2026). Ajukan pertanyaan bebas terkait aturan KUR dan dapatkan jawaban faktual mengacu ketat pada pasal resmi Permenko sesuai tahunnya tanpa opini.',
+    features: ['Tanya Bebas (Free Text) Regulasi KUR', '20 Dokumen Permenko KUR (2015–2026)', 'Wajib Acuan Tahun & Pasal Resmi', 'Kutipan Teks Asli Tanpa Opini']
   },
   sedia: {
     id: 'sedia',

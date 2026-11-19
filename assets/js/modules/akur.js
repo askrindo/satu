@@ -1,10 +1,686 @@
 /**
  * Askrindo SATU - AKUR Module (Analisis Kredit Usaha Rakyat)
- * Interactive KUR installment calculator, debtor eligibility checker, and smart knowledge base.
+ * Tanya-Tanya Permenko KUR — Asisten AI Regulasi Permenko KUR (2015–2026)
+ * Jawaban ketat berbasis teks resmi Permenko KUR per tahun tanpa opini.
  */
 
 window.AkurModule = {
-  currentTab: 'calc', // 'calc' | 'eligibility' | 'faq'
+  MANIFEST_URL: 'assets/data/permenko/index.json',
+  DATA_BASE_URL: 'assets/data/permenko',
+  AVAILABLE_YEARS: ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'],
+
+  // Relasi Peraturan Perubahan -> Peraturan Induk (hanya sebagai rujukan tambahan jika pasal tidak diubah)
+  PARENT_YEAR_MAP: {
+    '2016': '2015',
+    '2018': '2017',
+    '2020': '2019',
+    '2021': '2019',
+    '2023': '2022',
+    '2024': '2022',
+    '2025': '2022'
+  },
+
+  STOPWORDS: new Set([
+    'yang', 'dan', 'di', 'ke', 'dari', 'untuk', 'pada', 'dengan', 'atau', 'dalam',
+    'adalah', 'ini', 'itu', 'tidak', 'ada', 'bisa', 'dapat', 'apa', 'berapa', 'bagaimana',
+    'kapan', 'siapa', 'dimana', 'apakah', 'jika', 'bila', 'kalau', 'tentang', 'terkait',
+    'mengenai', 'tahun', 'permenko', 'kur', 'kredit', 'usaha', 'rakyat', 'tolong', 'jelaskan',
+    'sebutkan', 'ketentuan', 'aturan', 'peraturan', 'sesuai', 'berdasarkan', 'oleh', 'sebagai',
+    'atas', 'para', 'bagi', 'agar', 'karena', 'juga', 'serta', 'maupun', 'secara', 'harus',
+    'wajib', 'boleh', 'sudah', 'belum', 'saat', 'masih', 'akan', 'telah', 'lebih', 'kurang',
+    'paling', 'saya', 'kami', 'kita', 'anda', 'nya', 'tersebut'
+  ]),
+
+  manifest: null,
+  yearCache: {},
+  selectedYear: null,
+  pendingQuestion: '',
+  isThinking: false,
+  messages: [],
+  hasInitialized: false,
+
+  init() {
+    if (!this.hasInitialized) {
+      this.hasInitialized = true;
+      this.resetConversation(false);
+      this.loadManifest();
+    } else {
+      this.updateChatUI();
+    }
+  },
+
+  async loadManifest() {
+    try {
+      const resp = await fetch(`${this.MANIFEST_URL}?v=20261119a`);
+      if (resp.ok) {
+        this.manifest = await resp.json();
+        this.updateHeaderMeta();
+      }
+    } catch (e) {
+      console.warn('[AKUR] Gagal memuat manifest Permenko:', e);
+    }
+  },
+
+  async loadYearData(year) {
+    const yr = String(year || '').trim();
+    if (!yr) return null;
+    if (this.yearCache[yr]) return this.yearCache[yr];
+    const resp = await fetch(`${this.DATA_BASE_URL}/${yr}.json?v=20261119a`);
+    if (!resp.ok) throw new Error(`Data Permenko tahun ${yr} tidak tersedia (HTTP ${resp.status})`);
+    const data = await resp.json();
+    this.yearCache[yr] = data;
+    return data;
+  },
+
+  getDocsForYear(year) {
+    if (!this.manifest || !Array.isArray(this.manifest.years)) return [];
+    const found = this.manifest.years.find(y => String(y.year) === String(year));
+    return found && Array.isArray(found.docs) ? found.docs : [];
+  },
+
+  getActiveGeminiApiKey() {
+    if (window.LaporModule && typeof window.LaporModule.getActiveGeminiApiKey === 'function') {
+      return window.LaporModule.getActiveGeminiApiKey();
+    }
+    return (localStorage.getItem('gemini_api_key') || '').trim();
+  },
+
+  escapeHtml(str) {
+    return String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  },
+
+  formatMarkdownSafe(text) {
+    let html = this.escapeHtml(text || '');
+    // Bold **text** & italic *text*
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold text-slate-900">$1</strong>');
+    html = html.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em class="italic text-slate-600">$1</em>');
+    // Inline code `text`
+    html = html.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded bg-slate-100 text-blue-800 font-mono text-[11px]">$1</code>');
+    // Bullet lines
+    html = html.replace(/^(?:\s*[-•*]\s+)(.+)$/gm, '<div class="flex items-start gap-2 my-1"><span class="text-blue-600 font-bold mt-0.5">&bull;</span><span>$1</span></div>');
+    // Numbered lines
+    html = html.replace(/^(\s*\d+\.\s+)(.+)$/gm, '<div class="flex items-start gap-2 my-1"><span class="text-blue-700 font-bold shrink-0">$1</span><span>$2</span></div>');
+    // Line breaks
+    html = html.replace(/\n\n/g, '<div class="h-2"></div>');
+    html = html.replace(/\n/g, '<br/>');
+    return html;
+  },
+
+  resetConversation(rerender = true) {
+    this.selectedYear = null;
+    this.pendingQuestion = '';
+    this.isThinking = false;
+    this.messages = [
+      {
+        id: 'welcome',
+        role: 'assistant',
+        type: 'ask_year',
+        text: 'Halo! Selamat datang di **Tanya-Tanya Permenko KUR**. Saya akan menjawab pertanyaan Anda **hanya berdasarkan teks resmi Permenko Perekonomian tentang KUR** (tanpa opini).\n\nKarena ketentuan KUR berbeda-beda di setiap tahun, **Permenko KUR tahun berapa** yang ingin Anda tanyakan?',
+        timestamp: new Date().toISOString()
+      }
+    ];
+    if (rerender) {
+      this.updateChatUI();
+      this.updateHeaderMeta();
+    }
+  },
+
+  selectYear(year, triggerPending = true) {
+    const yr = String(year || '').trim();
+    if (!this.AVAILABLE_YEARS.includes(yr)) return;
+    this.selectedYear = yr;
+    this.updateHeaderMeta();
+
+    const docs = this.getDocsForYear(yr);
+    const docListText = docs.length
+      ? docs.map(d => `• **${d.title}** (${d.numPages} hlm)`).join('\n')
+      : `• Permenko Perekonomian KUR Tahun **${yr}**`;
+
+    if (triggerPending && this.pendingQuestion) {
+      const q = this.pendingQuestion;
+      this.pendingQuestion = '';
+      this.messages.push({
+        id: `usr_yr_${Date.now()}`,
+        role: 'user',
+        text: `Gunakan acuan Permenko KUR Tahun ${yr}`,
+        timestamp: new Date().toISOString()
+      });
+      this.answerQuestion(q, yr);
+      return;
+    }
+
+    this.messages.push({
+      id: `sys_yr_${Date.now()}`,
+      role: 'assistant',
+      type: 'year_selected',
+      year: yr,
+      text: `Acuan diatur ke **Permenko KUR Tahun ${yr}**:\n${docListText}\n\nSilakan ketik pertanyaan Anda seputar ketentuan KUR tahun **${yr}** di bawah ini.`,
+      timestamp: new Date().toISOString()
+    });
+    this.updateChatUI();
+    const inp = document.getElementById('akur-chat-input');
+    if (inp) inp.focus();
+  },
+
+  detectYearInText(text) {
+    const matches = String(text || '').match(/\b(201[5-9]|202[0-6])\b/g);
+    if (!matches || !matches.length) return null;
+    // Ambil tahun terakhir yang disebut jika ada lebih dari satu
+    return matches[matches.length - 1];
+  },
+
+  askQuickQuestion(q) {
+    const inp = document.getElementById('akur-chat-input');
+    if (inp) inp.value = q;
+    this.handleChatSubmit();
+  },
+
+  handleChatSubmit(e) {
+    if (e) e.preventDefault();
+    if (this.isThinking) return;
+
+    const inp = document.getElementById('akur-chat-input');
+    if (!inp) return;
+    const raw = inp.value.trim();
+    if (!raw) return;
+    inp.value = '';
+
+    // Push user message
+    this.messages.push({
+      id: `u_${Date.now()}`,
+      role: 'user',
+      text: raw,
+      timestamp: new Date().toISOString()
+    });
+
+    const detectedYear = this.detectYearInText(raw);
+
+    // Kasus 1: User hanya mengetik tahun (misal "2025" atau "tahun 2026") saat ada pendingQuestion
+    if (detectedYear && this.pendingQuestion && raw.replace(/\b(tahun|permenko|kur|yang|untuk|acuan|pakai)\b/gi, '').replace(detectedYear, '').trim().length <= 3) {
+      const q = this.pendingQuestion;
+      this.pendingQuestion = '';
+      this.selectedYear = detectedYear;
+      this.updateHeaderMeta();
+      this.answerQuestion(q, detectedYear);
+      return;
+    }
+
+    // Kasus 2: Tahun disebut langsung di pertanyaan (misal "Berapa suku bunga KUR 2026?")
+    if (detectedYear) {
+      this.selectedYear = detectedYear;
+      this.pendingQuestion = '';
+      this.updateHeaderMeta();
+      this.answerQuestion(raw, detectedYear);
+      return;
+    }
+
+    // Kasus 3: Belum memilih tahun sama sekali -> WAJIB tanya tahun dulu!
+    if (!this.selectedYear) {
+      this.pendingQuestion = raw;
+      this.messages.push({
+        id: `askyr_${Date.now()}`,
+        role: 'assistant',
+        type: 'ask_year',
+        text: `Karena setiap tahun ketentuan Permenko KUR dapat berbeda, **Permenko KUR tahun berapa** yang ingin Anda jadikan acuan untuk pertanyaan:\n\n*"${raw}"*\n\nSilakan pilih tahun di bawah ini (atau ketik angkanya, misal **2025** atau **2026**):`,
+        timestamp: new Date().toISOString()
+      });
+      this.updateChatUI();
+      return;
+    }
+
+    // Kasus 4: Tahun sudah dipilih -> langsung jawab berdasarkan tahun terpilih
+    this.answerQuestion(raw, this.selectedYear);
+  },
+
+  tokenize(text) {
+    return String(text || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .split(/\s+/)
+      .filter(w => w.length >= 2 && !this.STOPWORDS.has(w));
+  },
+
+  retrieveRelevantChunks(question, primaryData, parentData) {
+    const qLower = question.toLowerCase();
+    const tokens = this.tokenize(question);
+
+    // Deteksi jika user menyebut nomor Pasal tertentu (misal "Pasal 12")
+    const pasalMatch = qLower.match(/pasal\s+(\d+[a-z]?)/i);
+    const targetPasal = pasalMatch ? `pasal ${pasalMatch[1].toLowerCase()}` : null;
+
+    // Sinonim umum istilah KUR agar pencarian pasal makin akurat
+    const synonymMap = {
+      bunga: ['suku', 'bunga', 'marjin', 'margin', 'persen', '%'],
+      marjin: ['suku', 'bunga', 'marjin', 'margin', 'persen'],
+      plafon: ['plafon', 'plafond', 'akumulasi', 'maksimal', 'paling', 'banyak', 'rupiah', 'juta'],
+      agunan: ['agunan', 'jaminan', 'tambahan', 'pokok'],
+      jaminan: ['penjaminan', 'imbal', 'jasa', 'ijp', 'agunan', 'perusahaan'],
+      ijp: ['imbal', 'jasa', 'penjaminan', 'ijp', 'tarif'],
+      tenor: ['jangka', 'waktu', 'tahun', 'modal', 'kerja', 'investasi'],
+      restrukturisasi: ['restrukturisasi', 'perpanjangan', 'penjadwalan', 'suplesi', 'relaksasi'],
+      syarat: ['persyaratan', 'calon', 'penerima', 'kriteria', 'wajib'],
+      sektor: ['produksi', 'pertanian', 'perkebunan', 'perikanan', 'peternakan', 'industri', 'perdagangan'],
+      mikro: ['mikro', 'super', 'kecil', 'khusus', 'pmi', 'tki'],
+      pmi: ['pekerja', 'migran', 'indonesia', 'pmi', 'penempatan'],
+      subsidi: ['subsidi', 'bunga', 'marjin', 'apbn', 'pembayaran'],
+      klaim: ['klaim', 'penjaminan', 'gagal', 'bayar', 'subrogasi']
+    };
+
+    const expandedTokens = new Set(tokens);
+    tokens.forEach(t => {
+      if (synonymMap[t]) {
+        synonymMap[t].forEach(s => expandedTokens.add(s));
+      }
+    });
+    const searchTerms = Array.from(expandedTokens);
+
+    const scoreChunk = (chunk, isPrimary) => {
+      const textLower = (chunk.text || '').toLowerCase();
+      const secLower = (chunk.section || '').toLowerCase();
+      let score = 0;
+
+      if (targetPasal && (secLower.includes(targetPasal) || textLower.includes(targetPasal))) {
+        score += 50;
+      }
+
+      // Exact phrase & compound KUR scheme bonus
+      const keyBigrams = ['super mikro', 'kur mikro', 'kur kecil', 'kur khusus', 'kur pmi', 'penempatan pmi', 'suku bunga', 'agunan tambahan', 'imbal jasa', 'jangka waktu'];
+      for (const bg of keyBigrams) {
+        if (qLower.includes(bg) && textLower.includes(bg)) {
+          score += 28;
+        }
+      }
+      if (tokens.length >= 2) {
+        const phrase = tokens.slice(0, 3).join(' ');
+        if (textLower.includes(phrase)) score += 15;
+      }
+
+      for (const term of searchTerms) {
+        if (!term) continue;
+        const isOrig = tokens.includes(term);
+        const weight = isOrig ? 4 : 1.5;
+        if (secLower.includes(term)) score += weight * 2;
+        if (textLower.includes(term)) {
+          // Hitung frekuensi terbatas agar tidak bias ke chunk super panjang
+          const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const count = (textLower.match(new RegExp(escaped, 'g')) || []).length;
+          score += weight * Math.min(count, 4);
+        }
+      }
+
+      // Prioritaskan Permenko tahun yang dipilih dibanding Peraturan Induknya
+      if (isPrimary) score *= 1.35;
+      return score;
+    };
+
+    const primaryScored = (primaryData?.chunks || []).map(c => ({
+      ...c,
+      sourceType: 'Utama',
+      _score: scoreChunk(c, true)
+    })).sort((a, b) => b._score - a._score);
+
+    const topPrimary = primaryScored.slice(0, 14);
+
+    let topParent = [];
+    if (parentData && Array.isArray(parentData.chunks)) {
+      const parentScored = parentData.chunks.map(c => ({
+        ...c,
+        sourceType: 'Induk',
+        _score: scoreChunk(c, false)
+      })).filter(c => c._score > 0).sort((a, b) => b._score - a._score);
+      topParent = parentScored.slice(0, 6);
+    }
+
+    const combined = [...topPrimary, ...topParent].filter(c => c._score > 0);
+    // Jika semua skor 0 (pertanyaan terlalu umum), kirim 8 chunk pertama dari tahun utama
+    return combined.length ? combined : (primaryData?.chunks || []).slice(0, 8).map(c => ({ ...c, sourceType: 'Utama', _score: 1 }));
+  },
+
+  async answerQuestion(question, year) {
+    this.isThinking = true;
+    this.updateChatUI();
+
+    try {
+      const primaryData = await this.loadYearData(year);
+      const parentYear = this.PARENT_YEAR_MAP[year] || null;
+      let parentData = null;
+      if (parentYear) {
+        try {
+          parentData = await this.loadYearData(parentYear);
+        } catch (_) {}
+      }
+
+      const relevantChunks = this.retrieveRelevantChunks(question, primaryData, parentData);
+      const docsInYear = (primaryData?.docs || []).map(d => d.title).join(', ');
+      const parentDocs = parentData ? (parentData.docs || []).map(d => d.title).join(', ') : '';
+
+      // Kirim SELURUH teks Permenko tahun terpilih (100% recall, tidak ada pasal yang terlewat)
+      // plus top 12 pasal relevan dari Peraturan Induk jika tahun tersebut adalah Permenko Perubahan
+      const fullPrimaryChunks = (primaryData?.chunks || []).map(c => ({ ...c, sourceType: 'Utama' }));
+      const topParentChunks = relevantChunks.filter(c => c.sourceType === 'Induk').slice(0, 12);
+      const promptChunks = [...fullPrimaryChunks, ...topParentChunks];
+
+      const contextText = promptChunks.map((c, idx) => (
+        `[SUMBER ${idx + 1} | ${c.sourceType === 'Induk' ? 'PERATURAN INDUK' : 'PERATURAN TAHUN ' + year} | ${c.doc} | ${c.section}]\n${c.text}`
+      )).join('\n\n---\n\n');
+
+      const apiKey = this.getActiveGeminiApiKey();
+      let answerText = '';
+      let usedModel = '';
+
+      if (apiKey) {
+        const prompt = `Anda adalah Asisten Regulasi Resmi **Permenko KUR Askrindo (AKUR)**.
+
+ATURAN MUTLAK (WAJIB DIPATUHI):
+1. Anda HANYA BOLEH menjawab berdasarkan teks kutipan resmi Permenko KUR yang disediakan di bawah ini.
+2. DILARANG KERAS memberikan opini, asumsi pribadi, saran di luar aturan, atau pengetahuan umum yang tidak tertulis dalam kutipan Permenko di bawah.
+3. WAJIB menyebutkan secara spesifik **Nomor Permenko, Tahun, dan Pasal/Ayat** rujukan pada setiap poin jawaban Anda.
+4. Prioritaskan ketentuan terbaru pada **Tahun ${year}** (${docsInYear}).${parentYear ? ` Jika suatu ketentuan tidak diubah pada Tahun ${year} dan terdapat pada kutipan Peraturan Induk Tahun ${parentYear} (${parentDocs}), Anda boleh merujuknya dengan menyatakan secara eksplisit bahwa ketentuan tersebut mengacu pada Peraturan Induk Tahun ${parentYear}.` : ''}
+5. Jika jawaban atas pertanyaan pengguna TIDAK DITEMUKAN dalam kutipan teks Permenko di bawah, JANGAN mengarang! Jawab secara tegas: "Berdasarkan dokumen Permenko KUR Tahun ${year} yang tersedia, ketentuan mengenai hal tersebut tidak ditemukan / tidak diatur secara eksplisit."
+6. Jawab dalam Bahasa Indonesia yang formal, ringkas, terstruktur (gunakan poin-poin jika perlu), dan mudah dibaca petugas Askrindo.
+
+TAHUN ACUAN DIPILIH: ${year}
+PERTANYAAN PENGGUNA:
+${question}
+
+KUTIPAN TEKS RESMI PERMENKO KUR:
+${contextText}`;
+
+        const candidateModels = [
+          'gemini-3-flash-preview',
+          'gemini-flash-lite-latest',
+          'gemini-2.5-flash',
+          'gemini-2.0-flash'
+        ];
+
+        for (const m of candidateModels) {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 35000);
+          try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${apiKey}`;
+            const res = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              signal: controller.signal,
+              body: JSON.stringify({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                generationConfig: {
+                  temperature: 0,
+                  topP: 0.8,
+                  maxOutputTokens: 8192
+                }
+              })
+            });
+            clearTimeout(timeoutId);
+            if (res.ok) {
+              const json = await res.json();
+              const textPart = json?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('').trim();
+              if (textPart) {
+                answerText = textPart;
+                usedModel = m;
+                break;
+              }
+            }
+          } catch (err) {
+            clearTimeout(timeoutId);
+            console.warn(`[AKUR] Model ${m} gagal:`, err);
+          }
+        }
+      }
+
+      // Fallback deterministik tanpa opini jika AI API sedang tidak dapat dijangkau
+      if (!answerText) {
+        const top3 = relevantChunks.slice(0, 3);
+        answerText = `Koneksi AI sedang tidak tersedia, berikut **kutipan langsung** paling relevan dari **Permenko KUR Tahun ${year}** (tanpa opini):\n\n` +
+          top3.map((c, i) => `**${i + 1}. ${c.doc} — ${c.section}**\n${c.text.slice(0, 450)}${c.text.length > 450 ? '...' : ''}`).join('\n\n');
+      }
+
+      this.messages.push({
+        id: `a_${Date.now()}`,
+        role: 'assistant',
+        type: 'answer',
+        year,
+        model: usedModel,
+        text: answerText,
+        sources: relevantChunks.slice(0, 5),
+        timestamp: new Date().toISOString()
+      });
+    } catch (err) {
+      this.messages.push({
+        id: `err_${Date.now()}`,
+        role: 'assistant',
+        type: 'error',
+        text: `Maaf, terjadi kendala saat membaca data Permenko KUR Tahun ${year}: ${err.message}`,
+        timestamp: new Date().toISOString()
+      });
+    } finally {
+      this.isThinking = false;
+      this.updateChatUI();
+    }
+  },
+
+  toggleSourceDetail(msgId, idx) {
+    const el = document.getElementById(`src-${msgId}-${idx}`);
+    if (el) el.classList.toggle('hidden');
+  },
+
+  openCatalogModal() {
+    const existing = document.getElementById('akur-catalog-modal');
+    if (existing) existing.remove();
+
+    const years = (this.manifest && Array.isArray(this.manifest.years))
+      ? [...this.manifest.years].reverse()
+      : this.AVAILABLE_YEARS.slice().reverse().map(y => ({ year: y, docs: [] }));
+
+    const modal = document.createElement('div');
+    modal.id = 'akur-catalog-modal';
+    modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fadeIn';
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+    modal.innerHTML = `
+      <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden max-h-[85vh] flex flex-col">
+        <div class="bg-gradient-to-r from-[#002B49] to-blue-900 text-white p-5 flex items-center justify-between">
+          <div>
+            <h3 class="text-base font-black">Daftar Dokumen Permenko KUR Terindeks (2015–2026)</h3>
+            <p class="text-[11px] text-blue-200 mt-0.5">Seluruh jawaban AI AKUR mengacu ketat pada naskah resmi berikut.</p>
+          </div>
+          <button onclick="document.getElementById('akur-catalog-modal').remove()" class="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <div class="p-5 overflow-y-auto space-y-3 text-xs">
+          ${years.map(y => `
+            <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50/70">
+              <div class="flex items-center justify-between mb-2">
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-blue-600 text-white">Tahun ${this.escapeHtml(y.year)}</span>
+                <button onclick="document.getElementById('akur-catalog-modal').remove(); window.AkurModule.selectYear('${this.escapeHtml(y.year)}');" class="text-[11px] font-bold text-blue-700 hover:underline">
+                  Gunakan Tahun Ini &rarr;
+                </button>
+              </div>
+              <ul class="space-y-1 text-slate-700">
+                ${(y.docs || []).map(d => `
+                  <li class="flex items-center justify-between gap-2">
+                    <span class="font-semibold">&bull; ${this.escapeHtml(d.title)}</span>
+                    <span class="text-[10px] text-slate-400 shrink-0">${d.numPages} halaman</span>
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    if (window.lucide) window.lucide.createIcons();
+  },
+
+  updateHeaderMeta() {
+    const yearBar = document.getElementById('akur-year-selector');
+    if (yearBar) {
+      yearBar.innerHTML = this.renderYearSelectorButtons();
+    }
+    const activeDocEl = document.getElementById('akur-active-year-docs');
+    if (activeDocEl) {
+      activeDocEl.innerHTML = this.renderActiveYearDocs();
+    }
+    const inputEl = document.getElementById('akur-chat-input');
+    if (inputEl) {
+      inputEl.placeholder = this.selectedYear
+        ? `Ketik pertanyaan terkait Permenko KUR Tahun ${this.selectedYear} (bebas / free text)...`
+        : 'Ketik pertanyaan seputar KUR (AI akan menanyakan tahun Permenko jika belum dipilih)...';
+    }
+  },
+
+  updateChatUI() {
+    const feed = document.getElementById('akur-chat-feed');
+    if (!feed) return;
+    feed.innerHTML = this.renderChatMessages();
+    if (window.lucide) window.lucide.createIcons();
+    feed.scrollTop = feed.scrollHeight;
+  },
+
+  renderYearSelectorButtons() {
+    return this.AVAILABLE_YEARS.map(yr => {
+      const isActive = this.selectedYear === yr;
+      return `
+        <button
+          type="button"
+          onclick="window.AkurModule.selectYear('${yr}')"
+          class="px-3 py-1.5 rounded-xl text-xs font-bold border transition ${isActive
+            ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/25'
+            : 'bg-white/10 hover:bg-white/20 text-blue-100 border-white/20'}"
+        >
+          ${yr}
+        </button>
+      `;
+    }).join('');
+  },
+
+  renderActiveYearDocs() {
+    if (!this.selectedYear) {
+      return `
+        <span class="inline-flex items-center gap-1.5 text-[11px] text-amber-200 font-semibold">
+          <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+          Belum ada tahun dipilih — pilih tahun di atas agar jawaban akurat sesuai Permenko tahun tersebut.
+        </span>
+      `;
+    }
+    const docs = this.getDocsForYear(this.selectedYear);
+    const parentYr = this.PARENT_YEAR_MAP[this.selectedYear];
+    return `
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-[11px] font-bold text-blue-200">Acuan Aktif (${this.selectedYear}):</span>
+        ${docs.map(d => `
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/15 text-white border border-white/20">
+            ${this.escapeHtml(d.title)}
+          </span>
+        `).join('')}
+        ${parentYr ? `<span class="text-[10px] text-blue-200/90 italic">(+ Induk ${parentYr} jika pasal tidak diubah)</span>` : ''}
+      </div>
+    `;
+  },
+
+  renderChatMessages() {
+    const bubbles = this.messages.map(msg => {
+      if (msg.role === 'user') {
+        return `
+          <div class="flex justify-end">
+            <div class="max-w-[82%] bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-3 rounded-2xl rounded-br-sm shadow-sm text-xs leading-relaxed">
+              ${this.escapeHtml(msg.text)}
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="flex items-start gap-3">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#002B49] to-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+            <i data-lucide="book-open-check" class="w-4 h-4"></i>
+          </div>
+          <div class="max-w-[88%] bg-white border border-slate-200/90 rounded-2xl rounded-tl-sm p-4 shadow-sm space-y-3 text-xs text-slate-700 leading-relaxed">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="font-extrabold text-[#002B49] text-[11px] uppercase tracking-wider flex items-center gap-1.5">
+                <span>Asisten Permenko KUR</span>
+                ${msg.year ? `<span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[10px] normal-case">Acuan Tahun ${this.escapeHtml(msg.year)}</span>` : ''}
+              </span>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
+                Berbasis Permenko · Tanpa Opini
+              </span>
+            </div>
+
+            <div>${this.formatMarkdownSafe(msg.text)}</div>
+
+            ${msg.type === 'ask_year' ? `
+              <div class="pt-2 border-t border-slate-100">
+                <p class="text-[11px] font-bold text-slate-500 mb-2">Pilih Tahun Permenko KUR:</p>
+                <div class="flex flex-wrap gap-1.5">
+                  ${this.AVAILABLE_YEARS.map(yr => `
+                    <button
+                      type="button"
+                      onclick="window.AkurModule.selectYear('${yr}')"
+                      class="px-3 py-1.5 rounded-xl text-xs font-bold border transition ${this.selectedYear === yr
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white border-blue-200'}"
+                    >
+                      Tahun ${yr}
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+
+            ${Array.isArray(msg.sources) && msg.sources.length ? `
+              <div class="pt-2.5 border-t border-slate-100 space-y-2">
+                <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                  <i data-lucide="file-text" class="w-3 h-3"></i>
+                  <span>Rujukan Pasal Permenko (klik untuk lihat teks asli)</span>
+                </p>
+                <div class="space-y-1.5">
+                  ${msg.sources.map((src, idx) => `
+                    <div class="rounded-xl border border-slate-200/80 bg-slate-50/70 overflow-hidden">
+                      <button
+                        type="button"
+                        onclick="window.AkurModule.toggleSourceDetail('${msg.id}', ${idx})"
+                        class="w-full px-3 py-2 text-left flex items-center justify-between gap-2 hover:bg-blue-50/60 transition text-[11px]"
+                      >
+                        <span class="font-bold text-slate-700">
+                          ${this.escapeHtml(src.doc)} — <span class="text-blue-700">${this.escapeHtml(src.section)}</span>
+                        </span>
+                        <span class="text-[10px] font-semibold text-slate-400 shrink-0">Lihat Kutipan &#9662;</span>
+                      </button>
+                      <div id="src-${msg.id}-${idx}" class="hidden px-3 py-2.5 bg-white border-t border-slate-200/70 text-[11px] text-slate-600 whitespace-pre-line leading-relaxed max-h-48 overflow-y-auto">
+                        ${this.escapeHtml(src.text)}
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const thinkingHtml = this.isThinking ? `
+      <div class="flex items-start gap-3">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#002B49] to-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+          <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
+        </div>
+        <div class="bg-white border border-blue-200 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm text-xs text-blue-800 font-semibold flex items-center gap-2">
+          <span>Membaca pasal-pasal Permenko KUR Tahun ${this.escapeHtml(this.selectedYear || '')}...</span>
+        </div>
+      </div>
+    ` : '';
+
+    return bubbles + thinkingHtml;
+  },
 
   render() {
     const user = window.authService.getCurrentUser();
@@ -12,535 +688,110 @@ window.AkurModule = {
       return window.askrindoApp.renderUnauthorized('AKUR');
     }
 
+    setTimeout(() => this.init(), 0);
+
+    const quickPrompts = [
+      'Berapa suku bunga / marjin KUR Super Mikro, KUR Mikro, dan KUR Kecil?',
+      'Bagaimana ketentuan agunan pokok dan agunan tambahan pada KUR?',
+      'Berapa batas plafon dan akumulasi plafon KUR sektor produksi dan non-produksi?',
+      'Bagaimana aturan perpanjangan, suplesi, dan restrukturisasi KUR?'
+    ];
+
     return `
-      <div class="space-y-6 animate-fadeIn">
+      <div class="space-y-5 animate-fadeIn pb-6">
         <!-- Module Header -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 border-l-4 border-l-blue-600">
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-blue-700 to-cyan-500 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
-              <i data-lucide="help-circle" class="w-6 h-6"></i>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-l-4 border-l-blue-600">
+          <div class="flex items-start sm:items-center gap-3.5 min-w-0">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#002B49] to-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/20 shrink-0">
+              <i data-lucide="book-open-check" class="w-6 h-6"></i>
             </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <h1 class="text-2xl font-black text-slate-800 tracking-tight">AKUR</h1>
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200">
-                  Analisis Kredit Usaha Rakyat
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h1 class="text-xl font-black text-slate-900 tracking-tight">AKUR</h1>
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
+                  Tanya-Tanya Permenko KUR
+                </span>
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  20 Permenko (2015–2026) · Tanpa Opini
                 </span>
               </div>
-              <p class="text-xs text-slate-500 mt-0.5">
-                Pusat simulasi angsuran, analisis kelayakan debitur Kredit Usaha Rakyat (KUR), dan basis pengetahuan penjaminan Askrindo.
+              <p class="text-xs text-slate-500 mt-1">
+                Asisten AI khusus regulasi Kredit Usaha Rakyat (KUR). Ajukan pertanyaan bebas dan dapatkan jawaban faktual yang mengacu ketat pada pasal resmi Permenko KUR sesuai tahunnya.
               </p>
             </div>
           </div>
 
-          <div class="flex items-center gap-2">
-            <button onclick="window.AkurModule.setTab('calc')" class="px-3.5 py-2 rounded-xl text-xs font-semibold transition ${this.currentTab === 'calc' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
-              Kalkulator KUR
+          <div class="flex items-center gap-2 shrink-0 flex-wrap">
+            <button type="button" onclick="window.AkurModule.openCatalogModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition">
+              <i data-lucide="library" class="w-3.5 h-3.5 text-blue-600"></i>
+              <span>Daftar Permenko</span>
             </button>
-            <button onclick="window.AkurModule.setTab('eligibility')" class="px-3.5 py-2 rounded-xl text-xs font-semibold transition ${this.currentTab === 'eligibility' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
-              Cek Kelayakan Debitur
-            </button>
-            <button onclick="window.AkurModule.setTab('faq')" class="px-3.5 py-2 rounded-xl text-xs font-semibold transition ${this.currentTab === 'faq' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
-              Tanya Askrindo KUR
-            </button>
-          </div>
-        </div>
-
-        <!-- Tab Body -->
-        <div>
-          ${this.currentTab === 'calc' ? this.renderCalculatorTab() : ''}
-          ${this.currentTab === 'eligibility' ? this.renderEligibilityTab() : ''}
-          ${this.currentTab === 'faq' ? this.renderFaqTab() : ''}
-        </div>
-      </div>
-    `;
-  },
-
-  setTab(tab) {
-    this.currentTab = tab;
-    window.askrindoApp.renderCurrentRoute();
-  },
-
-  // --- TAB 1: KALKULATOR KUR ---
-  renderCalculatorTab() {
-    return `
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- Input Form (6 cols) -->
-        <div class="lg:col-span-6 space-y-6">
-          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-              <i data-lucide="sliders" class="w-4 h-4 text-blue-600"></i>
-              <span>Parameter Simulasi Penjaminan KUR</span>
-            </h3>
-
-            <!-- Skema KUR -->
-            <div class="space-y-2 text-xs">
-              <label class="block font-semibold text-slate-700">Skema Kredit Usaha Rakyat (KUR)</label>
-              <div class="grid grid-cols-3 gap-2">
-                <button type="button" onclick="window.AkurModule.setScheme('super_mikro')" id="scheme-super-btn" class="p-3 rounded-xl border border-blue-500 bg-blue-50/50 text-blue-900 font-bold text-center transition">
-                  <span class="block text-xs">Super Mikro</span>
-                  <span class="text-[10px] text-blue-600 font-normal">s.d 10 Juta (3%)</span>
-                </button>
-                <button type="button" onclick="window.AkurModule.setScheme('mikro')" id="scheme-mikro-btn" class="p-3 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-center transition hover:border-slate-300">
-                  <span class="block text-xs">KUR Mikro</span>
-                  <span class="text-[10px] text-slate-400 font-normal">10 - 100 Jt (6%)</span>
-                </button>
-                <button type="button" onclick="window.AkurModule.setScheme('kecil')" id="scheme-kecil-btn" class="p-3 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-center transition hover:border-slate-300">
-                  <span class="block text-xs">KUR Kecil</span>
-                  <span class="text-[10px] text-slate-400 font-normal">100 - 500 Jt (6%)</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Plafond Input & Slider -->
-            <div class="space-y-2 text-xs">
-              <div class="flex items-center justify-between">
-                <label class="font-semibold text-slate-700">Plafon Pinjaman</label>
-                <span id="akur-plafon-text" class="font-mono font-bold text-blue-600 text-sm">Rp 10.000.000</span>
-              </div>
-              <input 
-                type="range" 
-                id="akur-plafon-range" 
-                min="1000000" 
-                max="10000000" 
-                step="500000" 
-                value="10000000"
-                oninput="window.AkurModule.handlePlafonChange(this.value)"
-                class="w-full accent-blue-600 cursor-pointer"
-              />
-              <div class="flex justify-between text-[10px] text-slate-400">
-                <span id="range-min-label">Rp 1.000.000</span>
-                <span id="range-max-label">Rp 10.000.000</span>
-              </div>
-            </div>
-
-            <!-- Tenor & Keperluan -->
-            <div class="grid grid-cols-2 gap-4 text-xs">
-              <div>
-                <label class="block font-semibold text-slate-700 mb-1">Jangka Waktu (Tenor)</label>
-                <select id="akur-tenor" onchange="window.AkurModule.calcInstallment()" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 bg-white">
-                  <option value="6">6 Bulan</option>
-                  <option value="12" selected>12 Bulan (1 Tahun)</option>
-                  <option value="18">18 Bulan</option>
-                  <option value="24">24 Bulan (2 Tahun)</option>
-                  <option value="36">36 Bulan (3 Tahun)</option>
-                  <option value="48">48 Bulan (4 Tahun)</option>
-                  <option value="60">60 Bulan (5 Tahun - Khusus KI)</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block font-semibold text-slate-700 mb-1">Jenis Keperluan Kredit</label>
-                <select id="akur-purpose" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 bg-white">
-                  <option value="KMK">Kredit Modal Kerja (KMK)</option>
-                  <option value="KI">Kredit Investasi (KI)</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Bank Penyalur KUR -->
-            <div class="text-xs">
-              <label class="block font-semibold text-slate-700 mb-1">Bank Mitra Penyalur KUR</label>
-              <select id="akur-bank" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-blue-500 bg-white">
-                <option value="BRI">PT Bank Rakyat Indonesia (Persero) Tbk</option>
-                <option value="Mandiri">PT Bank Mandiri (Persero) Tbk</option>
-                <option value="BNI">PT Bank Negara Indonesia (Persero) Tbk</option>
-                <option value="BSI">PT Bank Syariah Indonesia Tbk (KUR Syariah)</option>
-                <option value="BPD">Bank Pembangunan Daerah (BPD Mitra)</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- Output Result & Summary (6 cols) -->
-        <div class="lg:col-span-6 space-y-6">
-          <div class="bg-white rounded-3xl p-6 border-2 border-blue-500/20 shadow-xl space-y-6">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-              <div>
-                <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600">Simulasi Angsuran & Penjaminan</span>
-                <h3 class="text-lg font-black text-slate-800">Estimasi Kewajiban Bulanan</h3>
-              </div>
-              <div class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                Suku Bunga: <span id="akur-rate-label">3.00%</span>
-              </div>
-            </div>
-
-            <!-- Big Monthly Installment Card -->
-            <div class="p-5 rounded-2xl bg-gradient-to-br from-[#002B49] via-blue-900 to-[#0A3D62] text-white shadow-lg space-y-1">
-              <span class="text-[11px] font-medium text-cyan-300 uppercase tracking-wider">Total Angsuran Per Bulan</span>
-              <div id="akur-monthly-install" class="text-3xl font-black font-mono tracking-tight text-white">
-                Rp 858.333
-              </div>
-              <p class="text-[10px] text-slate-300">Terdiri dari angsuran pokok dan bunga flat/efektif bersubsidi.</p>
-            </div>
-
-            <!-- Rincian -->
-            <div class="space-y-3 text-xs">
-              <div class="flex items-center justify-between py-1 border-b border-slate-100">
-                <span class="text-slate-500">Angsuran Pokok / Bulan:</span>
-                <span id="akur-res-pokok" class="font-mono font-bold text-slate-800">Rp 833.333</span>
-              </div>
-              <div class="flex items-center justify-between py-1 border-b border-slate-100">
-                <span class="text-slate-500">Angsuran Bunga Debitur / Bulan:</span>
-                <span id="akur-res-bunga" class="font-mono font-bold text-blue-600">Rp 25.000</span>
-              </div>
-              <div class="flex items-center justify-between py-1 border-b border-slate-100">
-                <span class="text-slate-500">Total Bunga Selama Tenor:</span>
-                <span id="akur-res-total-bunga" class="font-mono font-semibold text-slate-800">Rp 300.000</span>
-              </div>
-              <div class="flex items-center justify-between py-1 border-b border-slate-100">
-                <span class="text-slate-500">Estimasi Subsidi Bunga Pemerintah (10%):</span>
-                <span id="akur-res-subsidi" class="font-mono font-semibold text-emerald-600">Rp 1.000.000</span>
-              </div>
-              <div class="flex items-center justify-between py-1 border-b border-slate-100">
-                <span class="text-slate-500">Estimasi IJP (Imbal Jasa Penjaminan Askrindo):</span>
-                <span id="akur-res-ijp" class="font-mono font-bold text-amber-600">Rp 175.000</span>
-              </div>
-            </div>
-
-            <button onclick="window.AkurModule.showAmortizationTable()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition">
-              <i data-lucide="table" class="w-4 h-4"></i>
-              <span>Lihat Rincian Jadwal Angsuran (Tabel Amortisasi)</span>
+            <button type="button" onclick="window.AkurModule.resetConversation(true)" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+              <span>Reset Tanya</span>
             </button>
           </div>
         </div>
-      </div>
 
-      <!-- Amortization Modal Container -->
-      <div id="akur-amort-modal-container"></div>
-    `;
-  },
-
-  // State for scheme
-  activeScheme: 'super_mikro',
-
-  setScheme(scheme) {
-    this.activeScheme = scheme;
-    const btnSuper = document.getElementById('scheme-super-btn');
-    const btnMikro = document.getElementById('scheme-mikro-btn');
-    const btnKecil = document.getElementById('scheme-kecil-btn');
-    const range = document.getElementById('akur-plafon-range');
-    const minLabel = document.getElementById('range-min-label');
-    const maxLabel = document.getElementById('range-max-label');
-    const rateLabel = document.getElementById('akur-rate-label');
-
-    // Reset styles
-    [btnSuper, btnMikro, btnKecil].forEach(btn => {
-      btn.className = 'p-3 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-center transition hover:border-slate-300';
-    });
-
-    if (scheme === 'super_mikro') {
-      btnSuper.className = 'p-3 rounded-xl border border-blue-500 bg-blue-50/50 text-blue-900 font-bold text-center transition';
-      range.min = 1000000;
-      range.max = 10000000;
-      range.step = 500000;
-      range.value = 10000000;
-      minLabel.innerText = 'Rp 1.000.000';
-      maxLabel.innerText = 'Rp 10.000.000';
-      rateLabel.innerText = '3.00%';
-    } else if (scheme === 'mikro') {
-      btnMikro.className = 'p-3 rounded-xl border border-blue-500 bg-blue-50/50 text-blue-900 font-bold text-center transition';
-      range.min = 10000000;
-      range.max = 100000000;
-      range.step = 5000000;
-      range.value = 50000000;
-      minLabel.innerText = 'Rp 10.000.000';
-      maxLabel.innerText = 'Rp 100.000.000';
-      rateLabel.innerText = '6.00%';
-    } else if (scheme === 'kecil') {
-      btnKecil.className = 'p-3 rounded-xl border border-blue-500 bg-blue-50/50 text-blue-900 font-bold text-center transition';
-      range.min = 100000000;
-      range.max = 500000000;
-      range.step = 10000000;
-      range.value = 250000000;
-      minLabel.innerText = 'Rp 100.000.000';
-      maxLabel.innerText = 'Rp 500.000.000';
-      rateLabel.innerText = '6.00%';
-    }
-
-    this.handlePlafonChange(range.value);
-  },
-
-  handlePlafonChange(val) {
-    const textEl = document.getElementById('akur-plafon-text');
-    if (textEl) {
-      textEl.innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
-    }
-    this.calcInstallment();
-  },
-
-  calcInstallment() {
-    const plafon = parseFloat(document.getElementById('akur-plafon-range')?.value || '10000000');
-    const tenor = parseInt(document.getElementById('akur-tenor')?.value || '12', 10);
-    const annualRate = this.activeScheme === 'super_mikro' ? 0.03 : 0.06;
-
-    // Monthly interest & principal
-    const pokokPerBulan = plafon / tenor;
-    const bungaPerBulan = (plafon * annualRate) / 12;
-    const totalInstallment = pokokPerBulan + bungaPerBulan;
-    const totalBunga = bungaPerBulan * tenor;
-    const totalSubsidi = (plafon * 0.10) * (tenor / 12);
-    const ijpAskrindo = plafon * 0.0175 * (tenor / 12);
-
-    const fmt = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
-
-    const elMonth = document.getElementById('akur-monthly-install');
-    const elPokok = document.getElementById('akur-res-pokok');
-    const elBunga = document.getElementById('akur-res-bunga');
-    const elTotalBunga = document.getElementById('akur-res-total-bunga');
-    const elSubsidi = document.getElementById('akur-res-subsidi');
-    const elIjp = document.getElementById('akur-res-ijp');
-
-    if (elMonth) elMonth.innerText = fmt(totalInstallment);
-    if (elPokok) elPokok.innerText = fmt(pokokPerBulan);
-    if (elBunga) elBunga.innerText = fmt(bungaPerBulan);
-    if (elTotalBunga) elTotalBunga.innerText = fmt(totalBunga);
-    if (elSubsidi) elSubsidi.innerText = fmt(totalSubsidi);
-    if (elIjp) elIjp.innerText = fmt(ijpAskrindo);
-
-    this.lastCalculation = { plafon, tenor, annualRate, pokokPerBulan, bungaPerBulan, totalInstallment };
-  },
-
-  showAmortizationTable() {
-    if (!this.lastCalculation) this.calcInstallment();
-    const c = this.lastCalculation;
-    const fmt = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
-
-    let rows = '';
-    let sisaPokok = c.plafon;
-    for (let i = 1; i <= c.tenor; i++) {
-      sisaPokok -= c.pokokPerBulan;
-      if (sisaPokok < 0) sisaPokok = 0;
-      rows += `
-        <tr class="hover:bg-slate-50 border-b border-slate-100">
-          <td class="py-2 px-3 font-semibold text-slate-700 text-center">Bulan ${i}</td>
-          <td class="py-2 px-3 font-mono text-slate-800 text-right">${fmt(c.pokokPerBulan)}</td>
-          <td class="py-2 px-3 font-mono text-blue-600 text-right">${fmt(c.bungaPerBulan)}</td>
-          <td class="py-2 px-3 font-mono font-bold text-slate-900 text-right">${fmt(c.totalInstallment)}</td>
-          <td class="py-2 px-3 font-mono text-slate-500 text-right">${fmt(sisaPokok)}</td>
-        </tr>
-      `;
-    }
-
-    const modal = document.getElementById('akur-amort-modal-container');
-    if (!modal) return;
-
-    modal.innerHTML = `
-      <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-        <div class="bg-white rounded-3xl max-w-3xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[85vh] overflow-y-auto">
-          <div class="flex items-center justify-between border-b pb-3 border-slate-100">
+        <!-- Year Selector Hero Bar -->
+        <div class="rounded-3xl bg-gradient-to-br from-[#002B49] via-[#0A3D62] to-[#1E3A8A] p-5 sm:p-6 text-white shadow-xl space-y-3.5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h3 class="text-base font-bold text-slate-800">Tabel Jadwal Angsuran KUR (Amortisasi)</h3>
-              <p class="text-xs text-slate-500">Plafon: ${fmt(c.plafon)} | Tenor: ${c.tenor} Bulan</p>
+              <span class="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-amber-300">
+                <i data-lucide="calendar-check" class="w-3.5 h-3.5"></i> Langkah Wajib: Pilih Tahun Permenko KUR
+              </span>
+              <h2 class="text-base sm:text-lg font-black tracking-tight mt-0.5">Acuan Tahun Peraturan Permenko KUR</h2>
             </div>
-            <button onclick="document.getElementById('akur-amort-modal-container').innerHTML=''" class="p-1 rounded-lg text-slate-400 hover:text-slate-600">
-              <i data-lucide="x" class="w-5 h-5"></i>
+            <span class="text-[11px] text-blue-200 font-medium">Tiap tahun memiliki ketentuan berbeda</span>
+          </div>
+
+          <div id="akur-year-selector" class="flex flex-wrap gap-2">
+            ${this.renderYearSelectorButtons()}
+          </div>
+
+          <div id="akur-active-year-docs" class="pt-2 border-t border-white/15">
+            ${this.renderActiveYearDocs()}
+          </div>
+        </div>
+
+        <!-- Chat Workspace -->
+        <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col">
+          <!-- Chat Feed -->
+          <div id="akur-chat-feed" class="p-5 sm:p-6 space-y-4 bg-slate-50/70 min-h-[340px] max-h-[520px] overflow-y-auto">
+            ${this.renderChatMessages()}
+          </div>
+
+          <!-- Suggested Quick Questions -->
+          <div class="px-5 py-3 bg-white border-t border-slate-100 flex items-center gap-2 overflow-x-auto">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 shrink-0">Contoh:</span>
+            ${quickPrompts.map(q => `
+              <button
+                type="button"
+                onclick="window.AkurModule.askQuickQuestion('${this.escapeHtml(q)}')"
+                class="px-3 py-1.5 rounded-full text-[11px] font-semibold bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-700 border border-slate-200/80 whitespace-nowrap transition shrink-0"
+              >
+                ${this.escapeHtml(q)}
+              </button>
+            `).join('')}
+          </div>
+
+          <!-- Chat Input Form -->
+          <form onsubmit="window.AkurModule.handleChatSubmit(event)" class="p-4 bg-white border-t border-slate-200 flex items-center gap-2.5">
+            <input
+              id="akur-chat-input"
+              type="text"
+              autocomplete="off"
+              placeholder="${this.selectedYear ? `Ketik pertanyaan terkait Permenko KUR Tahun ${this.selectedYear} (bebas / free text)...` : 'Ketik pertanyaan seputar KUR (AI akan menanyakan tahun Permenko jika belum dipilih)...'}"
+              class="flex-1 px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/15 focus:border-blue-500 transition"
+            />
+            <button
+              type="submit"
+              class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white shadow-md shadow-blue-600/20 transition shrink-0"
+            >
+              <span>Tanya AI</span>
+              <i data-lucide="send" class="w-4 h-4"></i>
             </button>
-          </div>
-
-          <div class="overflow-x-auto rounded-xl border border-slate-200">
-            <table class="w-full text-xs">
-              <thead class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                <tr>
-                  <th class="py-2 px-3 text-center">Periode</th>
-                  <th class="py-2 px-3 text-right">Angsuran Pokok</th>
-                  <th class="py-2 px-3 text-right">Bunga Subsidi</th>
-                  <th class="py-2 px-3 text-right">Total Angsuran</th>
-                  <th class="py-2 px-3 text-right">Sisa Pokok</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${rows}
-              </tbody>
-            </table>
-          </div>
-
-          <div class="flex justify-end pt-2">
-            <button onclick="document.getElementById('akur-amort-modal-container').innerHTML=''" class="px-5 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-white hover:bg-slate-900 transition">
-              Tutup
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
-
-    if (window.lucide) window.lucide.createIcons();
-  },
-
-  // --- TAB 2: ELIGIBILITY CHECKER ---
-  renderEligibilityTab() {
-    return `
-      <div class="max-w-3xl mx-auto bg-white p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
-        <div class="border-b border-slate-100 pb-4">
-          <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600">Underwriting Assessment</span>
-          <h2 class="text-xl font-black text-slate-800">Pengecekan Kelayakan Debitur KUR</h2>
-          <p class="text-xs text-slate-500 mt-1">
-            Gunakan panduan 5 parameter kelayakan sesuai Permenko Perekonomian untuk menilai apakah calon debitur memenuhi kriteria penjaminan kredit Askrindo.
-          </p>
-        </div>
-
-        <form onsubmit="window.AkurModule.checkDebtorEligibility(event)" class="space-y-4 text-xs">
-          <!-- Parameter 1: Usia Usaha -->
-          <div class="p-4 rounded-xl border border-slate-200 space-y-2 bg-slate-50/50">
-            <label class="block font-bold text-slate-800">1. Lama Usaha Aktif Berjalan</label>
-            <div class="space-y-1.5">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="param_usaha" value="10" checked class="text-blue-600" />
-                <span>Usaha telah berjalan aktif minimal 6 (enam) bulan secara berkelanjutan</span>
-              </label>
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="param_usaha" value="5" class="text-blue-600" />
-                <span>Usaha kurang dari 6 bulan, namun telah mengikuti pelatihan kewirausahaan resmi / memiliki pendampingan UMKM (Syarat Khusus Super Mikro)</span>
-              </label>
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="param_usaha" value="0" class="text-blue-600" />
-                <span>Usaha baru / belum berjalan</span>
-              </label>
-            </div>
-          </div>
-
-          <!-- Parameter 2: SLIK OJK -->
-          <div class="p-4 rounded-xl border border-slate-200 space-y-2 bg-slate-50/50">
-            <label class="block font-bold text-slate-800">2. Riwayat Kolektibilitas SLIK OJK (BI Checking)</label>
-            <div class="space-y-1.5">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="param_slik" value="10" checked class="text-blue-600" />
-                <span>Kolektibilitas 1 (Lancar) pada seluruh fasilitas kredit perbankan / lembaga keuangan</span>
-              </label>
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="param_slik" value="5" class="text-blue-600" />
-                <span>Pernah menunggak (Kol 2), namun saat ini telah lunas dan memiliki Surat Keterangan Lunas (SKL) resmi</span>
-              </label>
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="param_slik" value="0" class="text-blue-600" />
-                <span>Sedang tercatat macet (Kolektibilitas 3, 4, atau 5)</span>
-              </label>
-            </div>
-          </div>
-
-          <!-- Parameter 3: Kredit Produktif Lain -->
-          <div class="p-4 rounded-xl border border-slate-200 space-y-2 bg-slate-50/50">
-            <label class="block font-bold text-slate-800">3. Kepemilikan Fasilitas Kredit Komersial Produktif</label>
-            <div class="space-y-1.5">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="param_kredit" value="10" checked class="text-blue-600" />
-                <span>Tidak sedang menerima kredit modal kerja / investasi komersial di bank lain (Hanya memiliki kredit konsumtif seperti KPR/KKB yang lancar)</span>
-              </label>
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="param_kredit" value="0" class="text-blue-600" />
-                <span>Sedang aktif menikmati fasilitas kredit modal kerja komersial di bank lain</span>
-              </label>
-            </div>
-          </div>
-
-          <!-- Parameter 4: Legalitas Usaha -->
-          <div class="p-4 rounded-xl border border-slate-200 space-y-2 bg-slate-50/50">
-            <label class="block font-bold text-slate-800">4. Legalitas & Izin Usaha</label>
-            <div class="space-y-1.5">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="param_legalitas" value="10" checked class="text-blue-600" />
-                <span>Memiliki Nomor Induk Berusaha (NIB) berbasis risiko dari OSS atau Surat Keterangan Usaha (SKU) dari Kelurahan/Desa</span>
-              </label>
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="param_legalitas" value="0" class="text-blue-600" />
-                <span>Tidak memiliki surat izin usaha maupun keterangan domisili usaha</span>
-              </label>
-            </div>
-          </div>
-
-          <div class="pt-2">
-            <button type="submit" class="w-full py-3 rounded-xl font-bold text-xs text-white bg-blue-600 hover:bg-blue-700 shadow-md transition">
-              Analisis Kelayakan Debitur Sekarang
-            </button>
-          </div>
-        </form>
-
-        <!-- Eligibility Result Box -->
-        <div id="eligibility-result-box" class="hidden"></div>
-      </div>
-    `;
-  },
-
-  checkDebtorEligibility(e) {
-    e.preventDefault();
-    const p1 = parseInt(document.querySelector('input[name="param_usaha"]:checked').value, 10);
-    const p2 = parseInt(document.querySelector('input[name="param_slik"]:checked').value, 10);
-    const p3 = parseInt(document.querySelector('input[name="param_kredit"]:checked').value, 10);
-    const p4 = parseInt(document.querySelector('input[name="param_legalitas"]:checked').value, 10);
-
-    const totalScore = p1 + p2 + p3 + p4;
-    const box = document.getElementById('eligibility-result-box');
-    box.classList.remove('hidden');
-
-    let badgeClass = 'bg-emerald-50 text-emerald-800 border-emerald-200';
-    let statusTitle = 'SANGAT LAYAK (DIREKOMENDASIKAN PENJAMINAN)';
-    let recommendation = 'Calon debitur memenuhi seluruh kriteria operasional Permenko dan underwriting Askrindo. Dapat langsung diproses penjaminan otomatis melalui bank mitra.';
-
-    if (p2 === 0 || p3 === 0 || p4 === 0) {
-      badgeClass = 'bg-rose-50 text-rose-800 border-rose-200';
-      statusTitle = 'TIDAK LAYAK / DITOLAK';
-      recommendation = 'Calon debitur terhalang oleh regulasi KUR (catatan macet di SLIK / sedang memiliki pinjaman produktif komersial / tidak memiliki izin usaha). Tidak dapat diberikan penjaminan KUR.';
-    } else if (totalScore < 35) {
-      badgeClass = 'bg-amber-50 text-amber-800 border-amber-200';
-      statusTitle = 'LAYAK BERSYARAT';
-      recommendation = 'Calon debitur dapat dipertimbangkan untuk skema KUR Super Mikro dengan pendampingan, atau melengkapi dokumen SKL lunas terlebih dahulu.';
-    }
-
-    box.innerHTML = `
-      <div class="p-6 rounded-2xl border ${badgeClass} space-y-3 animate-fadeIn">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-black uppercase tracking-wider">Hasil Uji Kelayakan</span>
-          <span class="text-xs font-mono font-bold">Skor: ${totalScore} / 40</span>
-        </div>
-        <h3 class="text-base font-extrabold">${statusTitle}</h3>
-        <p class="text-xs leading-relaxed opacity-90">${recommendation}</p>
-      </div>
-    `;
-  },
-
-  // --- TAB 3: SMART FAQ ---
-  renderFaqTab() {
-    const faqs = [
-      {
-        q: 'Apakah nasabah yang memiliki KPR (Kredit Pemilikan Rumah) boleh mengajukan KUR?',
-        a: 'Boleh! Sesuai Permenko Perekonomian No. 1 Tahun 2023, calon debitur KUR diperbolehkan sedang menerima kredit konsumtif seperti KPR, KKB (Kendaraan Bermotor), Kartu Kredit, atau kredit pensiun, asalkan riwayat pembayarannya berstatus lancar (Kol 1).'
-      },
-      {
-        q: 'Berapa batas plafon pinjaman KUR tanpa memerlukan agunan tambahan fisik?',
-        a: 'Plafon KUR s.d Rp 100.000.000 (KUR Super Mikro dan KUR Mikro) TIDAK DIKENAKAN AGUNAN TAMBAHAN (tanpa sertifikat/BPKB). Agunan utamanya adalah kelayakan usaha itu sendiri. Agunan tambahan hanya dapat dimintakan untuk KUR Kecil (di atas Rp 100 juta s.d 500 juta).'
-      },
-      {
-        q: 'Bagaimana ketentuan suku bunga berjenjang untuk KUR Mikro?',
-        a: 'Penyaluran KUR Mikro pertama kali dikenakan suku bunga 6% efektif per tahun. Jika nasabah melakukan suplesi (penambahan plafon) atau meminjam kedua kalinya, suku bunga menjadi 7%, pinjaman ketiga 8%, dan pinjaman keempat 9% per tahun.'
-      },
-      {
-        q: 'Kapan bank mitra dapat mengajukan klaim penjaminan KUR ke Askrindo?',
-        a: 'Bank penyalur dapat mengajukan klaim penjaminan setelah debitur menunggak dan kredit digolongkan macet (Kolektibilitas 5), serta bank telah melakukan upaya penagihan (Restrukturisasi/SP 1 s.d SP 3) sesuai ketentuan perjanjian kerja sama (PKS) penjaminan.'
-      }
-    ];
-
-    return `
-      <div class="max-w-3xl mx-auto space-y-6">
-        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2">
-          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-            <i data-lucide="book-open" class="w-5 h-5 text-blue-600"></i>
-            <span>Pusat Informasi & Aturan Operasional KUR Askrindo</span>
-          </h3>
-          <p class="text-xs text-slate-500">
-            Pertanyaan dan jawaban penting mengenai pedoman teknis penjaminan Kredit Usaha Rakyat di cabang Askrindo.
-          </p>
-        </div>
-
-        <div class="space-y-3">
-          ${faqs.map((f, idx) => `
-            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-2">
-              <h4 class="text-xs font-bold text-slate-800 flex items-start gap-2">
-                <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 text-[11px] font-bold">${idx + 1}</span>
-                <span>${f.q}</span>
-              </h4>
-              <p class="text-xs text-slate-600 pl-7 leading-relaxed">${f.a}</p>
-            </div>
-          `).join('')}
+          </form>
         </div>
       </div>
     `;

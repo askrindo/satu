@@ -470,7 +470,6 @@ class AskrindoApp {
       window.KabarModule.calculate();
     } else if (route.startsWith('#/akur')) {
       main.innerHTML = window.AkurModule.render();
-      if (window.AkurModule.currentTab === 'calc') window.AkurModule.calcInstallment();
     } else if (route.startsWith('#/sedia')) {
       main.innerHTML = window.SediaModule.render();
     } else if (route.startsWith('#/cepat')) {
