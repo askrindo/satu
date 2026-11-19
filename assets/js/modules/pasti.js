@@ -180,6 +180,7 @@ window.PastiModule = {
     const idxDone = findCol('done', 13);
     const idxDaluarsa = findCol('daluarsa', 14);
 
+    const rowNumbers = Array.isArray(payload.rowNumbers) ? payload.rowNumbers : [];
     const parsed = [];
 
     for (let i = 0; i < rawRows.length; i++) {
@@ -207,6 +208,7 @@ window.PastiModule = {
 
       parsed.push({
         _idx: parsed.length,
+        _rowNumber: rowNumbers[i] || null,
         sheet: (item && item._sheet) ? item._sheet : this.sheetUsedName,
         no,
         nama,
@@ -640,6 +642,12 @@ window.PastiModule = {
 
           <!-- Footer Actions -->
           <div class="flex items-center justify-end gap-2 pt-1">
+            ${this.canEdit() ? `
+              <button onclick="document.getElementById('pasti-detail-modal').remove(); window.PastiModule.openEditModal(${r._idx});" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-violet-600 text-white hover:bg-violet-700 shadow-sm transition">
+                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                <span>Edit Data SPKMGR</span>
+              </button>
+            ` : ''}
             <button onclick="window.PastiModule.copySummary(${r._idx})" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition">
               <i data-lucide="copy" class="w-3.5 h-3.5"></i>
               <span>Salin Ringkasan</span>
@@ -654,6 +662,198 @@ window.PastiModule = {
 
     document.body.appendChild(modal);
     if (window.lucide) window.lucide.createIcons();
+  },
+
+  canEdit() {
+    if (!window.authService) return false;
+    if (window.authService.canAccessAdmin()) return true;
+    const u = window.authService.getCurrentUser();
+    const allowed = Array.isArray(u?.allowedApps) ? u.allowedApps.map(a => String(a).toLowerCase().trim()) : [];
+    return allowed.includes('pasti_edit');
+  },
+
+  openEditModal(idx) {
+    if (!this.canEdit()) {
+      if (window.askrindoApp) window.askrindoApp.showToast('Anda hanya memiliki akses melihat data PASTI.', 'warning');
+      return;
+    }
+    const r = this.rows[idx];
+    if (!r) return;
+
+    const existing = document.getElementById('pasti-edit-modal');
+    if (existing) existing.remove();
+
+    const rmList = this.getUniqueRms();
+    const modal = document.createElement('div');
+    modal.id = 'pasti-edit-modal';
+    modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in';
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+    modal.innerHTML = `
+      <div class="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-[#002B49] via-indigo-900 to-violet-900 text-white p-5 flex items-start justify-between gap-4">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/15 border border-white/20">No. #${this.escapeHtml(r.no)}</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-400/25 border border-violet-300/30">Update ke Spreadsheet</span>
+            </div>
+            <h3 class="text-lg font-black tracking-tight break-words">${this.escapeHtml(r.nama)}</h3>
+            <p class="text-[11px] text-indigo-200 mt-0.5">COB: ${this.escapeHtml(r.jenisCob)} &middot; JW: ${this.escapeHtml(r.jwAwal)} &rarr; ${this.escapeHtml(r.jwAkhir)}</p>
+          </div>
+          <button type="button" onclick="document.getElementById('pasti-edit-modal').remove()" class="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition shrink-0">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <form onsubmit="window.PastiModule.submitEditForm(event, ${idx})" class="p-5 space-y-3.5 text-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Status SPKMGR</label>
+              <select id="pasti-edit-status" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-indigo-500 font-semibold text-slate-800">
+                ${['Waarmerking', 'Tidak Di Warmeking', 'Legalisasi', '-'].map(v => `<option value="${this.escapeHtml(v)}" ${r.statusSpkmgr === v ? 'selected' : ''}>${this.escapeHtml(v)}</option>`).join('')}
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Kelengkapan Dokumen</label>
+              <select id="pasti-edit-keterangan" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-indigo-500 font-semibold text-slate-800">
+                ${['Ada SPKMGR', 'Ada SPKMGR (Softfile)', 'Belum Ada SPKMGR'].map(v => `<option value="${this.escapeHtml(v)}" ${r.keterangan === v ? 'selected' : ''}>${this.escapeHtml(v)}</option>`).join('')}
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Status Pembayaran</label>
+              <select id="pasti-edit-pembayaran" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-indigo-500 font-semibold text-slate-800">
+                ${['Sudah Bayar', 'Belum Bayar', '-'].map(v => `<option value="${this.escapeHtml(v)}" ${r.statusPembayaran === v ? 'selected' : ''}>${this.escapeHtml(v)}</option>`).join('')}
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Nama RM</label>
+              <input id="pasti-edit-rm" list="pasti-rm-datalist" type="text" value="${this.escapeHtml(r.namaRm === '-' ? '' : r.namaRm)}" placeholder="Contoh: Cherry / Marsella / Hajerah" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-indigo-500 font-semibold text-slate-800" />
+              <datalist id="pasti-rm-datalist">
+                ${rmList.map(rm => `<option value="${this.escapeHtml(rm)}"></option>`).join('')}
+              </datalist>
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Biaya SPKMGR (opsional)</label>
+              <input id="pasti-edit-biaya" type="text" value="${this.escapeHtml(r.biayaSpkmgr === '-' ? '' : r.biayaSpkmgr)}" placeholder="Kosongkan jika otomatis / tidak berubah" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-indigo-500 font-semibold text-slate-800" />
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Catatan Tambahan</label>
+              <input id="pasti-edit-catatan" type="text" value="${this.escapeHtml(r.catatan || '')}" placeholder="Catatan tambahan (jika ada)" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-indigo-500 font-semibold text-slate-800" />
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+            <button type="button" onclick="document.getElementById('pasti-edit-modal').remove()" class="px-4 py-2 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition">
+              Batal
+            </button>
+            <button id="pasti-edit-submit-btn" type="submit" class="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-md transition">
+              <i data-lucide="save" class="w-3.5 h-3.5"></i>
+              <span>Simpan ke Spreadsheet</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    if (window.lucide) window.lucide.createIcons();
+  },
+
+  async submitEditForm(e, idx) {
+    if (e) e.preventDefault();
+    if (!this.canEdit()) return;
+
+    const r = this.rows[idx];
+    if (!r) return;
+
+    const btn = document.getElementById('pasti-edit-submit-btn');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span>Menyimpan ke Spreadsheet...</span>';
+    }
+
+    const statusSpkmgr = document.getElementById('pasti-edit-status')?.value || r.statusSpkmgr;
+    const keterangan = document.getElementById('pasti-edit-keterangan')?.value || r.keterangan;
+    const statusPembayaran = document.getElementById('pasti-edit-pembayaran')?.value || r.statusPembayaran;
+    const namaRm = (document.getElementById('pasti-edit-rm')?.value || '').trim() || '-';
+    const biayaInput = (document.getElementById('pasti-edit-biaya')?.value || '').trim();
+    const catatan = (document.getElementById('pasti-edit-catatan')?.value || '').trim();
+
+    const currentUser = window.authService?.getCurrentUser?.();
+    const payload = {
+      token: this.API_TOKEN,
+      action: 'update',
+      rowNumber: r._rowNumber || null,
+      no: r.no,
+      originalNama: r.nama,
+      updatedBy: currentUser ? `${currentUser.name} (${currentUser.nip})` : 'Petugas',
+      updates: {
+        statusSpkmgr,
+        keterangan,
+        statusPembayaran,
+        namaRm: namaRm === '-' ? '' : namaRm,
+        catatan
+      }
+    };
+    if (biayaInput !== (r.biayaSpkmgr === '-' ? '' : r.biayaSpkmgr)) {
+      payload.updates.biayaSpkmgr = biayaInput;
+    }
+
+    try {
+      const resp = await fetch(this.APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      const resJson = await resp.json();
+      if (!resJson || !resJson.ok) {
+        throw new Error((resJson && resJson.error) ? resJson.error : 'Gagal menyimpan perubahan ke Spreadsheet.');
+      }
+
+      // Update local row immediately
+      r.statusSpkmgr = statusSpkmgr;
+      r.keterangan = keterangan;
+      r.statusPembayaran = statusPembayaran;
+      r.namaRm = namaRm;
+      r.catatan = catatan;
+      if (payload.updates.biayaSpkmgr !== undefined) {
+        r.biayaSpkmgr = biayaInput || '-';
+        r.biayaNum = this.parseRupiah(r.biayaSpkmgr);
+      }
+      if (resJson.doneStatus) {
+        r.doneStatus = resJson.doneStatus;
+      }
+
+      this.syncedAt = new Date().toISOString();
+      this.lastDataHash = JSON.stringify(this.rows);
+      this.saveToCache();
+
+      if (window.askrindoDB?.logActivity) {
+        window.askrindoDB.logActivity('PASTI', 'Update Data SPKMGR', `Memperbarui status SPKMGR ${r.nama} (#${r.no}): ${statusSpkmgr}, ${keterangan}, ${statusPembayaran}`);
+      }
+
+      const modal = document.getElementById('pasti-edit-modal');
+      if (modal) modal.remove();
+
+      this.updateView(false);
+      if (window.askrindoApp) {
+        window.askrindoApp.showToast(`Data SPKMGR ${r.nama} berhasil diperbarui ke Spreadsheet!`, 'success');
+      }
+    } catch (err) {
+      console.warn('[PASTI] Update error:', err);
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Simpan ke Spreadsheet</span>';
+      }
+      if (window.askrindoApp) {
+        window.askrindoApp.showToast(`Gagal menyimpan: ${err.message}`, 'error');
+      }
+    }
   },
 
   updateSyncBadge() {
@@ -1047,10 +1247,18 @@ window.PastiModule = {
                   <i data-lucide="calendar-range" class="w-3.5 h-3.5 text-slate-400"></i>
                   <span>JW: <strong class="text-slate-700">${this.escapeHtml(r.jwAwal)}</strong> &rarr; <strong class="text-slate-700">${this.escapeHtml(r.jwAkhir)}</strong></span>
                 </div>
-                <button onclick="window.PastiModule.openDetailModal(${r._idx})" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition">
-                  <span>Lihat Rincian</span>
-                  <i data-lucide="arrow-right" class="w-3 h-3"></i>
-                </button>
+                <div class="flex items-center gap-1.5">
+                  ${this.canEdit() ? `
+                    <button onclick="window.PastiModule.openEditModal(${r._idx})" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-bold text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 transition">
+                      <i data-lucide="edit-3" class="w-3 h-3"></i>
+                      <span>Edit</span>
+                    </button>
+                  ` : ''}
+                  <button onclick="window.PastiModule.openDetailModal(${r._idx})" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition">
+                    <span>Lihat Rincian</span>
+                    <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                  </button>
+                </div>
               </div>
             </div>
           `;
@@ -1133,9 +1341,16 @@ window.PastiModule = {
                       </span>
                     </td>
                     <td class="py-3 px-3.5 text-center whitespace-nowrap" onclick="event.stopPropagation()">
-                      <button onclick="window.PastiModule.openDetailModal(${r._idx})" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition">
-                        Detail
-                      </button>
+                      <div class="inline-flex items-center gap-1">
+                        ${this.canEdit() ? `
+                          <button onclick="window.PastiModule.openEditModal(${r._idx})" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 transition">
+                            Edit
+                          </button>
+                        ` : ''}
+                        <button onclick="window.PastiModule.openDetailModal(${r._idx})" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition">
+                          Detail
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 `;

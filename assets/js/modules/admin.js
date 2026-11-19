@@ -254,6 +254,7 @@ window.AdminModule = {
                           cepat: 'bg-cyan-100 text-cyan-800 border-cyan-200',
                           lapor: 'bg-purple-100 text-purple-800 border-purple-200',
                           pasti: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+                          pasti_edit: 'bg-violet-100 text-violet-800 border-violet-300',
                           admin: 'bg-amber-100 text-amber-800 border-amber-200'
                         };
                         const canonicalApps = window.askrindoDB
@@ -261,7 +262,7 @@ window.AdminModule = {
                           : [...new Set(user.allowedApps || [])];
                         return canonicalApps.map(app => `
                           <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase border whitespace-nowrap ${appBadgeColors[app] || 'bg-slate-100 text-slate-600'}">
-                            ${app}
+                            ${app === 'pasti_edit' ? 'PASTI EDIT' : app}
                           </span>
                         `).join('');
                       })()}
@@ -300,7 +301,8 @@ window.AdminModule = {
   renderMatrixTab(allUsers) {
     const appsList = [
       { id: 'lapor', name: 'LAPOR', label: 'Layanan Analisis dan Perhitungan Rasio Keuangan', color: 'text-purple-600' },
-      { id: 'pasti', name: 'PASTI', label: 'Pemeriksaan Administrasi SPKMGR Terintegrasi', color: 'text-indigo-600' },
+      { id: 'pasti', name: 'PASTI', label: 'Pemeriksaan Administrasi SPKMGR Terintegrasi (Lihat)', color: 'text-indigo-600' },
+      { id: 'pasti_edit', name: 'PASTI EDIT', label: 'Izin Ubah & Update Data SPKMGR ke Spreadsheet', color: 'text-violet-600' },
       { id: 'kabar', name: 'KABAR', label: 'Kalkulator Asuransi Kebakaran', color: 'text-orange-600' },
       { id: 'akur', name: 'AKUR', label: 'Asisten AI Regulasi KUR', color: 'text-blue-600' },
       { id: 'sedia', name: 'SEDIA', label: 'Sistem Elektronik Dokumen dan Informasi Asuransi', color: 'text-emerald-600' },
@@ -528,11 +530,17 @@ window.AdminModule = {
       sedia: 'SEDIA',
       lapor: 'LAPOR',
       pasti: 'PASTI',
+      pasti_edit: 'PASTI EDIT',
       kabar: 'KABAR',
       cepat: 'CEPAT',
       admin: 'ADMIN'
     };
     const appDisplayName = displayNames[canonicalId] || canonicalId.toUpperCase();
+
+    if (canonicalId === 'pasti_edit' && isChecked && !apps.includes('pasti')) {
+      apps.push('pasti');
+      localStorage.removeItem(`askrindo_pasti_revoked_${userId}`);
+    }
 
     if (canonicalId === 'pasti') {
       if (isChecked) localStorage.removeItem(`askrindo_pasti_revoked_${userId}`);
@@ -719,7 +727,12 @@ window.AdminModule = {
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" id="perm-pasti" value="pasti" ${window.askrindoDB.normalizeAllowedApps(allowedApps).includes('pasti') ? 'checked' : ''} class="w-4 h-4 text-indigo-600 rounded" />
                   <span class="font-semibold text-slate-800">PASTI</span>
-                  <span class="text-slate-500 text-[11px]">— Pemeriksaan Administrasi SPKMGR Terintegrasi</span>
+                  <span class="text-slate-500 text-[11px]">— Pemeriksaan Administrasi SPKMGR (Cari & Lihat)</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer pl-6">
+                  <input type="checkbox" id="perm-pasti-edit" value="pasti_edit" ${window.askrindoDB.normalizeAllowedApps(allowedApps).includes('pasti_edit') ? 'checked' : ''} class="w-4 h-4 text-violet-600 rounded" />
+                  <span class="font-semibold text-violet-800">PASTI EDIT</span>
+                  <span class="text-violet-600 text-[11px]">— Izin Update Data SPKMGR ke Spreadsheet</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" id="perm-kabar" value="kabar" ${allowedApps.includes('kabar') ? 'checked' : ''} class="w-4 h-4 text-orange-600 rounded" />
@@ -912,8 +925,10 @@ window.AdminModule = {
 
     const allowedApps = [];
     if (document.getElementById('perm-lapor').checked) allowedApps.push('lapor');
-    const pastiChecked = !!document.getElementById('perm-pasti')?.checked;
+    const pastiEditChecked = !!document.getElementById('perm-pasti-edit')?.checked;
+    const pastiChecked = !!document.getElementById('perm-pasti')?.checked || pastiEditChecked;
     if (pastiChecked) allowedApps.push('pasti');
+    if (pastiEditChecked) allowedApps.push('pasti_edit');
     if (existingId) {
       if (pastiChecked) localStorage.removeItem(`askrindo_pasti_revoked_${existingId}`);
       else localStorage.setItem(`askrindo_pasti_revoked_${existingId}`, '1');
