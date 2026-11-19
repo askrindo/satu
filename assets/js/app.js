@@ -242,7 +242,7 @@ class AskrindoApp {
                       <i data-lucide="shield-alert" class="w-4 h-4 text-rose-500 shrink-0"></i>
                       <div class="sidebar-text min-w-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
                         <span class="font-bold">CEKLIST</span>
-                        <span class="text-[10px] block font-normal text-slate-400 leading-snug">Cek Entitas &amp; Status Terblokir</span>
+                        <span class="text-[10px] block font-normal text-slate-400 leading-snug">Cek Entitas dan Kelola List Informasi Status Terblokir</span>
                       </div>
                     </div>
                     <span id="nav-badge-ceklist" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('ceklist') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('ceklist') ? 'Aktif' : 'Terkunci'}</span>
@@ -591,7 +591,7 @@ class AskrindoApp {
                         <span class="font-black text-rose-200 text-xs">CEKLIST</span>
                         <span class="px-1.5 py-0.2 rounded text-[7px] font-extrabold bg-emerald-500 text-white uppercase tracking-wider">Aktif</span>
                       </div>
-                      <span class="text-[10px] text-slate-200 block leading-snug">Cek Entitas &amp; Status Terblokir</span>
+                      <span class="text-[10px] text-slate-200 block leading-snug">Cek Entitas dan Kelola List Informasi Status Terblokir</span>
                     </div>
                   </div>
 
@@ -874,7 +874,7 @@ class AskrindoApp {
               <div class="flex items-center gap-3">
                 <i data-lucide="shield-alert" class="w-4 h-4 text-rose-500"></i>
                 <div>
-                  <span class="font-bold">CEKLIST</span> — Cek Entitas &amp; List Status Terblokir (Blacklist OCR)
+                  <span class="font-bold">CEKLIST</span> — Cek Entitas dan Kelola List Informasi Status Terblokir
                 </div>
               </div>
               <span class="text-[10px] text-slate-400">Buka Modul &rarr;</span>

@@ -304,7 +304,7 @@ window.AdminModule = {
       { id: 'lapor', name: 'LAPOR', label: 'Layanan Analisis dan Perhitungan Rasio Keuangan', color: 'text-purple-600' },
       { id: 'pasti', name: 'PASTI', label: 'Pemeriksaan Administrasi SPKMGR Terintegrasi (Lihat)', color: 'text-indigo-600' },
       { id: 'pasti_edit', name: 'PASTI EDIT', label: 'Izin Ubah & Update Data SPKMGR ke Spreadsheet', color: 'text-violet-600' },
-      { id: 'ceklist', name: 'CEKLIST', label: 'Cek Entitas & Status Terblokir (Blacklist OCR)', color: 'text-rose-600' },
+      { id: 'ceklist', name: 'CEKLIST', label: 'Cek Entitas dan Kelola List Informasi Status Terblokir', color: 'text-rose-600' },
       { id: 'kabar', name: 'KABAR', label: 'Kalkulator Asuransi Kebakaran', color: 'text-orange-600' },
       { id: 'akur', name: 'AKUR', label: 'Asisten AI Regulasi KUR', color: 'text-blue-600' },
       { id: 'sedia', name: 'SEDIA', label: 'Sistem Elektronik Dokumen dan Informasi Asuransi', color: 'text-emerald-600' },
@@ -745,7 +745,7 @@ window.AdminModule = {
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" id="perm-ceklist" value="ceklist" ${window.askrindoDB.normalizeAllowedApps(allowedApps).includes('ceklist') ? 'checked' : ''} class="w-4 h-4 text-rose-600 rounded" />
                   <span class="font-semibold text-slate-800">CEKLIST</span>
-                  <span class="text-slate-500 text-[11px]">— Cek Entitas &amp; List Status Terblokir (Blacklist OCR)</span>
+                  <span class="text-slate-500 text-[11px]">— Cek Entitas dan Kelola List Informasi Status Terblokir</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" id="perm-kabar" value="kabar" ${allowedApps.includes('kabar') ? 'checked' : ''} class="w-4 h-4 text-orange-600 rounded" />
