@@ -1,7 +1,7 @@
 /**
  * Askrindo SATU - AKUR Module (Analisis Kredit Usaha Rakyat)
  * Tanya-Tanya Permenko KUR — Asisten AI Regulasi Permenko KUR (2015–2026)
- * Jawaban ketat berbasis teks resmi Permenko KUR per tahun tanpa opini.
+ * Layout 1-view ringkas bergaya Gemini dengan riwayat percakapan tersimpan & jawaban ketat tanpa opini.
  */
 
 window.AkurModule = {
@@ -9,7 +9,6 @@ window.AkurModule = {
   DATA_BASE_URL: 'assets/data/permenko',
   AVAILABLE_YEARS: ['2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026'],
 
-  // Relasi Peraturan Perubahan -> Peraturan Induk (hanya sebagai rujukan tambahan jika pasal tidak diubah)
   PARENT_YEAR_MAP: {
     '2016': '2015',
     '2018': '2017',
@@ -33,25 +32,88 @@ window.AkurModule = {
 
   manifest: null,
   yearCache: {},
+  threads: [],
+  activeThreadId: null,
   selectedYear: null,
   pendingQuestion: '',
   isThinking: false,
   messages: [],
   hasInitialized: false,
 
+  getHistoryStorageKey() {
+    const u = window.authService?.getCurrentUser?.();
+    const uid = u?.id || u?.nip || 'guest';
+    return `askrindo_akur_threads_v1_${uid}`;
+  },
+
+  loadThreads() {
+    try {
+      const raw = localStorage.getItem(this.getHistoryStorageKey());
+      const parsed = raw ? JSON.parse(raw) : [];
+      this.threads = Array.isArray(parsed) ? parsed : [];
+    } catch (_) {
+      this.threads = [];
+    }
+  },
+
+  saveThreads() {
+    try {
+      // Keep max 40 threads to stay well within localStorage quota
+      const trimmed = this.threads.slice(0, 40);
+      localStorage.setItem(this.getHistoryStorageKey(), JSON.stringify(trimmed));
+    } catch (e) {
+      console.warn('[AKUR] Gagal menyimpan riwayat percakapan:', e);
+    }
+  },
+
+  persistActiveThread() {
+    const hasUserMsg = this.messages.some(m => m.role === 'user');
+    if (!hasUserMsg) return;
+
+    const firstUserMsg = this.messages.find(m => m.role === 'user');
+    const title = firstUserMsg ? firstUserMsg.text.slice(0, 80) : 'Percakapan Permenko KUR';
+    const nowIso = new Date().toISOString();
+
+    if (!this.activeThreadId) {
+      this.activeThreadId = `thr_${Date.now()}`;
+    }
+
+    const threadObj = {
+      id: this.activeThreadId,
+      title,
+      year: this.selectedYear,
+      updatedAt: nowIso,
+      messages: this.messages.map(m => ({
+        ...m,
+        // Keep compact sources in storage
+        sources: Array.isArray(m.sources) ? m.sources.slice(0, 4) : undefined
+      }))
+    };
+
+    const idx = this.threads.findIndex(t => t.id === this.activeThreadId);
+    if (idx !== -1) {
+      this.threads.splice(idx, 1);
+    }
+    this.threads.unshift(threadObj);
+    this.saveThreads();
+    this.updateHistorySidebar();
+  },
+
   init() {
+    this.loadThreads();
     if (!this.hasInitialized) {
       this.hasInitialized = true;
-      this.resetConversation(false);
+      this.startNewChat(false);
       this.loadManifest();
-    } else {
-      this.updateChatUI();
     }
+    this.updateHeaderMeta();
+    this.updateHistorySidebar();
+    this.updateChatUI();
   },
 
   async loadManifest() {
     try {
-      const resp = await fetch(`${this.MANIFEST_URL}?v=20261119a`);
+      const resp = await fetch(`${this.MANIFEST_URL}?v=20261119e`);
       if (resp.ok) {
         this.manifest = await resp.json();
         this.updateHeaderMeta();
@@ -65,7 +127,7 @@ window.AkurModule = {
     const yr = String(year || '').trim();
     if (!yr) return null;
     if (this.yearCache[yr]) return this.yearCache[yr];
-    const resp = await fetch(`${this.DATA_BASE_URL}/${yr}.json?v=20261119a`);
+    const resp = await fetch(`${this.DATA_BASE_URL}/${yr}.json?v=20261119e`);
     if (!resp.ok) throw new Error(`Data Permenko tahun ${yr} tidak tersedia (HTTP ${resp.status})`);
     const data = await resp.json();
     this.yearCache[yr] = data;
@@ -96,22 +158,18 @@ window.AkurModule = {
 
   formatMarkdownSafe(text) {
     let html = this.escapeHtml(text || '');
-    // Bold **text** & italic *text*
     html = html.replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold text-slate-900">$1</strong>');
     html = html.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<em class="italic text-slate-600">$1</em>');
-    // Inline code `text`
-    html = html.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded bg-slate-100 text-blue-800 font-mono text-[11px]">$1</code>');
-    // Bullet lines
+    html = html.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded bg-slate-100 text-blue-800 font-mono text-xs">$1</code>');
     html = html.replace(/^(?:\s*[-•*]\s+)(.+)$/gm, '<div class="flex items-start gap-2 my-1"><span class="text-blue-600 font-bold mt-0.5">&bull;</span><span>$1</span></div>');
-    // Numbered lines
     html = html.replace(/^(\s*\d+\.\s+)(.+)$/gm, '<div class="flex items-start gap-2 my-1"><span class="text-blue-700 font-bold shrink-0">$1</span><span>$2</span></div>');
-    // Line breaks
     html = html.replace(/\n\n/g, '<div class="h-2"></div>');
     html = html.replace(/\n/g, '<br/>');
     return html;
   },
 
-  resetConversation(rerender = true) {
+  startNewChat(rerender = true) {
+    this.activeThreadId = null;
     this.selectedYear = null;
     this.pendingQuestion = '';
     this.isThinking = false;
@@ -120,13 +178,44 @@ window.AkurModule = {
         id: 'welcome',
         role: 'assistant',
         type: 'welcome',
-        text: 'Halo! Selamat datang di **Tanya-Tanya Permenko KUR**. Saya akan menjawab pertanyaan Anda **hanya berdasarkan teks resmi Permenko Perekonomian tentang KUR** (tanpa opini).\n\nSilakan pilih **Tahun Permenko KUR** pada panel di atas terlebih dahulu, lalu ketik pertanyaan Anda.',
+        text: 'Halo! Selamat datang di **Tanya-Tanya Permenko KUR**. Jawaban saya **hanya mengacu pada teks resmi Permenko Perekonomian tentang KUR** (tanpa opini).\n\nPilih **Tahun Permenko KUR** pada bar di atas lalu ketik pertanyaan Anda.',
         timestamp: new Date().toISOString()
       }
     ];
     if (rerender) {
-      this.updateChatUI();
       this.updateHeaderMeta();
+      this.updateHistorySidebar();
+      this.updateChatUI();
+      const inp = document.getElementById('akur-chat-input');
+      if (inp) inp.focus();
+    }
+  },
+
+  resetConversation(rerender = true) {
+    this.startNewChat(rerender);
+  },
+
+  openThread(threadId) {
+    const found = this.threads.find(t => t.id === threadId);
+    if (!found) return;
+    this.activeThreadId = found.id;
+    this.selectedYear = found.year || null;
+    this.pendingQuestion = '';
+    this.isThinking = false;
+    this.messages = Array.isArray(found.messages) ? JSON.parse(JSON.stringify(found.messages)) : [];
+    this.updateHeaderMeta();
+    this.updateHistorySidebar();
+    this.updateChatUI();
+  },
+
+  deleteThread(threadId, e) {
+    if (e) e.stopPropagation();
+    this.threads = this.threads.filter(t => t.id !== threadId);
+    this.saveThreads();
+    if (this.activeThreadId === threadId) {
+      this.startNewChat(true);
+    } else {
+      this.updateHistorySidebar();
     }
   },
 
@@ -159,7 +248,7 @@ window.AkurModule = {
       role: 'assistant',
       type: 'year_selected',
       year: yr,
-      text: `Acuan diatur ke **Permenko KUR Tahun ${yr}**:\n${docListText}\n\nSilakan ketik pertanyaan Anda seputar ketentuan KUR tahun **${yr}** di bawah ini.`,
+      text: `Acuan diatur ke **Permenko KUR Tahun ${yr}**:\n${docListText}\n\nSilakan ketik pertanyaan Anda seputar ketentuan KUR tahun **${yr}** pada kotak di atas.`,
       timestamp: new Date().toISOString()
     });
     this.updateChatUI();
@@ -170,7 +259,6 @@ window.AkurModule = {
   detectYearInText(text) {
     const matches = String(text || '').match(/\b(201[5-9]|202[0-6])\b/g);
     if (!matches || !matches.length) return null;
-    // Ambil tahun terakhir yang disebut jika ada lebih dari satu
     return matches[matches.length - 1];
   },
 
@@ -190,7 +278,6 @@ window.AkurModule = {
     if (!raw) return;
     inp.value = '';
 
-    // Push user message
     this.messages.push({
       id: `u_${Date.now()}`,
       role: 'user',
@@ -200,7 +287,6 @@ window.AkurModule = {
 
     const detectedYear = this.detectYearInText(raw);
 
-    // Kasus 1: User hanya mengetik tahun (misal "2025" atau "tahun 2026") saat ada pendingQuestion
     if (detectedYear && this.pendingQuestion && raw.replace(/\b(tahun|permenko|kur|yang|untuk|acuan|pakai)\b/gi, '').replace(detectedYear, '').trim().length <= 3) {
       const q = this.pendingQuestion;
       this.pendingQuestion = '';
@@ -210,7 +296,6 @@ window.AkurModule = {
       return;
     }
 
-    // Kasus 2: Tahun disebut langsung di pertanyaan (misal "Berapa suku bunga KUR 2026?")
     if (detectedYear) {
       this.selectedYear = detectedYear;
       this.pendingQuestion = '';
@@ -219,21 +304,20 @@ window.AkurModule = {
       return;
     }
 
-    // Kasus 3: Belum memilih tahun sama sekali -> WAJIB tanya tahun dulu!
     if (!this.selectedYear) {
       this.pendingQuestion = raw;
       this.messages.push({
         id: `askyr_${Date.now()}`,
         role: 'assistant',
         type: 'ask_year',
-        text: `Karena setiap tahun ketentuan Permenko KUR dapat berbeda, **Permenko KUR tahun berapa** yang ingin Anda jadikan acuan untuk pertanyaan:\n\n*"${raw}"*\n\nSilakan pilih tahun di bawah ini (atau ketik angkanya, misal **2025** atau **2026**):`,
+        text: `Karena setiap tahun ketentuan Permenko KUR dapat berbeda, **Permenko KUR tahun berapa** yang ingin Anda jadikan acuan untuk pertanyaan:\n\n*"${raw}"*\n\nSilakan pilih tahun di bar atas atau klik tombol tahun di bawah ini:`,
         timestamp: new Date().toISOString()
       });
+      this.persistActiveThread();
       this.updateChatUI();
       return;
     }
 
-    // Kasus 4: Tahun sudah dipilih -> langsung jawab berdasarkan tahun terpilih
     this.answerQuestion(raw, this.selectedYear);
   },
 
@@ -249,11 +333,9 @@ window.AkurModule = {
     const qLower = question.toLowerCase();
     const tokens = this.tokenize(question);
 
-    // Deteksi jika user menyebut nomor Pasal tertentu (misal "Pasal 12")
     const pasalMatch = qLower.match(/pasal\s+(\d+[a-z]?)/i);
     const targetPasal = pasalMatch ? `pasal ${pasalMatch[1].toLowerCase()}` : null;
 
-    // Sinonim umum istilah KUR agar pencarian pasal makin akurat
     const synonymMap = {
       bunga: ['suku', 'bunga', 'marjin', 'margin', 'persen', '%'],
       marjin: ['suku', 'bunga', 'marjin', 'margin', 'persen'],
@@ -273,9 +355,7 @@ window.AkurModule = {
 
     const expandedTokens = new Set(tokens);
     tokens.forEach(t => {
-      if (synonymMap[t]) {
-        synonymMap[t].forEach(s => expandedTokens.add(s));
-      }
+      if (synonymMap[t]) synonymMap[t].forEach(s => expandedTokens.add(s));
     });
     const searchTerms = Array.from(expandedTokens);
 
@@ -288,12 +368,9 @@ window.AkurModule = {
         score += 50;
       }
 
-      // Exact phrase & compound KUR scheme bonus
       const keyBigrams = ['super mikro', 'kur mikro', 'kur kecil', 'kur khusus', 'kur pmi', 'penempatan pmi', 'suku bunga', 'agunan tambahan', 'imbal jasa', 'jangka waktu'];
       for (const bg of keyBigrams) {
-        if (qLower.includes(bg) && textLower.includes(bg)) {
-          score += 28;
-        }
+        if (qLower.includes(bg) && textLower.includes(bg)) score += 28;
       }
       if (tokens.length >= 2) {
         const phrase = tokens.slice(0, 3).join(' ');
@@ -306,14 +383,12 @@ window.AkurModule = {
         const weight = isOrig ? 4 : 1.5;
         if (secLower.includes(term)) score += weight * 2;
         if (textLower.includes(term)) {
-          // Hitung frekuensi terbatas agar tidak bias ke chunk super panjang
           const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
           const count = (textLower.match(new RegExp(escaped, 'g')) || []).length;
           score += weight * Math.min(count, 4);
         }
       }
 
-      // Prioritaskan Permenko tahun yang dipilih dibanding Peraturan Induknya
       if (isPrimary) score *= 1.35;
       return score;
     };
@@ -337,12 +412,12 @@ window.AkurModule = {
     }
 
     const combined = [...topPrimary, ...topParent].filter(c => c._score > 0);
-    // Jika semua skor 0 (pertanyaan terlalu umum), kirim 8 chunk pertama dari tahun utama
     return combined.length ? combined : (primaryData?.chunks || []).slice(0, 8).map(c => ({ ...c, sourceType: 'Utama', _score: 1 }));
   },
 
   async answerQuestion(question, year) {
     this.isThinking = true;
+    this.persistActiveThread();
     this.updateChatUI();
 
     try {
@@ -359,8 +434,6 @@ window.AkurModule = {
       const docsInYear = (primaryData?.docs || []).map(d => d.title).join(', ');
       const parentDocs = parentData ? (parentData.docs || []).map(d => d.title).join(', ') : '';
 
-      // Kirim SELURUH teks Permenko tahun terpilih (100% recall, tidak ada pasal yang terlewat)
-      // plus top 12 pasal relevan dari Peraturan Induk jika tahun tersebut adalah Permenko Perubahan
       const fullPrimaryChunks = (primaryData?.chunks || []).map(c => ({ ...c, sourceType: 'Utama' }));
       const topParentChunks = relevantChunks.filter(c => c.sourceType === 'Induk').slice(0, 12);
       const promptChunks = [...fullPrimaryChunks, ...topParentChunks];
@@ -433,7 +506,6 @@ ${contextText}`;
         }
       }
 
-      // Fallback deterministik tanpa opini jika AI API sedang tidak dapat dijangkau
       if (!answerText) {
         const top3 = relevantChunks.slice(0, 3);
         answerText = `Koneksi AI sedang tidak tersedia, berikut **kutipan langsung** paling relevan dari **Permenko KUR Tahun ${year}** (tanpa opini):\n\n` +
@@ -460,6 +532,7 @@ ${contextText}`;
       });
     } finally {
       this.isThinking = false;
+      this.persistActiveThread();
       this.updateChatUI();
     }
   },
@@ -487,7 +560,7 @@ ${contextText}`;
         <div class="bg-gradient-to-r from-[#002B49] to-blue-900 text-white p-5 flex items-center justify-between">
           <div>
             <h3 class="text-base font-black">Daftar Dokumen Permenko KUR Terindeks (2015–2026)</h3>
-            <p class="text-[11px] text-blue-200 mt-0.5">Seluruh jawaban AI AKUR mengacu ketat pada naskah resmi berikut.</p>
+            <p class="text-xs text-blue-200 mt-0.5">Seluruh jawaban AI AKUR mengacu ketat pada naskah resmi berikut.</p>
           </div>
           <button onclick="document.getElementById('akur-catalog-modal').remove()" class="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition">
             <i data-lucide="x" class="w-4 h-4"></i>
@@ -498,8 +571,8 @@ ${contextText}`;
           ${years.map(y => `
             <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50/70">
               <div class="flex items-center justify-between mb-2">
-                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-blue-600 text-white">Tahun ${this.escapeHtml(y.year)}</span>
-                <button onclick="document.getElementById('akur-catalog-modal').remove(); window.AkurModule.selectYear('${this.escapeHtml(y.year)}');" class="text-[11px] font-bold text-blue-700 hover:underline">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-blue-600 text-white">Tahun ${this.escapeHtml(y.year)}</span>
+                <button onclick="document.getElementById('akur-catalog-modal').remove(); window.AkurModule.selectYear('${this.escapeHtml(y.year)}');" class="text-xs font-bold text-blue-700 hover:underline">
                   Gunakan Tahun Ini &rarr;
                 </button>
               </div>
@@ -507,7 +580,7 @@ ${contextText}`;
                 ${(y.docs || []).map(d => `
                   <li class="flex items-center justify-between gap-2">
                     <span class="font-semibold">&bull; ${this.escapeHtml(d.title)}</span>
-                    <span class="text-[10px] text-slate-400 shrink-0">${d.numPages} halaman</span>
+                    <span class="text-xs text-slate-400 shrink-0">${d.numPages} hlm</span>
                   </li>
                 `).join('')}
               </ul>
@@ -523,19 +596,24 @@ ${contextText}`;
 
   updateHeaderMeta() {
     const yearBar = document.getElementById('akur-year-selector');
-    if (yearBar) {
-      yearBar.innerHTML = this.renderYearSelectorButtons();
-    }
+    if (yearBar) yearBar.innerHTML = this.renderYearSelectorButtons();
+
     const activeDocEl = document.getElementById('akur-active-year-docs');
-    if (activeDocEl) {
-      activeDocEl.innerHTML = this.renderActiveYearDocs();
-    }
+    if (activeDocEl) activeDocEl.innerHTML = this.renderActiveYearDocs();
+
     const inputEl = document.getElementById('akur-chat-input');
     if (inputEl) {
       inputEl.placeholder = this.selectedYear
-        ? `Ketik pertanyaan terkait Permenko KUR Tahun ${this.selectedYear} (bebas / free text)...`
-        : 'Ketik pertanyaan seputar KUR (AI akan menanyakan tahun Permenko jika belum dipilih)...';
+        ? `Tanya ketentuan Permenko KUR Tahun ${this.selectedYear} (free text)...`
+        : 'Ketik pertanyaan seputar KUR (pilih tahun di atas terlebih dahulu)...';
     }
+  },
+
+  updateHistorySidebar() {
+    const el = document.getElementById('akur-history-list');
+    if (!el) return;
+    el.innerHTML = this.renderHistoryItems();
+    if (window.lucide) window.lucide.createIcons();
   },
 
   updateChatUI() {
@@ -553,9 +631,9 @@ ${contextText}`;
         <button
           type="button"
           onclick="window.AkurModule.selectYear('${yr}')"
-          class="px-3 py-1.5 rounded-xl text-xs font-bold border transition ${isActive
-            ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/25'
-            : 'bg-white/10 hover:bg-white/20 text-blue-100 border-white/20'}"
+          class="px-2.5 py-1 rounded-lg text-xs font-bold border transition ${isActive
+            ? 'bg-orange-500 text-white border-orange-400 shadow-sm'
+            : 'bg-white/10 hover:bg-white/20 text-blue-100 border-white/15'}"
         >
           ${yr}
         </button>
@@ -565,34 +643,84 @@ ${contextText}`;
 
   renderActiveYearDocs() {
     if (!this.selectedYear) {
-      return `
-        <span class="inline-flex items-center gap-1.5 text-[11px] text-amber-200 font-semibold">
-          <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
-          Belum ada tahun dipilih — pilih tahun di atas agar jawaban akurat sesuai Permenko tahun tersebut.
-        </span>
-      `;
+      return `<span class="text-xs text-amber-200 font-medium">Pilih tahun Permenko KUR terlebih dahulu agar jawaban sesuai aturan tahun tersebut.</span>`;
     }
     const docs = this.getDocsForYear(this.selectedYear);
     const parentYr = this.PARENT_YEAR_MAP[this.selectedYear];
     return `
-      <div class="flex items-center gap-2 flex-wrap">
-        <span class="text-[11px] font-bold text-blue-200">Acuan Aktif (${this.selectedYear}):</span>
+      <div class="flex items-center gap-1.5 flex-wrap">
+        <span class="text-xs font-bold text-blue-200">Acuan ${this.selectedYear}:</span>
         ${docs.map(d => `
-          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/15 text-white border border-white/20">
-            ${this.escapeHtml(d.title)}
+          <span class="px-2 py-0.5 rounded-md text-xs font-semibold bg-white/15 text-white border border-white/20">
+            ${this.escapeHtml(d.title.replace('Permenko Perekonomian ', 'Permenko '))}
           </span>
         `).join('')}
-        ${parentYr ? `<span class="text-[10px] text-blue-200/90 italic">(+ Induk ${parentYr} jika pasal tidak diubah)</span>` : ''}
+        ${parentYr ? `<span class="text-xs text-blue-200/90 italic">(+ Induk ${parentYr})</span>` : ''}
       </div>
     `;
   },
 
+  renderHistoryItems() {
+    if (!this.threads.length) {
+      return `
+        <div class="text-center py-8 px-3 text-slate-400 space-y-1.5">
+          <i data-lucide="history" class="w-6 h-6 mx-auto opacity-50"></i>
+          <p class="text-xs font-semibold text-slate-500">Belum ada riwayat</p>
+          <p class="text-xs text-slate-400">Pertanyaan Anda akan tersimpan otomatis di sini seperti Gemini.</p>
+        </div>
+      `;
+    }
+
+    return this.threads.map(t => {
+      const isActive = t.id === this.activeThreadId;
+      const timeStr = t.updatedAt
+        ? new Date(t.updatedAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+        : '';
+      return `
+        <div
+          onclick="window.AkurModule.openThread('${t.id}')"
+          class="group p-2.5 rounded-xl border cursor-pointer transition flex items-start justify-between gap-2 ${isActive
+            ? 'bg-blue-50 border-blue-200 text-blue-800 shadow-sm'
+            : 'bg-white hover:bg-slate-50 border-transparent hover:border-slate-200 text-slate-700'}"
+        >
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-1.5 mb-0.5">
+              <i data-lucide="message-square" class="w-3.5 h-3.5 shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400'}"></i>
+              <p class="text-xs font-semibold truncate">${this.escapeHtml(t.title)}</p>
+            </div>
+            <div class="flex items-center gap-1.5 pl-5 text-[11px] text-slate-400">
+              ${t.year ? `<span class="px-1.5 py-0.2 rounded bg-blue-100/80 text-blue-700 font-bold">${this.escapeHtml(t.year)}</span>` : ''}
+              <span class="truncate">${timeStr}</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onclick="window.AkurModule.deleteThread('${t.id}', event)"
+            title="Hapus riwayat"
+            class="opacity-0 group-hover:opacity-100 p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition shrink-0"
+          >
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      `;
+    }).join('');
+  },
+
   renderChatMessages() {
+    const quickPrompts = [
+      'Berapa suku bunga / marjin KUR Super Mikro, KUR Mikro, dan KUR Kecil?',
+      'Bagaimana ketentuan agunan pokok dan agunan tambahan pada KUR?',
+      'Berapa batas plafon dan akumulasi plafon KUR sektor produksi dan non-produksi?',
+      'Bagaimana aturan perpanjangan, suplesi, dan restrukturisasi KUR?'
+    ];
+
+    const hasUserMsg = this.messages.some(m => m.role === 'user');
+
     const bubbles = this.messages.map(msg => {
       if (msg.role === 'user') {
         return `
           <div class="flex justify-end">
-            <div class="max-w-[82%] bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-3 rounded-2xl rounded-br-sm shadow-sm text-xs leading-relaxed">
+            <div class="max-w-[82%] bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2.5 rounded-2xl rounded-br-sm shadow-sm text-sm leading-relaxed">
               ${this.escapeHtml(msg.text)}
             </div>
           </div>
@@ -604,22 +732,39 @@ ${contextText}`;
           <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#002B49] to-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
             <i data-lucide="book-open-check" class="w-4 h-4"></i>
           </div>
-          <div class="max-w-[88%] bg-white border border-slate-200/90 rounded-2xl rounded-tl-sm p-4 shadow-sm space-y-3 text-xs text-slate-700 leading-relaxed">
+          <div class="flex-1 min-w-0 bg-white border border-slate-200/90 rounded-2xl rounded-tl-sm p-4 shadow-sm space-y-2.5 text-sm text-slate-700 leading-relaxed">
             <div class="flex items-center justify-between gap-2 flex-wrap">
-              <span class="font-extrabold text-[#002B49] text-[11px] uppercase tracking-wider flex items-center gap-1.5">
+              <span class="font-bold text-[#002B49] text-xs flex items-center gap-1.5">
                 <span>Asisten Permenko KUR</span>
-                ${msg.year ? `<span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[10px] normal-case">Acuan Tahun ${this.escapeHtml(msg.year)}</span>` : ''}
+                ${msg.year ? `<span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs">Tahun ${this.escapeHtml(msg.year)}</span>` : ''}
               </span>
-              <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
+              <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
                 Berbasis Permenko · Tanpa Opini
               </span>
             </div>
 
             <div>${this.formatMarkdownSafe(msg.text)}</div>
 
+            ${msg.type === 'welcome' && !hasUserMsg ? `
+              <div class="pt-2 border-t border-slate-100">
+                <p class="text-xs font-bold text-slate-500 mb-2">Contoh Pertanyaan Cepat:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  ${quickPrompts.map(q => `
+                    <button
+                      type="button"
+                      onclick="window.AkurModule.askQuickQuestion('${this.escapeHtml(q)}')"
+                      class="p-2.5 rounded-xl text-xs font-semibold bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 border border-slate-200/80 hover:border-blue-200 text-left transition"
+                    >
+                      ${this.escapeHtml(q)}
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+
             ${msg.type === 'ask_year' && !this.selectedYear ? `
               <div class="pt-2 border-t border-slate-100">
-                <p class="text-[11px] font-bold text-slate-500 mb-2">Pilih Tahun Permenko KUR:</p>
+                <p class="text-xs font-bold text-slate-500 mb-2">Pilih Tahun Permenko KUR:</p>
                 <div class="flex flex-wrap gap-1.5">
                   ${this.AVAILABLE_YEARS.map(yr => `
                     <button
@@ -635,9 +780,9 @@ ${contextText}`;
             ` : ''}
 
             ${Array.isArray(msg.sources) && msg.sources.length ? `
-              <div class="pt-2.5 border-t border-slate-100 space-y-2">
-                <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                  <i data-lucide="file-text" class="w-3 h-3"></i>
+              <div class="pt-2.5 border-t border-slate-100 space-y-1.5">
+                <p class="text-xs font-bold text-slate-500 flex items-center gap-1.5">
+                  <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
                   <span>Rujukan Pasal Permenko (klik untuk lihat teks asli)</span>
                 </p>
                 <div class="space-y-1.5">
@@ -646,14 +791,14 @@ ${contextText}`;
                       <button
                         type="button"
                         onclick="window.AkurModule.toggleSourceDetail('${msg.id}', ${idx})"
-                        class="w-full px-3 py-2 text-left flex items-center justify-between gap-2 hover:bg-blue-50/60 transition text-[11px]"
+                        class="w-full px-3 py-2 text-left flex items-center justify-between gap-2 hover:bg-blue-50/60 transition text-xs"
                       >
                         <span class="font-bold text-slate-700">
                           ${this.escapeHtml(src.doc)} — <span class="text-blue-700">${this.escapeHtml(src.section)}</span>
                         </span>
-                        <span class="text-[10px] font-semibold text-slate-400 shrink-0">Lihat Kutipan &#9662;</span>
+                        <span class="text-xs font-semibold text-slate-400 shrink-0">Lihat Kutipan &#9662;</span>
                       </button>
-                      <div id="src-${msg.id}-${idx}" class="hidden px-3 py-2.5 bg-white border-t border-slate-200/70 text-[11px] text-slate-600 whitespace-pre-line leading-relaxed max-h-48 overflow-y-auto">
+                      <div id="src-${msg.id}-${idx}" class="hidden px-3 py-2.5 bg-white border-t border-slate-200/70 text-xs text-slate-600 whitespace-pre-line leading-relaxed max-h-48 overflow-y-auto">
                         ${this.escapeHtml(src.text)}
                       </div>
                     </div>
@@ -671,7 +816,7 @@ ${contextText}`;
         <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#002B49] to-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
           <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
         </div>
-        <div class="bg-white border border-blue-200 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm text-xs text-blue-800 font-semibold flex items-center gap-2">
+        <div class="bg-white border border-blue-200 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm text-sm text-blue-800 font-semibold flex items-center gap-2">
           <span>Membaca pasal-pasal Permenko KUR Tahun ${this.escapeHtml(this.selectedYear || '')}...</span>
         </div>
       </div>
@@ -688,117 +833,101 @@ ${contextText}`;
 
     setTimeout(() => this.init(), 0);
 
-    const quickPrompts = [
-      'Berapa suku bunga / marjin KUR Super Mikro, KUR Mikro, dan KUR Kecil?',
-      'Bagaimana ketentuan agunan pokok dan agunan tambahan pada KUR?',
-      'Berapa batas plafon dan akumulasi plafon KUR sektor produksi dan non-produksi?',
-      'Bagaimana aturan perpanjangan, suplesi, dan restrukturisasi KUR?'
-    ];
-
     return `
-      <div class="space-y-5 animate-fadeIn pb-6">
-        <!-- Module Header -->
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-l-4 border-l-blue-600">
-          <div class="flex items-start sm:items-center gap-3.5 min-w-0">
-            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#002B49] to-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/20 shrink-0">
-              <i data-lucide="book-open-check" class="w-6 h-6"></i>
+      <div class="flex flex-col gap-3 animate-fadeIn h-[calc(100vh-118px)] min-h-[540px]">
+        <!-- Compact Single-Row Module Header -->
+        <div class="bg-white px-4 py-3 rounded-2xl border border-slate-200/80 shadow-sm flex flex-wrap items-center justify-between gap-3 border-l-4 border-l-blue-600 shrink-0">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#002B49] to-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-600/20 shrink-0">
+              <i data-lucide="book-open-check" class="w-5 h-5"></i>
             </div>
-            <div class="min-w-0">
-              <div class="flex items-center gap-2 flex-wrap">
-                <h1 class="text-xl font-black text-slate-900 tracking-tight">AKUR</h1>
-                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
-                  Tanya-Tanya Permenko KUR
-                </span>
-                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  20 Permenko (2015–2026) · Tanpa Opini
-                </span>
-              </div>
-              <p class="text-xs text-slate-500 mt-1">
-                Asisten AI khusus regulasi Kredit Usaha Rakyat (KUR). Ajukan pertanyaan bebas dan dapatkan jawaban faktual yang mengacu ketat pada pasal resmi Permenko KUR sesuai tahunnya.
-              </p>
+            <div class="flex items-center gap-2 flex-wrap min-w-0">
+              <h1 class="text-lg font-black text-slate-900 tracking-tight">AKUR</h1>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-800 border border-blue-200">
+                Tanya-Tanya Permenko KUR
+              </span>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hidden sm:inline-flex">
+                20 Permenko (2015–2026) · Tanpa Opini
+              </span>
             </div>
           </div>
 
-          <div class="flex items-center gap-2 shrink-0 flex-wrap">
-            <button type="button" onclick="window.AkurModule.openCatalogModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition">
+          <div class="flex items-center gap-2 shrink-0">
+            <button type="button" onclick="window.AkurModule.openCatalogModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition">
               <i data-lucide="library" class="w-3.5 h-3.5 text-blue-600"></i>
               <span>Daftar Permenko</span>
             </button>
-            <button type="button" onclick="window.AkurModule.resetConversation(true)" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition">
-              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-              <span>Reset Tanya</span>
+            <button type="button" onclick="window.AkurModule.startNewChat(true)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              <span>Chat Baru</span>
             </button>
           </div>
         </div>
 
-        <!-- Hero Panel: Pilih Tahun + Fitur Tanya AI di Atas -->
-        <div class="rounded-3xl bg-gradient-to-br from-[#002B49] via-[#0A3D62] to-[#1E3A8A] p-5 sm:p-6 text-white shadow-xl space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <span class="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-amber-300">
-                <i data-lucide="calendar-check" class="w-3.5 h-3.5"></i> Langkah 1: Pilih Tahun · Langkah 2: Ajukan Pertanyaan
+        <!-- 1-View Main Workspace: Riwayat (Kiri) + Tanya & Jawaban (Kanan) -->
+        <div class="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-3">
+          <!-- Left Sidebar: Riwayat Pertanyaan ala Gemini -->
+          <aside class="lg:col-span-3 bg-white rounded-2xl border border-slate-200/90 shadow-sm flex flex-col min-h-0 overflow-hidden">
+            <div class="p-3 border-b border-slate-100 flex items-center justify-between gap-2 shrink-0">
+              <span class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
+                <i data-lucide="history" class="w-4 h-4 text-blue-600"></i>
+                <span>Riwayat Pertanyaan</span>
               </span>
-              <h2 class="text-base sm:text-lg font-black tracking-tight mt-0.5">Tanya-Tanya Permenko KUR</h2>
-            </div>
-            <span class="text-[11px] text-blue-200 font-medium">Tiap tahun memiliki ketentuan berbeda</span>
-          </div>
-
-          <div id="akur-year-selector" class="flex flex-wrap gap-2">
-            ${this.renderYearSelectorButtons()}
-          </div>
-
-          <div id="akur-active-year-docs" class="pt-2 border-t border-white/15">
-            ${this.renderActiveYearDocs()}
-          </div>
-
-          <!-- Chat Input Form (Di Atas) -->
-          <form onsubmit="window.AkurModule.handleChatSubmit(event)" class="pt-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-            <div class="relative flex-1">
-              <i data-lucide="message-square-text" class="w-4 h-4 text-blue-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-              <input
-                id="akur-chat-input"
-                type="text"
-                autocomplete="off"
-                placeholder="${this.selectedYear ? `Ketik pertanyaan terkait Permenko KUR Tahun ${this.selectedYear} (bebas / free text)...` : 'Ketik pertanyaan seputar KUR (AI akan menanyakan tahun Permenko jika belum dipilih)...'}"
-                class="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-semibold shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-400/40 transition"
-              />
-            </div>
-            <button
-              type="submit"
-              class="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-xs sm:text-sm font-bold bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg shadow-orange-500/25 transition shrink-0"
-            >
-              <span>Tanya AI</span>
-              <i data-lucide="send" class="w-4 h-4"></i>
-            </button>
-          </form>
-
-          <!-- Suggested Quick Questions -->
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="text-[10px] font-bold uppercase tracking-wider text-blue-200">Contoh:</span>
-            ${quickPrompts.map(q => `
               <button
                 type="button"
-                onclick="window.AkurModule.askQuickQuestion('${this.escapeHtml(q)}')"
-                class="px-3 py-1.5 rounded-full text-[11px] font-semibold bg-white/10 hover:bg-white/20 text-blue-50 border border-white/15 text-left transition"
+                onclick="window.AkurModule.startNewChat(true)"
+                title="Percakapan Baru"
+                class="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 transition"
               >
-                ${this.escapeHtml(q)}
+                <i data-lucide="square-pen" class="w-3.5 h-3.5"></i>
               </button>
-            `).join('')}
-          </div>
-        </div>
+            </div>
+            <div id="akur-history-list" class="flex-1 overflow-y-auto p-2 space-y-1">
+              ${this.renderHistoryItems()}
+            </div>
+          </aside>
 
-        <!-- Chat Answers Feed -->
-        <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col">
-          <div class="px-5 py-3 bg-slate-50 border-b border-slate-200/70 flex items-center justify-between text-xs">
-            <span class="font-extrabold text-slate-700 flex items-center gap-1.5">
-              <i data-lucide="messages-square" class="w-4 h-4 text-blue-600"></i>
-              <span>Hasil Jawaban &amp; Rujukan Pasal Permenko</span>
-            </span>
-            <span class="text-[11px] text-slate-400 font-medium">Jawaban faktual tanpa opini</span>
-          </div>
-          <div id="akur-chat-feed" class="p-5 sm:p-6 space-y-4 bg-slate-50/50 min-h-[280px] max-h-[540px] overflow-y-auto">
-            ${this.renderChatMessages()}
-          </div>
+          <!-- Right Panel: Tanya (Atas) + Jawaban (Bawah) dalam 1 View -->
+          <section class="lg:col-span-9 bg-white rounded-2xl border border-slate-200/90 shadow-sm flex flex-col min-h-0 overflow-hidden">
+            <!-- Compact Top Ask + Year Bar -->
+            <div class="bg-gradient-to-r from-[#002B49] via-[#0A3D62] to-[#1E3A8A] p-3.5 text-white space-y-2.5 shrink-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-xs font-extrabold text-amber-300 shrink-0">Tahun Permenko:</span>
+                <div id="akur-year-selector" class="flex flex-wrap gap-1.5">
+                  ${this.renderYearSelectorButtons()}
+                </div>
+              </div>
+
+              <div id="akur-active-year-docs">
+                ${this.renderActiveYearDocs()}
+              </div>
+
+              <form onsubmit="window.AkurModule.handleChatSubmit(event)" class="flex items-center gap-2">
+                <div class="relative flex-1">
+                  <i data-lucide="message-square-text" class="w-4 h-4 text-blue-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                  <input
+                    id="akur-chat-input"
+                    type="text"
+                    autocomplete="off"
+                    placeholder="${this.selectedYear ? `Tanya ketentuan Permenko KUR Tahun ${this.selectedYear} (free text)...` : 'Ketik pertanyaan seputar KUR (pilih tahun di atas terlebih dahulu)...'}"
+                    class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white text-slate-900 placeholder:text-slate-400 text-sm font-medium shadow focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  class="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-bold bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-md transition shrink-0"
+                >
+                  <span>Tanya AI</span>
+                  <i data-lucide="send" class="w-4 h-4"></i>
+                </button>
+              </form>
+            </div>
+
+            <!-- Scrollable Q&A Feed inside 1-View -->
+            <div id="akur-chat-feed" class="flex-1 min-h-0 overflow-y-auto p-4 space-y-3.5 bg-slate-50/60">
+              ${this.renderChatMessages()}
+            </div>
+          </section>
         </div>
       </div>
     `;
