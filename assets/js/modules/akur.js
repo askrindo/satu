@@ -34,6 +34,7 @@ window.AkurModule = {
   yearCache: {},
   threads: [],
   activeThreadId: null,
+  historySearchQuery: '',
   selectedYear: null,
   pendingQuestion: '',
   isThinking: false,
@@ -660,6 +661,27 @@ ${contextText}`;
     `;
   },
 
+  setHistorySearch(val) {
+    this.historySearchQuery = String(val || '');
+    this.updateHistorySidebar();
+    const clearBtn = document.getElementById('akur-history-search-clear');
+    if (clearBtn) {
+      clearBtn.classList.toggle('hidden', !this.historySearchQuery.trim());
+    }
+  },
+
+  clearHistorySearch() {
+    this.historySearchQuery = '';
+    const inp = document.getElementById('akur-history-search');
+    if (inp) {
+      inp.value = '';
+      inp.focus();
+    }
+    const clearBtn = document.getElementById('akur-history-search-clear');
+    if (clearBtn) clearBtn.classList.add('hidden');
+    this.updateHistorySidebar();
+  },
+
   renderHistoryItems() {
     if (!this.threads.length) {
       return `
@@ -671,7 +693,27 @@ ${contextText}`;
       `;
     }
 
-    return this.threads.map(t => {
+    const q = this.historySearchQuery.trim().toLowerCase();
+    const filteredThreads = q
+      ? this.threads.filter(t => {
+          const inTitle = String(t.title || '').toLowerCase().includes(q);
+          const inYear = String(t.year || '').toLowerCase().includes(q);
+          const inMsgs = Array.isArray(t.messages) && t.messages.some(m => String(m.text || '').toLowerCase().includes(q));
+          return inTitle || inYear || inMsgs;
+        })
+      : this.threads;
+
+    if (!filteredThreads.length) {
+      return `
+        <div class="text-center py-8 px-3 text-slate-400 space-y-1.5">
+          <i data-lucide="search-x" class="w-6 h-6 mx-auto opacity-50"></i>
+          <p class="text-xs font-semibold text-slate-500">Riwayat tidak ditemukan</p>
+          <p class="text-xs text-slate-400">Tidak ada percakapan yang cocok dengan "${this.escapeHtml(this.historySearchQuery.trim())}".</p>
+        </div>
+      `;
+    }
+
+    return filteredThreads.map(t => {
       const isActive = t.id === this.activeThreadId;
       const timeStr = t.updatedAt
         ? new Date(t.updatedAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
@@ -881,6 +923,28 @@ ${contextText}`;
               >
                 <i data-lucide="square-pen" class="w-3.5 h-3.5"></i>
               </button>
+            </div>
+            <div class="px-2.5 pt-2.5 pb-1 shrink-0">
+              <div class="relative">
+                <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                <input
+                  id="akur-history-search"
+                  type="text"
+                  value="${this.escapeHtml(this.historySearchQuery)}"
+                  oninput="window.AkurModule.setHistorySearch(this.value)"
+                  placeholder="Cari riwayat / tahun..."
+                  class="w-full pl-8 pr-7 py-1.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-xs text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition"
+                />
+                <button
+                  id="akur-history-search-clear"
+                  type="button"
+                  onclick="window.AkurModule.clearHistorySearch()"
+                  title="Hapus pencarian"
+                  class="${this.historySearchQuery ? '' : 'hidden'} absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
             </div>
             <div id="akur-history-list" class="flex-1 overflow-y-auto p-2 space-y-1">
               ${this.renderHistoryItems()}
