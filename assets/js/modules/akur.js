@@ -733,14 +733,14 @@ ${contextText}`;
           </div>
         </div>
 
-        <!-- Year Selector Hero Bar -->
-        <div class="rounded-3xl bg-gradient-to-br from-[#002B49] via-[#0A3D62] to-[#1E3A8A] p-5 sm:p-6 text-white shadow-xl space-y-3.5">
+        <!-- Hero Panel: Pilih Tahun + Fitur Tanya AI di Atas -->
+        <div class="rounded-3xl bg-gradient-to-br from-[#002B49] via-[#0A3D62] to-[#1E3A8A] p-5 sm:p-6 text-white shadow-xl space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <span class="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-amber-300">
-                <i data-lucide="calendar-check" class="w-3.5 h-3.5"></i> Langkah Wajib: Pilih Tahun Permenko KUR
+                <i data-lucide="calendar-check" class="w-3.5 h-3.5"></i> Langkah 1: Pilih Tahun · Langkah 2: Ajukan Pertanyaan
               </span>
-              <h2 class="text-base sm:text-lg font-black tracking-tight mt-0.5">Acuan Tahun Peraturan Permenko KUR</h2>
+              <h2 class="text-base sm:text-lg font-black tracking-tight mt-0.5">Tanya-Tanya Permenko KUR</h2>
             </div>
             <span class="text-[11px] text-blue-200 font-medium">Tiap tahun memiliki ketentuan berbeda</span>
           </div>
@@ -752,46 +752,55 @@ ${contextText}`;
           <div id="akur-active-year-docs" class="pt-2 border-t border-white/15">
             ${this.renderActiveYearDocs()}
           </div>
-        </div>
 
-        <!-- Chat Workspace -->
-        <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col">
-          <!-- Chat Feed -->
-          <div id="akur-chat-feed" class="p-5 sm:p-6 space-y-4 bg-slate-50/70 min-h-[340px] max-h-[520px] overflow-y-auto">
-            ${this.renderChatMessages()}
-          </div>
-
-          <!-- Suggested Quick Questions -->
-          <div class="px-5 py-3 bg-white border-t border-slate-100 flex items-center gap-2 overflow-x-auto">
-            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 shrink-0">Contoh:</span>
-            ${quickPrompts.map(q => `
-              <button
-                type="button"
-                onclick="window.AkurModule.askQuickQuestion('${this.escapeHtml(q)}')"
-                class="px-3 py-1.5 rounded-full text-[11px] font-semibold bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-700 border border-slate-200/80 whitespace-nowrap transition shrink-0"
-              >
-                ${this.escapeHtml(q)}
-              </button>
-            `).join('')}
-          </div>
-
-          <!-- Chat Input Form -->
-          <form onsubmit="window.AkurModule.handleChatSubmit(event)" class="p-4 bg-white border-t border-slate-200 flex items-center gap-2.5">
-            <input
-              id="akur-chat-input"
-              type="text"
-              autocomplete="off"
-              placeholder="${this.selectedYear ? `Ketik pertanyaan terkait Permenko KUR Tahun ${this.selectedYear} (bebas / free text)...` : 'Ketik pertanyaan seputar KUR (AI akan menanyakan tahun Permenko jika belum dipilih)...'}"
-              class="flex-1 px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-500/15 focus:border-blue-500 transition"
-            />
+          <!-- Chat Input Form (Di Atas) -->
+          <form onsubmit="window.AkurModule.handleChatSubmit(event)" class="pt-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+            <div class="relative flex-1">
+              <i data-lucide="message-square-text" class="w-4 h-4 text-blue-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+              <input
+                id="akur-chat-input"
+                type="text"
+                autocomplete="off"
+                placeholder="${this.selectedYear ? `Ketik pertanyaan terkait Permenko KUR Tahun ${this.selectedYear} (bebas / free text)...` : 'Ketik pertanyaan seputar KUR (AI akan menanyakan tahun Permenko jika belum dipilih)...'}"
+                class="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-semibold shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-400/40 transition"
+              />
+            </div>
             <button
               type="submit"
-              class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white shadow-md shadow-blue-600/20 transition shrink-0"
+              class="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-xs sm:text-sm font-bold bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg shadow-orange-500/25 transition shrink-0"
             >
               <span>Tanya AI</span>
               <i data-lucide="send" class="w-4 h-4"></i>
             </button>
           </form>
+
+          <!-- Suggested Quick Questions -->
+          <div class="flex items-center gap-2 overflow-x-auto pb-0.5">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-blue-200 shrink-0">Contoh:</span>
+            ${quickPrompts.map(q => `
+              <button
+                type="button"
+                onclick="window.AkurModule.askQuickQuestion('${this.escapeHtml(q)}')"
+                class="px-3 py-1.5 rounded-full text-[11px] font-semibold bg-white/10 hover:bg-white/20 text-blue-50 border border-white/15 whitespace-nowrap transition shrink-0"
+              >
+                ${this.escapeHtml(q)}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Chat Answers Feed -->
+        <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col">
+          <div class="px-5 py-3 bg-slate-50 border-b border-slate-200/70 flex items-center justify-between text-xs">
+            <span class="font-extrabold text-slate-700 flex items-center gap-1.5">
+              <i data-lucide="messages-square" class="w-4 h-4 text-blue-600"></i>
+              <span>Hasil Jawaban &amp; Rujukan Pasal Permenko</span>
+            </span>
+            <span class="text-[11px] text-slate-400 font-medium">Jawaban faktual tanpa opini</span>
+          </div>
+          <div id="akur-chat-feed" class="p-5 sm:p-6 space-y-4 bg-slate-50/50 min-h-[280px] max-h-[540px] overflow-y-auto">
+            ${this.renderChatMessages()}
+          </div>
         </div>
       </div>
     `;
