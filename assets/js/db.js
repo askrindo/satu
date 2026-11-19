@@ -428,19 +428,10 @@ class AskrindoDB {
     if (!localStorage.getItem(DB_KEYS.USERS)) {
       localStorage.setItem(DB_KEYS.USERS, JSON.stringify(INITIAL_USERS));
     } else {
-      // Auto-migrate: Pastikan modul 'cepat' tersedia & role diperbarui ke struktur baru
+      // Auto-migrate: Normalisasi role, unit kerja & avatar tanpa memaksa tambah hak akses modul
       try {
         const users = JSON.parse(localStorage.getItem(DB_KEYS.USERS)) || [];
         users.forEach(u => {
-          if ((u.id === 'USR-001' || u.id === 'USR-002' || u.id === 'USR-004' || u.role === 'Super Administrator') && !(u.allowedApps || []).includes('cepat')) {
-            u.allowedApps = [...(u.allowedApps || []), 'cepat'];
-          }
-          if (!(u.allowedApps || []).includes('pasti')) {
-            u.allowedApps = [...(u.allowedApps || []), 'pasti'];
-          }
-          if (!localStorage.getItem(`askrindo_ceklist_revoked_${u.id}`) && !(u.allowedApps || []).includes('ceklist')) {
-            u.allowedApps = [...(u.allowedApps || []), 'ceklist'];
-          }
           u.allowedApps = this.normalizeAllowedApps(u.allowedApps);
           if (u.role) {
             u.role = this.normalizeLegacyRole(u.role);
@@ -461,15 +452,6 @@ class AskrindoDB {
             sessUpdated = true;
           }
           const normalizedApps = this.normalizeAllowedApps(sess.allowedApps);
-          if ((sess.id === 'USR-001' || sess.id === 'USR-002' || sess.id === 'USR-004' || sess.role === 'Super Administrator') && !normalizedApps.includes('cepat')) {
-            normalizedApps.push('cepat');
-          }
-          if (!normalizedApps.includes('pasti')) {
-            normalizedApps.push('pasti');
-          }
-          if (!localStorage.getItem(`askrindo_ceklist_revoked_${sess.id}`) && !normalizedApps.includes('ceklist')) {
-            normalizedApps.push('ceklist');
-          }
           if (JSON.stringify(normalizedApps) !== JSON.stringify(sess.allowedApps || [])) {
             sess.allowedApps = normalizedApps;
             sessUpdated = true;
@@ -570,15 +552,7 @@ class AskrindoDB {
           const ov = overrides[`id:${u.id}`] || (u.nip ? overrides[`nip:${String(u.nip).toLowerCase().trim()}`] : null);
           const resolvedAllowed = ov && Array.isArray(ov.allowedApps)
             ? this.normalizeAllowedApps(ov.allowedApps)
-            : this.normalizeAllowedApps(u.allowed_apps || ['lapor', 'pasti']);
-          const isPastiRevoked = localStorage.getItem(`askrindo_pasti_revoked_${u.id}`) === '1';
-          if (!isPastiRevoked && !resolvedAllowed.includes('pasti')) {
-            resolvedAllowed.push('pasti');
-          }
-          const isCeklistRevoked = localStorage.getItem(`askrindo_ceklist_revoked_${u.id}`) === '1';
-          if (!isCeklistRevoked && !resolvedAllowed.includes('ceklist')) {
-            resolvedAllowed.push('ceklist');
-          }
+            : this.normalizeAllowedApps(Array.isArray(u.allowed_apps) ? u.allowed_apps : []);
           return {
             id: u.id,
             nip: ov?.nip || u.nip,

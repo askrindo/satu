@@ -89,6 +89,7 @@ window.PastiModule = {
   },
 
   async syncFromSheet(showNotification = true) {
+    if (!window.authService || !window.authService.hasAccess('pasti')) return;
     if (this.isSyncing) return;
     this.isSyncing = true;
     this.lastSyncAttemptAt = Date.now();
@@ -1170,6 +1171,9 @@ window.PastiModule = {
   },
 
   render() {
+    if (!window.authService || !window.authService.hasAccess('pasti')) {
+      return window.askrindoApp.renderUnauthorized('PASTI');
+    }
     setTimeout(() => this.init(), 0);
     return `
       <div id="pasti-module-root" class="space-y-5 pb-6">

@@ -476,6 +476,34 @@ class AskrindoApp {
 
     const route = this.currentRoute;
 
+    // Centralized Route-Level RBAC Guard (Single Source of Truth — mencegah bypass akses di semua modul)
+    const routeGuardMap = [
+      { prefix: '#/kabar', appId: 'kabar', label: 'KABAR' },
+      { prefix: '#/akur', appId: 'akur', label: 'AKUR' },
+      { prefix: '#/sedia', appId: 'sedia', label: 'SEDIA' },
+      { prefix: '#/cepat', appId: 'cepat', label: 'CEPAT' },
+      { prefix: '#/lapor', appId: 'lapor', label: 'LAPOR' },
+      { prefix: '#/pasti', appId: 'pasti', label: 'PASTI' },
+      { prefix: '#/ceklist', appId: 'ceklist', label: 'CEKLIST' }
+    ];
+
+    const matchedGuard = routeGuardMap.find(g => route.startsWith(g.prefix));
+    if (matchedGuard && !window.authService.hasAccess(matchedGuard.appId)) {
+      main.innerHTML = this.renderUnauthorized(matchedGuard.label);
+      this.updateActiveNavs();
+      if (window.lucide) window.lucide.createIcons();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (route.startsWith('#/admin') && !window.authService.canAccessAdmin()) {
+      main.innerHTML = this.renderUnauthorized('Web Admin Portal');
+      this.updateActiveNavs();
+      if (window.lucide) window.lucide.createIcons();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     if (route === '#/dashboard' || route === '') {
       main.innerHTML = window.DashboardModule.render();
     } else if (route.startsWith('#/kabar')) {
