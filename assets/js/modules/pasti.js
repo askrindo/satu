@@ -857,8 +857,10 @@ window.PastiModule = {
   },
 
   formatInputDateToId(isoDateStr) {
-    const m = String(isoDateStr || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (!m) return String(isoDateStr || '').trim() || '-';
+    const raw = String(isoDateStr || '').trim();
+    if (!raw) return '';
+    const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return raw;
     return `${m[3]}/${m[2]}/${m[1]}`;
   },
 
@@ -914,6 +916,7 @@ window.PastiModule = {
             <div class="sm:col-span-4">
               <label class="block font-bold text-slate-700 mb-1">Jenis COB <span class="text-rose-500">*</span></label>
               <select id="pasti-add-cob" required class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-500 font-semibold text-slate-800">
+                <option value="" selected>-- Pilih Jenis COB --</option>
                 <option value="SB">SB (Surety Bond)</option>
                 <option value="KBG">KBG (Kontra BG)</option>
               </select>
@@ -921,22 +924,23 @@ window.PastiModule = {
 
             <div class="sm:col-span-4">
               <label class="block font-bold text-slate-700 mb-1">Tanggal</label>
-              <input id="pasti-add-tanggal" type="date" value="${todayIso}" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-500 font-semibold text-slate-800" />
+              <input id="pasti-add-tanggal" type="date" value="" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-500 font-semibold text-slate-800" />
             </div>
 
             <div class="sm:col-span-4">
               <label class="block font-bold text-slate-700 mb-1">JW Awal</label>
-              <input id="pasti-add-jw-awal" type="date" value="${todayIso}" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-500 font-semibold text-slate-800" />
+              <input id="pasti-add-jw-awal" type="date" value="" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-500 font-semibold text-slate-800" />
             </div>
 
             <div class="sm:col-span-4">
               <label class="block font-bold text-slate-700 mb-1">JW Akhir</label>
-              <input id="pasti-add-jw-akhir" type="date" value="${nextYearIso}" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-500 font-semibold text-slate-800" />
+              <input id="pasti-add-jw-akhir" type="date" value="" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-500 font-semibold text-slate-800" />
             </div>
 
             <div class="sm:col-span-4">
               <label class="block font-bold text-slate-700 mb-1">Status SPKMGR</label>
               <select id="pasti-add-status" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-500 font-semibold text-slate-800">
+                <option value="" selected>-- Pilih Status SPKMGR --</option>
                 <option value="Waarmerking">Waarmerking</option>
                 <option value="Tidak Di Warmeking">Tidak Di Warmeking</option>
                 <option value="Legalisasi">Legalisasi</option>
@@ -946,6 +950,7 @@ window.PastiModule = {
             <div class="sm:col-span-4">
               <label class="block font-bold text-slate-700 mb-1">Kelengkapan Dokumen</label>
               <select id="pasti-add-keterangan" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-500 font-semibold text-slate-800">
+                <option value="" selected>-- Pilih Kelengkapan --</option>
                 <option value="Belum Ada SPKMGR">Belum Ada SPKMGR</option>
                 <option value="Ada SPKMGR">Ada SPKMGR</option>
                 <option value="Ada SPKMGR (Softfile)">Ada SPKMGR (Softfile)</option>
@@ -955,6 +960,7 @@ window.PastiModule = {
             <div class="sm:col-span-4">
               <label class="block font-bold text-slate-700 mb-1">Status Pembayaran</label>
               <select id="pasti-add-pembayaran" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-500 font-semibold text-slate-800">
+                <option value="" selected>-- Pilih Pembayaran --</option>
                 <option value="Belum Bayar">Belum Bayar</option>
                 <option value="Sudah Bayar">Sudah Bayar</option>
                 <option value="-">-</option>
@@ -1014,13 +1020,13 @@ window.PastiModule = {
       btn.innerHTML = '<span>Menambahkan ke Spreadsheet...</span>';
     }
 
-    const jenisCob = document.getElementById('pasti-add-cob')?.value || 'SB';
+    const jenisCob = document.getElementById('pasti-add-cob')?.value || '';
     const tanggal = this.formatInputDateToId(document.getElementById('pasti-add-tanggal')?.value);
     const jwAwal = this.formatInputDateToId(document.getElementById('pasti-add-jw-awal')?.value);
     const jwAkhir = this.formatInputDateToId(document.getElementById('pasti-add-jw-akhir')?.value);
-    const statusSpkmgr = document.getElementById('pasti-add-status')?.value || 'Waarmerking';
-    const keterangan = document.getElementById('pasti-add-keterangan')?.value || 'Belum Ada SPKMGR';
-    const statusPembayaran = document.getElementById('pasti-add-pembayaran')?.value || 'Belum Bayar';
+    const statusSpkmgr = document.getElementById('pasti-add-status')?.value || '';
+    const keterangan = document.getElementById('pasti-add-keterangan')?.value || '';
+    const statusPembayaran = document.getElementById('pasti-add-pembayaran')?.value || '';
     const namaRm = (document.getElementById('pasti-add-rm')?.value || '').trim();
     const biayaInput = (document.getElementById('pasti-add-biaya')?.value || '').trim();
     const catatan = (document.getElementById('pasti-add-catatan')?.value || '').trim();
