@@ -165,6 +165,27 @@ ALTER TABLE public.akur_threads ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow public all access on akur_threads" ON public.akur_threads;
 CREATE POLICY "Allow public all access on akur_threads" ON public.akur_threads FOR ALL USING (true) WITH CHECK (true);
 
+-- 8. Tabel Principal Blacklist CEKLIST (Cek Entitas dan Kelola List Informasi Status Terblokir)
+CREATE TABLE IF NOT EXISTS public.ceklist_blacklist (
+    id TEXT PRIMARY KEY,
+    company_name TEXT NOT NULL,
+    npwp TEXT,
+    address TEXT,
+    reason TEXT,
+    status TEXT NOT NULL DEFAULT 'Terblokir Aktif',
+    blacklist_date TEXT,
+    notes TEXT,
+    officers JSONB NOT NULL DEFAULT '[]'::jsonb,
+    created_by TEXT,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_ceklist_blacklist_company ON public.ceklist_blacklist (company_name);
+ALTER TABLE public.ceklist_blacklist ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow public all access on ceklist_blacklist" ON public.ceklist_blacklist;
+CREATE POLICY "Allow public all access on ceklist_blacklist" ON public.ceklist_blacklist FOR ALL USING (true) WITH CHECK (true);
+
 -- ========================================================
 -- SEED DATA AWAL (Pengguna & Data SPPA Bawaan Askrindo SATU)
 -- ========================================================

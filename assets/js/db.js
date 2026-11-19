@@ -37,7 +37,7 @@ const INITIAL_USERS = [
     division: 'Divisi Teknologi Informasi (Technology Information Division)',
     branch: 'Divisi Teknologi Informasi (Technology Information Division)',
     avatar: DEFAULT_AVATAR,
-    allowedApps: ['kabar', 'akur', 'sedia', 'lapor', 'cepat', 'pasti', 'admin'],
+    allowedApps: ['kabar', 'akur', 'sedia', 'lapor', 'cepat', 'pasti', 'ceklist', 'admin'],
     status: 'active',
     createdAt: '2026-01-10T08:00:00Z',
     lastLogin: '2026-11-12T09:30:00Z'
@@ -52,7 +52,7 @@ const INITIAL_USERS = [
     division: 'Branch Office Surabaya',
     branch: 'Branch Office Surabaya',
     avatar: DEFAULT_AVATAR,
-    allowedApps: ['akur', 'lapor', 'pasti'],
+    allowedApps: ['akur', 'lapor', 'pasti', 'ceklist'],
     status: 'active',
     createdAt: '2026-03-01T10:00:00Z',
     lastLogin: '2026-11-11T16:45:00Z'
@@ -67,7 +67,7 @@ const INITIAL_USERS = [
     division: 'Branch Office Medan',
     branch: 'Branch Office Medan',
     avatar: DEFAULT_AVATAR,
-    allowedApps: ['kabar', 'sedia', 'cepat', 'pasti'],
+    allowedApps: ['kabar', 'sedia', 'cepat', 'pasti', 'ceklist'],
     status: 'active',
     createdAt: '2026-05-12T11:00:00Z',
     lastLogin: '2026-11-10T14:20:00Z'
@@ -212,6 +212,13 @@ const APP_DEPLOYMENT_STATUS = {
     badge: 'Aktif',
     isPublic: true
   },
+  ceklist: {
+    status: 'active',
+    label: 'Rilis Penuh (Aktif)',
+    phase: 'Tahap 1 (Live Operasional)',
+    badge: 'Aktif',
+    isPublic: true
+  },
   kabar: {
     status: 'coming_soon',
     label: 'Segera Hadir',
@@ -316,6 +323,18 @@ const SUB_APPS_CATALOG = {
     route: '#/pasti',
     description: 'Aplikasi pencarian dokumen SPKMGR berbasis database Google Sheets real-time. Petugas cukup mengetik nama principal untuk melihat rincian status waarmerking, kelengkapan dokumen, pembayaran, dan nama RM.',
     features: ['Pencarian Instan Nama Principal', 'Sinkronisasi Real-Time Google Sheets', 'Status SPKMGR, Dokumen & Pembayaran', 'Filter RM, COB & Salin Ringkasan']
+  },
+  ceklist: {
+    id: 'ceklist',
+    name: 'CEKLIST',
+    tagline: 'Cek Entitas dan Kelola List Informasi Status Terblokir',
+    badge: 'Principal Blacklist & OCR Akta',
+    category: 'Kepatuhan & Risiko Underwriting',
+    color: 'rose',
+    icon: 'shield-alert',
+    route: '#/ceklist',
+    description: 'Kelola daftar hitam (blacklist) perusahaan principal beserta jajaran pengurusnya (Direktur, Wakil, Komisaris, Pemegang Saham). Dilengkapi AI OCR untuk memindai Akta Perusahaan terbaru dan memunculkan peringatan pop-up otomatis jika terdeteksi pengurus yang pernah terdaftar di perusahaan blacklist.',
+    features: ['Database Principal Blacklist & Pengurus', 'AI OCR Scan Akta Perusahaan (PDF/Gambar)', 'Pop-up Alert Otomatis Pengurus Terblokir', 'Pencocokan Cerdas Nama, Gelar & NIK']
   }
 };
 
@@ -419,6 +438,9 @@ class AskrindoDB {
           if (!(u.allowedApps || []).includes('pasti')) {
             u.allowedApps = [...(u.allowedApps || []), 'pasti'];
           }
+          if (!localStorage.getItem(`askrindo_ceklist_revoked_${u.id}`) && !(u.allowedApps || []).includes('ceklist')) {
+            u.allowedApps = [...(u.allowedApps || []), 'ceklist'];
+          }
           u.allowedApps = this.normalizeAllowedApps(u.allowedApps);
           if (u.role) {
             u.role = this.normalizeLegacyRole(u.role);
@@ -444,6 +466,9 @@ class AskrindoDB {
           }
           if (!normalizedApps.includes('pasti')) {
             normalizedApps.push('pasti');
+          }
+          if (!localStorage.getItem(`askrindo_ceklist_revoked_${sess.id}`) && !normalizedApps.includes('ceklist')) {
+            normalizedApps.push('ceklist');
           }
           if (JSON.stringify(normalizedApps) !== JSON.stringify(sess.allowedApps || [])) {
             sess.allowedApps = normalizedApps;
@@ -549,6 +574,10 @@ class AskrindoDB {
           const isPastiRevoked = localStorage.getItem(`askrindo_pasti_revoked_${u.id}`) === '1';
           if (!isPastiRevoked && !resolvedAllowed.includes('pasti')) {
             resolvedAllowed.push('pasti');
+          }
+          const isCeklistRevoked = localStorage.getItem(`askrindo_ceklist_revoked_${u.id}`) === '1';
+          if (!isCeklistRevoked && !resolvedAllowed.includes('ceklist')) {
+            resolvedAllowed.push('ceklist');
           }
           return {
             id: u.id,

@@ -235,6 +235,18 @@ class AskrindoApp {
                     </div>
                     <span id="nav-badge-pasti" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('pasti') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('pasti') ? 'Aktif' : 'Terkunci'}</span>
                   </a>
+
+                  <!-- CEKLIST -->
+                  <a href="#/ceklist" id="nav-ceklist" title="CEKLIST (Cek Entitas dan Kelola List Informasi Status Terblokir)" class="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl transition text-slate-600 hover:text-rose-600 hover:bg-rose-50">
+                    <div class="flex items-center gap-3 min-w-0">
+                      <i data-lucide="shield-alert" class="w-4 h-4 text-rose-500 shrink-0"></i>
+                      <div class="sidebar-text min-w-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''}">
+                        <span class="font-bold">CEKLIST</span>
+                        <span class="text-[10px] block font-normal text-slate-400 leading-snug">Cek Entitas &amp; Status Terblokir</span>
+                      </div>
+                    </div>
+                    <span id="nav-badge-ceklist" class="sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${window.authService.hasAccess('ceklist') ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}">${window.authService.hasAccess('ceklist') ? 'Aktif' : 'Terkunci'}</span>
+                  </a>
                 </div>
 
                 <!-- Section 3: Administrasi -->
@@ -426,6 +438,7 @@ class AskrindoApp {
       { id: 'nav-cepat', hashes: ['#/cepat'], title: 'CEPAT (Cover Note Pertanggungan Asuransi Terintegrasi)', activeCls: 'text-cyan-600 font-bold bg-cyan-50 shadow-sm' },
       { id: 'nav-lapor', hashes: ['#/lapor'], title: 'LAPOR (Layanan Analisis dan Perhitungan Rasio Keuangan)', activeCls: 'text-purple-600 font-bold bg-purple-50 shadow-sm' },
       { id: 'nav-pasti', hashes: ['#/pasti'], title: 'PASTI (Pemeriksaan Administrasi SPKMGR Terintegrasi)', activeCls: 'text-indigo-600 font-bold bg-indigo-50 shadow-sm' },
+      { id: 'nav-ceklist', hashes: ['#/ceklist'], title: 'CEKLIST (Cek Entitas dan Kelola List Informasi Status Terblokir)', activeCls: 'text-rose-600 font-bold bg-rose-50 shadow-sm' },
       { id: 'nav-admin', hashes: ['#/admin'], title: 'Web Admin Portal', activeCls: 'text-amber-700 font-bold bg-amber-50 shadow-sm' }
     ];
 
@@ -445,7 +458,7 @@ class AskrindoApp {
     });
 
     // Sync sidebar access status badges dynamically
-    ['kabar', 'akur', 'sedia', 'cepat', 'lapor', 'pasti'].forEach(appId => {
+    ['kabar', 'akur', 'sedia', 'cepat', 'lapor', 'pasti', 'ceklist'].forEach(appId => {
       const badgeEl = document.getElementById(`nav-badge-${appId}`);
       if (!badgeEl || !window.authService) return;
       const allowed = window.authService.hasAccess(appId);
@@ -480,6 +493,8 @@ class AskrindoApp {
       window.LaporModule.calculateRatios();
     } else if (route.startsWith('#/pasti')) {
       main.innerHTML = window.PastiModule.render();
+    } else if (route.startsWith('#/ceklist')) {
+      main.innerHTML = window.CeklistModule.render();
     } else if (route.startsWith('#/admin')) {
       main.innerHTML = window.AdminModule.render();
     } else {
@@ -563,6 +578,20 @@ class AskrindoApp {
                         <span class="px-1.5 py-0.2 rounded text-[7px] font-extrabold bg-emerald-500 text-white uppercase tracking-wider">Aktif</span>
                       </div>
                       <span class="text-[10px] text-slate-200 block leading-snug">Pemeriksaan Administrasi SPKMGR Terintegrasi</span>
+                    </div>
+                  </div>
+
+                  <!-- CEKLIST (AKTIF PENUH) -->
+                  <div class="flex items-center gap-2 p-2.5 rounded-xl bg-gradient-to-r from-rose-500/25 to-red-500/25 hover:from-rose-500/35 hover:to-red-500/35 transition border border-rose-400/40 shadow-sm relative overflow-hidden" title="CEKLIST: Cek Entitas dan Kelola List Informasi Status Terblokir">
+                    <div class="w-7 h-7 rounded-lg bg-rose-500 flex items-center justify-center shrink-0 shadow-md">
+                      <i data-lucide="shield-alert" class="w-4 h-4 text-white"></i>
+                    </div>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-1">
+                        <span class="font-black text-rose-200 text-xs">CEKLIST</span>
+                        <span class="px-1.5 py-0.2 rounded text-[7px] font-extrabold bg-emerald-500 text-white uppercase tracking-wider">Aktif</span>
+                      </div>
+                      <span class="text-[10px] text-slate-200 block leading-snug">Cek Entitas &amp; Status Terblokir</span>
                     </div>
                   </div>
 
@@ -841,6 +870,16 @@ class AskrindoApp {
               <span class="text-[10px] text-slate-400">Buka Modul &rarr;</span>
             </a>
 
+            <a href="#/ceklist" onclick="window.askrindoApp.closeAllModals()" class="flex items-center justify-between p-3 rounded-xl hover:bg-rose-50 text-slate-800 transition">
+              <div class="flex items-center gap-3">
+                <i data-lucide="shield-alert" class="w-4 h-4 text-rose-500"></i>
+                <div>
+                  <span class="font-bold">CEKLIST</span> — Cek Entitas &amp; List Status Terblokir (Blacklist OCR)
+                </div>
+              </div>
+              <span class="text-[10px] text-slate-400">Buka Modul &rarr;</span>
+            </a>
+
             ${window.authService.canAccessAdmin() ? `
               <a href="#/admin" onclick="window.askrindoApp.closeAllModals()" class="flex items-center justify-between p-3 rounded-xl hover:bg-amber-50 text-slate-800 transition">
                 <div class="flex items-center gap-3">
@@ -934,7 +973,9 @@ class AskrindoApp {
       'lapor-modal-container',
       'kabar-modal-container',
       'admin-modal-container',
-      'akur-amort-modal-container'
+      'akur-amort-modal-container',
+      'ceklist-modal-container',
+      'ceklist-popup-container'
     ].forEach(id => {
       const modal = document.getElementById(id);
       if (modal) modal.innerHTML = '';

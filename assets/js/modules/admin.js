@@ -255,6 +255,7 @@ window.AdminModule = {
                           lapor: 'bg-purple-100 text-purple-800 border-purple-200',
                           pasti: 'bg-indigo-100 text-indigo-800 border-indigo-200',
                           pasti_edit: 'bg-violet-100 text-violet-800 border-violet-300',
+                          ceklist: 'bg-rose-100 text-rose-800 border-rose-200',
                           admin: 'bg-amber-100 text-amber-800 border-amber-200'
                         };
                         const canonicalApps = window.askrindoDB
@@ -303,6 +304,7 @@ window.AdminModule = {
       { id: 'lapor', name: 'LAPOR', label: 'Layanan Analisis dan Perhitungan Rasio Keuangan', color: 'text-purple-600' },
       { id: 'pasti', name: 'PASTI', label: 'Pemeriksaan Administrasi SPKMGR Terintegrasi (Lihat)', color: 'text-indigo-600' },
       { id: 'pasti_edit', name: 'PASTI EDIT', label: 'Izin Ubah & Update Data SPKMGR ke Spreadsheet', color: 'text-violet-600' },
+      { id: 'ceklist', name: 'CEKLIST', label: 'Cek Entitas & Status Terblokir (Blacklist OCR)', color: 'text-rose-600' },
       { id: 'kabar', name: 'KABAR', label: 'Kalkulator Asuransi Kebakaran', color: 'text-orange-600' },
       { id: 'akur', name: 'AKUR', label: 'Asisten AI Regulasi KUR', color: 'text-blue-600' },
       { id: 'sedia', name: 'SEDIA', label: 'Sistem Elektronik Dokumen dan Informasi Asuransi', color: 'text-emerald-600' },
@@ -531,6 +533,7 @@ window.AdminModule = {
       lapor: 'LAPOR',
       pasti: 'PASTI',
       pasti_edit: 'PASTI EDIT',
+      ceklist: 'CEKLIST',
       kabar: 'KABAR',
       cepat: 'CEPAT',
       admin: 'ADMIN'
@@ -545,6 +548,11 @@ window.AdminModule = {
     if (canonicalId === 'pasti') {
       if (isChecked) localStorage.removeItem(`askrindo_pasti_revoked_${userId}`);
       else localStorage.setItem(`askrindo_pasti_revoked_${userId}`, '1');
+    }
+
+    if (canonicalId === 'ceklist') {
+      if (isChecked) localStorage.removeItem(`askrindo_ceklist_revoked_${userId}`);
+      else localStorage.setItem(`askrindo_ceklist_revoked_${userId}`, '1');
     }
 
     window.askrindoDB.updateUserPermissions(userId, apps);
@@ -733,6 +741,11 @@ window.AdminModule = {
                   <input type="checkbox" id="perm-pasti-edit" value="pasti_edit" ${window.askrindoDB.normalizeAllowedApps(allowedApps).includes('pasti_edit') ? 'checked' : ''} class="w-4 h-4 text-violet-600 rounded" />
                   <span class="font-semibold text-violet-800">PASTI EDIT</span>
                   <span class="text-violet-600 text-[11px]">— Izin Update Data SPKMGR ke Spreadsheet</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="perm-ceklist" value="ceklist" ${window.askrindoDB.normalizeAllowedApps(allowedApps).includes('ceklist') ? 'checked' : ''} class="w-4 h-4 text-rose-600 rounded" />
+                  <span class="font-semibold text-slate-800">CEKLIST</span>
+                  <span class="text-slate-500 text-[11px]">— Cek Entitas &amp; List Status Terblokir (Blacklist OCR)</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" id="perm-kabar" value="kabar" ${allowedApps.includes('kabar') ? 'checked' : ''} class="w-4 h-4 text-orange-600 rounded" />
@@ -932,6 +945,12 @@ window.AdminModule = {
     if (existingId) {
       if (pastiChecked) localStorage.removeItem(`askrindo_pasti_revoked_${existingId}`);
       else localStorage.setItem(`askrindo_pasti_revoked_${existingId}`, '1');
+    }
+    const ceklistChecked = !!document.getElementById('perm-ceklist')?.checked;
+    if (ceklistChecked) allowedApps.push('ceklist');
+    if (existingId) {
+      if (ceklistChecked) localStorage.removeItem(`askrindo_ceklist_revoked_${existingId}`);
+      else localStorage.setItem(`askrindo_ceklist_revoked_${existingId}`, '1');
     }
     if (document.getElementById('perm-kabar').checked) allowedApps.push('kabar');
     if (document.getElementById('perm-akur').checked) allowedApps.push('akur');
