@@ -771,6 +771,10 @@ window.PastiModule = {
     const r = this.rows[idx];
     if (!r) return;
 
+    if (window.CeklistModule?.guardEntitySubmission({ companyName: r.nama, contextApp: 'PASTI (Update SPKMGR)' })) {
+      return;
+    }
+
     const btn = document.getElementById('pasti-edit-submit-btn');
     if (btn) {
       btn.disabled = true;
@@ -1011,6 +1015,10 @@ window.PastiModule = {
     const nama = (document.getElementById('pasti-add-nama')?.value || '').trim();
     if (!nama) {
       if (window.askrindoApp) window.askrindoApp.showToast('Nama Principal wajib diisi.', 'warning');
+      return;
+    }
+
+    if (window.CeklistModule?.guardEntitySubmission({ companyName: nama, contextApp: 'PASTI (Tambah SPKMGR)' })) {
       return;
     }
 

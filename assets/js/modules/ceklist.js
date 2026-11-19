@@ -1314,5 +1314,197 @@ ATURAN:
         </div>
       </div>
     `;
+  },
+
+  // --- INTEGRASI CROSS-APP GATEKEEPER (BLOKIR PENGAJUAN DI SEMUA MODUL) ---
+  ensureLoaded() {
+    if (!this.entries || this.entries.length === 0) {
+      this.loadLocal();
+    }
+    if (!this._cloudWarmupStarted) {
+      this._cloudWarmupStarted = true;
+      this.syncFromCloud().catch(() => {});
+    }
+  },
+
+  checkEntityBlocked({ companyName = '', npwp = '', personName = '' } = {}) {
+    this.ensureLoaded();
+    const activeEntries = (this.entries || []).filter(e => (e.status || 'Terblokir Aktif') !== 'Dipulihkan');
+    if (!activeEntries.length) return { blocked: false, matches: [] };
+
+    const normTargetComp = this.normalizeCompanyName(companyName);
+    const targetDigits = String(npwp || '').replace(/[^0-9]/g, '');
+    const matches = [];
+
+    activeEntries.forEach(entry => {
+      const reasons = [];
+
+      // 1. Cek Nama Perusahaan
+      if (normTargetComp) {
+        const normEntryComp = this.normalizeCompanyName(entry.companyName);
+        if (normEntryComp && (
+          normEntryComp === normTargetComp ||
+          (normTargetComp.length >= 6 && normEntryComp.includes(normTargetComp)) ||
+          (normEntryComp.length >= 6 && normTargetComp.includes(normEntryComp))
+        )) {
+          reasons.push('Nama Perusahaan Terdaftar di Blacklist');
+        }
+      }
+
+      // 2. Cek NPWP / NIB
+      if (targetDigits.length >= 10) {
+        const entryDigits = String(entry.npwp || '').replace(/[^0-9]/g, '');
+        if (entryDigits.length >= 10 && entryDigits === targetDigits) {
+          reasons.push('NPWP / NIB Cocok dengan Entitas Blacklist');
+        }
+      }
+
+      // 3. Cek Nama / NIK Pengurus (jika diberikan atau jika tertanggung perorangan)
+      const checkPerson = personName || companyName;
+      if (checkPerson) {
+        const personObj = { name: checkPerson, nik: targetDigits.length >= 12 ? targetDigits : '' };
+        (entry.officers || []).forEach(blOff => {
+          const hit = this.matchPerson(personObj, blOff);
+          if (hit) {
+            reasons.push(`Pengurus Terblokir: ${blOff.name} (${blOff.role || 'Pengurus'})`);
+          }
+        });
+      }
+
+      if (reasons.length) {
+        matches.push({ entry, reasons: Array.from(new Set(reasons)) });
+      }
+    });
+
+    return {
+      blocked: matches.length > 0,
+      matches
+    };
+  },
+
+  guardEntitySubmission({ companyName = '', npwp = '', personName = '', contextApp = 'Askrindo SATU' } = {}) {
+    const result = this.checkEntityBlocked({ companyName, npwp, personName });
+    if (!result.blocked) return false;
+
+    const first = result.matches[0]?.entry;
+    if (window.askrindoDB?.logActivity) {
+      window.askrindoDB.logActivity(
+        'CEKLIST',
+        `Blokir Pengajuan (${contextApp})`,
+        `Pengajuan atas nama "${companyName || personName}" diblokir otomatis karena terdaftar di CEKLIST (${first?.companyName || '-'} — ${first?.reason || 'Blacklist'}).`
+      );
+    }
+
+    this.showBlockedSubmissionModal({
+      companyName: companyName || personName || '-',
+      contextApp,
+      matches: result.matches
+    });
+
+    if (window.askrindoApp) {
+      window.askrindoApp.showToast(`DIBLOKIR: "${companyName || personName}" terdaftar dalam Daftar Hitam CEKLIST!`, 'error');
+    }
+    return true;
+  },
+
+  showBlockedSubmissionModal({ companyName = '-', contextApp = 'Askrindo SATU', matches = [] } = {}) {
+    const old = document.getElementById('ceklist-block-guard-modal');
+    if (old) old.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'ceklist-block-guard-modal';
+    modal.className = 'fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/75 backdrop-blur-sm p-4 animate-fadeIn';
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+    modal.innerHTML = `
+      <div class="bg-white rounded-3xl max-w-xl w-full shadow-2xl border-2 border-rose-500 overflow-hidden max-h-[90vh] flex flex-col">
+        <!-- Red Header -->
+        <div class="bg-gradient-to-r from-rose-700 via-red-600 to-rose-800 text-white p-5 flex items-start justify-between gap-4 shrink-0">
+          <div class="flex items-start gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0">
+              <i data-lucide="shield-ban" class="w-7 h-7 text-white"></i>
+            </div>
+            <div>
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/25 border border-white/25">
+                Akses Proses Ditolak · Integrasi CEKLIST
+              </span>
+              <h3 class="text-lg font-black mt-1 leading-tight">Perusahaan Terdaftar di Daftar Hitam!</h3>
+              <p class="text-xs text-rose-100 mt-0.5">
+                Pengajuan pada aplikasi <strong>${this.escapeHtml(contextApp)}</strong> tidak dapat dilanjutkan.
+              </p>
+            </div>
+          </div>
+          <button type="button" onclick="document.getElementById('ceklist-block-guard-modal').remove()" class="p-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white transition shrink-0">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-5 space-y-4 overflow-y-auto text-xs">
+          <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 space-y-1">
+            <p class="font-bold">Entitas yang Diajukan: <span class="underline">${this.escapeHtml(companyName)}</span></p>
+            <p class="text-[11px] text-rose-800 leading-relaxed">
+              Sistem <strong>CEKLIST</strong> mendeteksi bahwa perusahaan atau pengurus terkait tercatat dalam daftar status terblokir. Sesuai kebijakan kepatuhan risiko, proses di modul <strong>${this.escapeHtml(contextApp)}</strong> dihentikan secara otomatis.
+            </p>
+          </div>
+
+          <div class="space-y-2.5">
+            <p class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">Detail Catatan Daftar Hitam (${matches.length})</p>
+            ${matches.map(m => {
+              const e = m.entry;
+              return `
+                <div class="p-3.5 rounded-2xl bg-white border border-rose-200 shadow-sm space-y-2">
+                  <div class="flex items-start justify-between gap-2 flex-wrap">
+                    <div>
+                      <h4 class="text-sm font-black text-rose-800">${this.escapeHtml(e.companyName)}</h4>
+                      ${e.npwp ? `<p class="text-[10px] font-mono text-slate-500">NPWP/NIB: ${this.escapeHtml(e.npwp)}</p>` : ''}
+                    </div>
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white uppercase">
+                      ${this.escapeHtml(e.status || 'Terblokir Aktif')}
+                    </span>
+                  </div>
+
+                  <div class="flex flex-wrap gap-1.5">
+                    ${m.reasons.map(r => `<span class="px-2 py-0.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold">${this.escapeHtml(r)}</span>`).join('')}
+                    ${e.reason ? `<span class="px-2 py-0.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-bold">Kategori: ${this.escapeHtml(e.reason)}</span>` : ''}
+                    ${e.blacklistDate ? `<span class="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-semibold">Tgl: ${this.escapeHtml(e.blacklistDate)}</span>` : ''}
+                  </div>
+
+                  ${(e.officers || []).length ? `
+                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+                      <p class="text-[10px] font-bold uppercase text-slate-400">Pengurus Terdaftar:</p>
+                      <div class="flex flex-wrap gap-1.5">
+                        ${e.officers.map(o => `<span class="px-2 py-0.5 rounded bg-white border border-slate-200 text-[10px] font-semibold text-slate-700">${this.escapeHtml(o.name)}${o.role ? ` (${this.escapeHtml(o.role)})` : ''}</span>`).join('')}
+                      </div>
+                    </div>
+                  ` : ''}
+
+                  ${e.notes ? `<p class="text-[11px] text-slate-500 italic">Catatan: ${this.escapeHtml(e.notes)}</p>` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2 shrink-0">
+          <button type="button" onclick="document.getElementById('ceklist-block-guard-modal').remove(); window.location.hash='#/ceklist';" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-white hover:bg-rose-50 text-rose-700 border border-rose-200 transition cursor-pointer">
+            <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i>
+            <span>Buka Modul CEKLIST</span>
+          </button>
+          <button type="button" onclick="document.getElementById('ceklist-block-guard-modal').remove()" class="px-5 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white transition cursor-pointer">
+            Saya Mengerti &amp; Tutup
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    if (window.lucide) window.lucide.createIcons();
   }
 };
+
+// Warm up CEKLIST blacklist cache & cloud sync so cross-app blocking works immediately on any page
+setTimeout(() => {
+  try { window.CeklistModule?.ensureLoaded?.(); } catch (_) {}
+}, 400);

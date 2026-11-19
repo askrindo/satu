@@ -213,6 +213,15 @@ window.SediaModule = {
     this.formData.phone = document.getElementById('step1-phone').value;
     this.formData.email = document.getElementById('step1-email').value;
     this.formData.address = document.getElementById('step1-address').value;
+
+    if (window.CeklistModule?.guardEntitySubmission({
+      companyName: this.formData.insuredName,
+      npwp: this.formData.nikNpwp,
+      contextApp: 'SEDIA (Pengajuan SPPA)'
+    })) {
+      return;
+    }
+
     this.setStep(2);
   },
 
@@ -463,6 +472,13 @@ window.SediaModule = {
   },
 
   finalizeAndSave(docNo) {
+    if (window.CeklistModule?.guardEntitySubmission({
+      companyName: this.formData.insuredName,
+      npwp: this.formData.nikNpwp,
+      contextApp: 'SEDIA (Penerbitan SPPA)'
+    })) {
+      return;
+    }
     const user = window.authService.getCurrentUser();
     const newSppa = {
       id: docNo,

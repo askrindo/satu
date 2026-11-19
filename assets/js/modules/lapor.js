@@ -3243,6 +3243,10 @@ window.LaporModule = {
       return;
     }
 
+    if (window.CeklistModule?.guardEntitySubmission({ companyName: compName, contextApp: 'LAPOR (Analisa Keuangan)' })) {
+      return;
+    }
+
     const normId = window.askrindoDB ? window.askrindoDB.normalizeCompanyId(compName) : '';
     const existing = normId && window.askrindoDB ? window.askrindoDB.getLaporAnalysis(normId) : null;
 
@@ -3326,6 +3330,9 @@ window.LaporModule = {
     }
 
     const compName = (document.getElementById('modal_new_companyName')?.value || '').trim();
+    if (compName && window.CeklistModule?.guardEntitySubmission({ companyName: compName, contextApp: 'LAPOR (Analisa Keuangan AI OCR)' })) {
+      return;
+    }
     const y1 = (document.getElementById('modal_new_year1')?.value || '').trim();
     const y2 = (document.getElementById('modal_new_year2')?.value || '').trim();
     const auditStatus = (document.getElementById('modal_new_auditStatus')?.value || '').trim();
@@ -3961,6 +3968,10 @@ window.LaporModule = {
         setTimeout(() => compEl.classList.remove('border-rose-500', 'ring-2', 'ring-rose-200'), 2500);
       }
       window.askrindoApp.showToast('Harap isi Nama Perusahaan / Rekanan terlebih dahulu sebelum menyimpan (menjadi ID Analisa).', 'error');
+      return null;
+    }
+
+    if (window.CeklistModule?.guardEntitySubmission({ companyName, contextApp: 'LAPOR (Simpan Analisa)' })) {
       return null;
     }
 
@@ -5391,6 +5402,9 @@ OUTPUT WAJIB HANYA FORMAT JSON MURNI TANPA BLOK MARKDOWN ATAU TEKS LAIN:
 
     const detectedComp = (this.currentExtractedFinData.company_name || '').trim();
     const companyName = modalComp || (detectedComp && detectedComp !== 'Rekanan Terdeteksi' ? detectedComp : '') || (document.getElementById('lapor-company')?.value || '').trim() || 'PT Debitur Baru';
+    if (window.CeklistModule?.guardEntitySubmission({ companyName, contextApp: 'LAPOR (Hasil Pindai Laporan Keuangan)' })) {
+      return;
+    }
     const normId = companyName && window.askrindoDB ? window.askrindoDB.normalizeCompanyId(companyName) : '';
     const existingBeforeSave = normId && window.askrindoDB ? window.askrindoDB.getLaporAnalysis(normId) : null;
 

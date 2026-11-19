@@ -237,6 +237,14 @@ window.CepatModule = {
     // Auto-update Banker's Clause in formData
     this.formData.specialClauses = `Banker's Clause QQ ${this.formData.bankName} ${this.formData.bankBranch}, Klausula Standar Asuransi Kebakaran Indonesia, RSMDCC 4.1A`;
 
+    if (window.CeklistModule?.guardEntitySubmission({
+      companyName: this.formData.insuredName,
+      npwp: this.formData.nikNpwp,
+      contextApp: 'CEPAT (Pengajuan Cover Note)'
+    })) {
+      return;
+    }
+
     this.setStep(2);
   },
 
@@ -611,6 +619,13 @@ window.CepatModule = {
   },
 
   finalizeAndSave(docNo) {
+    if (window.CeklistModule?.guardEntitySubmission({
+      companyName: this.formData.insuredName,
+      npwp: this.formData.nikNpwp,
+      contextApp: 'CEPAT (Penerbitan Cover Note)'
+    })) {
+      return;
+    }
     const user = window.authService.getCurrentUser();
     const newCn = {
       coverNoteNo: docNo,
