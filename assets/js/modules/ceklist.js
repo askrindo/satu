@@ -37,7 +37,8 @@ window.CeklistModule = {
   cloudStatus: 'unknown', // 'available' | 'missing_table' | 'offline'
   activeTab: 'ocr', // 'ocr' | 'blacklist' | 'history'
   searchQuery: '',
-  statusFilter: 'all', // 'all' | 'Terblokir Aktif' | 'Dalam Pengawasan' | 'Dipulihkan'
+  statusFilter: 'all',
+  branchFilter: 'all', // 'all' | 'Terblokir Aktif' | 'Dalam Pengawasan' | 'Dipulihkan'
   selectedFiles: [],
   isScanning: false,
   lastScanResult: null,
@@ -108,6 +109,7 @@ window.CeklistModule = {
         companyName: row.company_name || '',
         npwp: row.npwp || '',
         address: row.address || '',
+        unitKerja: row.unit_kerja || row.address || '',
         reason: row.reason || '',
         status: row.status || 'Terblokir Aktif',
         blacklistDate: row.blacklist_date || '',
@@ -149,7 +151,7 @@ window.CeklistModule = {
         id: entry.id,
         company_name: entry.companyName,
         npwp: entry.npwp || null,
-        address: entry.address || null,
+        address: entry.unitKerja || entry.address || null,
         reason: entry.reason || null,
         status: entry.status || 'Terblokir Aktif',
         blacklist_date: entry.blacklistDate || null,
@@ -319,20 +321,37 @@ window.CeklistModule = {
     this.updateView();
   },
 
+  setBranchFilter(val) {
+    this.branchFilter = val;
+    this.updateView();
+  },
+
+  getUniqueBranches() {
+    const set = new Set();
+    (this.entries || []).forEach(e => {
+      const b = (e.unitKerja || e.address || '').trim();
+      if (b) set.add(b);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  },
+
   getFilteredEntries() {
     const q = this.searchQuery.trim().toLowerCase();
     return this.entries.filter(e => {
       if (this.statusFilter !== 'all' && e.status !== this.statusFilter) return false;
+      const entryBranch = (e.unitKerja || e.address || '').trim();
+      if (this.branchFilter !== 'all' && entryBranch !== this.branchFilter) return false;
       if (!q) return true;
       const inComp = (e.companyName || '').toLowerCase().includes(q);
       const inNpwp = (e.npwp || '').toLowerCase().includes(q);
       const inReason = (e.reason || '').toLowerCase().includes(q);
+      const inBranch = entryBranch.toLowerCase().includes(q);
       const inOfficers = (e.officers || []).some(o =>
         (o.name || '').toLowerCase().includes(q) ||
         (o.role || '').toLowerCase().includes(q) ||
         (o.nik || '').toLowerCase().includes(q)
       );
-      return inComp || inNpwp || inReason || inOfficers;
+      return inComp || inNpwp || inReason || inBranch || inOfficers;
     });
   },
 
@@ -349,6 +368,13 @@ window.CeklistModule = {
   openBlacklistModal(editId = null) {
     const existingEntry = editId ? this.entries.find(e => e.id === editId) : null;
     const isEdit = !!existingEntry;
+    const curUser = window.authService?.getCurrentUser?.();
+    const userUnit = (curUser && window.askrindoDB?.getUserUnitKerja)
+      ? window.askrindoDB.getUserUnitKerja(curUser)
+      : (curUser?.branch || curUser?.division || '');
+    const selectedUnit = isEdit ? (existingEntry.unitKerja || existingEntry.address || userUnit) : userUnit;
+    const allUnits = window.askrindoDB?.getStandardUnitKerja ? window.askrindoDB.getStandardUnitKerja() : [];
+    const unitOptions = Array.from(new Set([selectedUnit, ...allUnits].filter(Boolean)));
     const officers = isEdit && Array.isArray(existingEntry.officers) && existingEntry.officers.length
       ? existingEntry.officers
       : [{ name: '', role: '', nik: '' }];
@@ -409,7 +435,16 @@ window.CeklistModule = {
               <input id="bl-date" type="date" value="${this.escapeHtml(existingEntry?.blacklistDate || '')}" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-rose-500 font-semibold text-slate-800" />
             </div>
 
-            <div class="sm:col-span-12">
+            <div class="sm:col-span-6">
+              <label class="block font-bold text-slate-700 mb-1">Unit Kerja / Cabang Pemblokir</label>
+              <select id="bl-unit-kerja" class="w-full px-3 py-2 rounded-xl border border-blue-200 bg-blue-50/40 focus:bg-white focus:outline-none focus:border-rose-500 font-semibold text-slate-800">
+                <option value="">-- Pilih Unit Kerja / Cabang --</option>
+                ${unitOptions.map(u => `<option value="${this.escapeHtml(u)}" ${selectedUnit === u ? 'selected' : ''}>${this.escapeHtml(u)}</option>`).join('')}
+              </select>
+              <p class="text-[10px] text-blue-700 mt-0.5">Otomatis ditagging sesuai Unit Kerja akun Anda dan terlihat oleh seluruh cabang.</p>
+            </div>
+
+            <div class="sm:col-span-6">
               <label class="block font-bold text-slate-700 mb-1">Catatan / Keterangan Tambahan (opsional)</label>
               <input id="bl-notes" type="text" value="${this.escapeHtml(existingEntry?.notes || '')}" placeholder="Contoh: Klaim Surety Bond proyek jalan tahun 2024 belum subrogasi..." class="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-rose-500 font-medium text-slate-800" />
             </div>
@@ -513,10 +548,16 @@ window.CeklistModule = {
     }
 
     const curUser = window.authService?.getCurrentUser?.();
+    const fallbackUnit = (curUser && window.askrindoDB?.getUserUnitKerja)
+      ? window.askrindoDB.getUserUnitKerja(curUser)
+      : (curUser?.branch || curUser?.division || '');
+    const unitKerja = (document.getElementById('bl-unit-kerja')?.value || '').trim() || fallbackUnit;
     const entry = {
       id: existingId || `BL-${Date.now()}`,
       companyName,
       npwp,
+      address: unitKerja,
+      unitKerja,
       reason,
       status,
       blacklistDate,
@@ -833,6 +874,7 @@ ATURAN:
                       <div class="text-[11px] text-slate-600 bg-rose-50/70 p-2.5 rounded-lg border border-rose-100">
                         Pernah / sedang tercatat sebagai <strong class="text-rose-900">${this.escapeHtml(m.blacklistOfficer.role)}</strong>
                         di perusahaan daftar hitam <strong class="text-rose-900">${this.escapeHtml(m.blacklistEntry.companyName)}</strong>
+                        ${(m.blacklistEntry.unitKerja || m.blacklistEntry.address) ? ` <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-bold ml-1">Cabang: ${this.escapeHtml(m.blacklistEntry.unitKerja || m.blacklistEntry.address)}</span>` : ''}
                         ${m.blacklistEntry.reason ? ` (${this.escapeHtml(m.blacklistEntry.reason)})` : ''}.
                         ${m.blacklistEntry.notes ? `<div class="mt-1 text-slate-500 italic">Catatan: ${this.escapeHtml(m.blacklistEntry.notes)}</div>` : ''}
                       </div>
@@ -1191,6 +1233,7 @@ ATURAN:
 
   renderBlacklistTab() {
     const filtered = this.getFilteredEntries();
+    const branches = this.getUniqueBranches();
     return `
       <div class="space-y-4">
         <!-- Search & Filter Bar -->
@@ -1202,10 +1245,14 @@ ATURAN:
               type="text"
               value="${this.escapeHtml(this.searchQuery)}"
               oninput="window.CeklistModule.setSearch(this.value)"
-              placeholder="Cari nama perusahaan, nama Direktur/Komisaris, NIK, atau alasan..."
+              placeholder="Cari nama perusahaan, nama Direktur/Komisaris, cabang, NIK, atau alasan..."
               class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:border-rose-500"
             />
           </div>
+          <select onchange="window.CeklistModule.setBranchFilter(this.value)" class="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 focus:outline-none focus:border-rose-500 max-w-[240px]">
+            <option value="all" ${this.branchFilter === 'all' ? 'selected' : ''}>Semua Cabang / Unit Kerja</option>
+            ${branches.map(b => `<option value="${this.escapeHtml(b)}" ${this.branchFilter === b ? 'selected' : ''}>${this.escapeHtml(b)}</option>`).join('')}
+          </select>
           <select onchange="window.CeklistModule.setStatusFilter(this.value)" class="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 focus:outline-none focus:border-rose-500">
             <option value="all" ${this.statusFilter === 'all' ? 'selected' : ''}>Semua Status</option>
             <option value="Terblokir Aktif" ${this.statusFilter === 'Terblokir Aktif' ? 'selected' : ''}>Terblokir Aktif</option>
@@ -1242,6 +1289,12 @@ ATURAN:
                     <div class="min-w-0">
                       <div class="flex items-center gap-1.5 flex-wrap mb-1">
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${stCls}">${this.escapeHtml(e.status)}</span>
+                        ${(e.unitKerja || e.address) ? `
+                          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200" title="Blacklist oleh Unit Kerja / Cabang">
+                            <i data-lucide="map-pin" class="w-3 h-3 shrink-0"></i>
+                            <span>${this.escapeHtml(e.unitKerja || e.address)}</span>
+                          </span>
+                        ` : ''}
                         ${e.blacklistDate ? `<span class="text-[10px] text-slate-400 font-medium">Sejak ${this.escapeHtml(e.blacklistDate)}</span>` : ''}
                       </div>
                       <h4 class="text-base font-black text-slate-900 break-words">${this.escapeHtml(e.companyName)}</h4>
@@ -1323,7 +1376,7 @@ ATURAN:
     }
     if (!this._cloudWarmupStarted) {
       this._cloudWarmupStarted = true;
-      this.syncFromCloud().catch(() => {});
+      this.syncWithSupabase().catch(() => {});
     }
   },
 
@@ -1465,6 +1518,7 @@ ATURAN:
                   </div>
 
                   <div class="flex flex-wrap gap-1.5">
+                    ${(e.unitKerja || e.address) ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-bold"><i data-lucide="map-pin" class="w-3 h-3"></i> Cabang: ${this.escapeHtml(e.unitKerja || e.address)}</span>` : ''}
                     ${m.reasons.map(r => `<span class="px-2 py-0.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold">${this.escapeHtml(r)}</span>`).join('')}
                     ${e.reason ? `<span class="px-2 py-0.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-bold">Kategori: ${this.escapeHtml(e.reason)}</span>` : ''}
                     ${e.blacklistDate ? `<span class="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-semibold">Tgl: ${this.escapeHtml(e.blacklistDate)}</span>` : ''}

@@ -138,6 +138,10 @@ class AuthService {
     if (this.canAccessAdmin()) return true;
 
     const targetKey = this.normalizeAppId(appId);
+
+    // CEKLIST dapat diakses oleh seluruh pegawai Askrindo yang login (dengan tagging Unit Kerja / Cabang)
+    if (targetKey === 'ceklist') return true;
+
     const allowed = Array.isArray(user.allowedApps)
       ? user.allowedApps.map(a => this.normalizeAppId(a))
       : [];
