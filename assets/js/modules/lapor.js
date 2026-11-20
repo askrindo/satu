@@ -2945,16 +2945,27 @@ window.LaporModule = {
                     ID: -
                   </span>
                 </div>
-                <input
-                  type="text"
-                  id="modal_new_companyName"
-                  placeholder="Ketik Nama Perusahaan (Contoh: PT Tri Cipta Karya)..."
-                  oninput="window.LaporModule.handleNewModalCompanyNameChange(this.value)"
-                  class="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white font-semibold text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
-                />
-                <div id="modal_new_companyExistsAlert" class="hidden mt-1.5 p-2 rounded-lg bg-purple-50 border border-purple-200 text-[11px] text-purple-900 font-medium flex items-center gap-2">
-                  <i data-lucide="info" class="w-3.5 h-3.5 text-purple-600 shrink-0"></i>
-                  <span id="modal_new_companyExistsText">Perusahaan ini sudah ada di Arsip. Analisa baru akan tersambung ke Unique ID tersebut.</span>
+                <div class="relative">
+                  <input
+                    type="text"
+                    id="modal_new_companyName"
+                    autocomplete="off"
+                    placeholder="Ketik Nama Perusahaan (Contoh: PT Tri Cipta Karya)..."
+                    onfocus="window.LaporModule.handleNewModalCompanyNameChange(this.value, true)"
+                    oninput="window.LaporModule.handleNewModalCompanyNameChange(this.value, true)"
+                    onblur="setTimeout(() => document.getElementById('modal_new_company_dropdown')?.classList.add('hidden'), 180)"
+                    class="w-full h-9 px-3 rounded-lg border border-slate-200 bg-white font-semibold text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition"
+                  />
+                  <div id="modal_new_company_dropdown" class="hidden absolute left-0 right-0 top-full mt-1 bg-white rounded-xl border border-purple-200 shadow-xl z-50 max-h-56 overflow-y-auto divide-y divide-slate-100"></div>
+                </div>
+                <div id="modal_new_companyExistsAlert" class="hidden mt-1.5 p-2 rounded-lg bg-purple-50 border border-purple-200 text-[11px] text-purple-900 font-medium flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <i data-lucide="info" class="w-3.5 h-3.5 text-purple-600 shrink-0"></i>
+                    <span id="modal_new_companyExistsText" class="truncate">Perusahaan ini sudah ada di Arsip.</span>
+                  </div>
+                  <button type="button" id="modal_new_openPickerBtn" class="px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-bold shrink-0 transition cursor-pointer">
+                    Pilih Data Sebelumnya
+                  </button>
                 </div>
               </div>
 
@@ -3126,20 +3137,24 @@ window.LaporModule = {
     if (container) container.innerHTML = '';
   },
 
-  handleNewModalCompanyNameChange(val) {
+  handleNewModalCompanyNameChange(val, showDropdown = false) {
     const normId = val && window.askrindoDB ? window.askrindoDB.normalizeCompanyId(val) : '';
     const badge = document.getElementById('modal_new_companyIdBadge');
     if (badge) badge.textContent = 'ID: ' + (normId || '-');
 
     const alertEl = document.getElementById('modal_new_companyExistsAlert');
     const alertText = document.getElementById('modal_new_companyExistsText');
+    const pickerBtn = document.getElementById('modal_new_openPickerBtn');
     const existing = normId && window.askrindoDB ? window.askrindoDB.getLaporAnalysis(normId) : null;
 
     if (existing && alertEl && alertText) {
       alertEl.classList.remove('hidden');
       const yrs = existing.years ? existing.years.join(', ') : `${existing.year1}-${existing.year2}`;
-      const creator = existing.createdBy ? ` • Pembuat: ${existing.createdBy}` : '';
-      alertText.textContent = `✨ Ditemukan data tersimpan untuk "${existing.companyName}" (${yrs}${creator}). Data finansial sebelumnya otomatis dimuat!`;
+      const creator = existing.createdBy ? ` • Penginput: ${existing.createdBy}` : '';
+      alertText.textContent = `Ditemukan data tersimpan "${existing.companyName}" (${yrs}${creator}).`;
+      if (pickerBtn) {
+        pickerBtn.onclick = () => this.openPreviousDataPickerModal(existing.id, 'modal');
+      }
       const auditEl = document.getElementById('modal_new_auditStatus');
       if (auditEl && existing.auditStatus && auditEl.value === '') auditEl.value = existing.auditStatus;
       const projEl = document.getElementById('modal_new_projectVal');
@@ -3147,6 +3162,67 @@ window.LaporModule = {
     } else if (alertEl) {
       alertEl.classList.add('hidden');
     }
+
+    // Render live autocomplete dropdown untuk nama perusahaan yang sama / mirip (inputan sendiri maupun orang lain)
+    const dd = document.getElementById('modal_new_company_dropdown');
+    if (!dd || !window.askrindoDB) return;
+    if (!showDropdown) {
+      dd.classList.add('hidden');
+      return;
+    }
+
+    const q = (val || '').trim();
+    const matches = q ? window.askrindoDB.searchLaporAnalyses(q) : window.askrindoDB.getLaporAnalyses().slice(0, 6);
+    if (!matches.length) {
+      dd.classList.add('hidden');
+      return;
+    }
+
+    const curUser = window.authService?.getCurrentUser?.();
+    const curName = (curUser?.name || '').toLowerCase();
+
+    dd.innerHTML = `
+      <div class="px-3 py-1.5 bg-purple-50/90 text-[10px] font-bold text-purple-800 uppercase tracking-wider flex items-center justify-between">
+        <span>Data Pernah Diinput (${matches.length})</span>
+        <span>Klik untuk pilih data</span>
+      </div>
+      ${matches.slice(0, 8).map(rec => {
+        const isSelf = curName && (rec.createdBy || '').toLowerCase().includes(curName);
+        const snapCount = Array.isArray(rec.snapshots) && rec.snapshots.length > 0 ? rec.snapshots.length : 1;
+        return `
+          <button
+            type="button"
+            onmousedown="event.preventDefault(); window.LaporModule.selectCompanyFromNewModalDropdown('${this.escapeHtml(rec.id)}');"
+            class="w-full text-left px-3.5 py-2.5 hover:bg-purple-50 transition flex items-start justify-between gap-2 cursor-pointer"
+          >
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="font-bold text-xs text-slate-900 truncate">${this.escapeHtml(rec.companyName)}</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${isSelf ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}">
+                  ${isSelf ? 'Inputan Anda' : this.escapeHtml(rec.createdBy || 'Pegawai Lain')}
+                </span>
+              </div>
+              <p class="text-[10px] text-slate-500 mt-0.5">
+                Th ${this.escapeHtml(rec.year1 || '-')}&ndash;${this.escapeHtml(rec.year2 || '-')} &bull; ${snapCount} versi tersimpan &bull; Skor ${Number(rec.score || 0).toFixed(1)}
+              </p>
+            </div>
+            <span class="px-2 py-1 rounded-lg bg-purple-100 text-purple-800 text-[10px] font-bold shrink-0">Pilih &rarr;</span>
+          </button>
+        `;
+      }).join('')}
+    `;
+    dd.classList.remove('hidden');
+  },
+
+  selectCompanyFromNewModalDropdown(companyId) {
+    const dd = document.getElementById('modal_new_company_dropdown');
+    if (dd) dd.classList.add('hidden');
+    const rec = window.askrindoDB?.getLaporAnalysis(companyId);
+    if (!rec) return;
+    const inp = document.getElementById('modal_new_companyName');
+    if (inp) inp.value = rec.companyName;
+    this.handleNewModalCompanyNameChange(rec.companyName, false);
+    this.openPreviousDataPickerModal(companyId, 'modal');
   },
 
   handleSelectNewAnalysisFiles(input) {
@@ -3559,15 +3635,204 @@ window.LaporModule = {
     const rec = window.askrindoDB?.getLaporAnalysis(companyId);
     if (!rec) return;
 
-    if ((this.formSourceMode === 'dirty' || this.formSourceMode === 'ocr') && this.loadedCompanyId !== rec.id) {
-      if (!confirm(`Form saat ini memiliki perubahan yang belum disimpan. Muat data laporan keuangan sebelumnya untuk "${rec.companyName}"?`)) {
-        return;
+    this.openPreviousDataPickerModal(companyId, 'workspace');
+  },
+
+  // --- POP-UP PILIH DATA PERUSAHAAN YANG PERNAH DIINPUT SEBELUMNYA (SENDIRI / ORANG LAIN) ---
+  openPreviousDataPickerModal(companyId, context = 'workspace') {
+    const primaryRec = window.askrindoDB?.getLaporAnalysis(companyId);
+    if (!primaryRec) return;
+
+    const old = document.getElementById('lapor-history-picker-modal');
+    if (old) old.remove();
+
+    // Kumpulkan semua versi/snapshot dari perusahaan terpilih + perusahaan lain yang namanya mirip
+    const curUser = window.authService?.getCurrentUser?.();
+    const curNameLow = (curUser?.name || '').toLowerCase();
+    const similarRecords = window.askrindoDB.searchLaporAnalyses(primaryRec.companyName)
+      .filter(r => r.id !== primaryRec.id)
+      .slice(0, 5);
+    const allRecords = [primaryRec, ...similarRecords];
+
+    const choices = [];
+    allRecords.forEach(rec => {
+      const snaps = Array.isArray(rec.snapshots) && rec.snapshots.length > 0 ? rec.snapshots : [];
+      if (snaps.length > 0) {
+        snaps.forEach((snap, idx) => {
+          choices.push({
+            rec,
+            snapshot: snap,
+            snapshotId: snap.snapshotId || '',
+            isLatest: idx === 0,
+            savedAt: snap.savedAt || rec.updatedAt || rec.createdAt || '',
+            savedBy: snap.savedBy || rec.updatedBy || rec.createdBy || 'Analis',
+            branch: snap.branch || rec.branch || '',
+            year1: snap.year1 || rec.year1 || '-',
+            year2: snap.year2 || rec.year2 || '-',
+            projectVal: snap.projectVal !== undefined ? snap.projectVal : (rec.projectVal || 0),
+            auditStatus: snap.auditStatus || rec.auditStatus || '-',
+            score: snap.score !== undefined ? snap.score : (rec.score || 0),
+            grade: snap.grade || rec.grade || '-',
+            racPassCount: snap.racPassCount !== undefined ? snap.racPassCount : (rec.racPassCount || 0),
+            racFailCount: snap.racFailCount !== undefined ? snap.racFailCount : (rec.racFailCount || 0),
+            data2: snap.data2 || (snap.yearlyData && snap.year2 ? snap.yearlyData[snap.year2] : null) || rec.data2 || {}
+          });
+        });
+      } else {
+        choices.push({
+          rec,
+          snapshot: null,
+          snapshotId: '',
+          isLatest: true,
+          savedAt: rec.updatedAt || rec.createdAt || '',
+          savedBy: rec.updatedBy || rec.createdBy || 'Analis',
+          branch: rec.branch || '',
+          year1: rec.year1 || '-',
+          year2: rec.year2 || '-',
+          projectVal: rec.projectVal || 0,
+          auditStatus: rec.auditStatus || '-',
+          score: rec.score || 0,
+          grade: rec.grade || '-',
+          racPassCount: rec.racPassCount || 0,
+          racFailCount: rec.racFailCount || 0,
+          data2: rec.data2 || {}
+        });
       }
+    });
+
+    this._pickerChoices = choices;
+
+    const modal = document.createElement('div');
+    modal.id = 'lapor-history-picker-modal';
+    modal.className = 'fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 animate-fadeIn';
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+    modal.innerHTML = `
+      <div class="bg-white rounded-3xl max-w-3xl w-full shadow-2xl border border-purple-200 overflow-hidden max-h-[90vh] flex flex-col">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-[#002B49] via-purple-900 to-indigo-800 text-white p-5 flex items-start justify-between gap-4 shrink-0">
+          <div class="flex items-start gap-3">
+            <div class="w-11 h-11 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0">
+              <i data-lucide="database" class="w-6 h-6 text-amber-300"></i>
+            </div>
+            <div>
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-white/15 border border-white/20 text-amber-200">
+                Data Pernah Diinput Sebelumnya (${choices.length} Pilihan)
+              </span>
+              <h3 class="text-lg font-black mt-1 leading-tight">${this.escapeHtml(primaryRec.companyName)}</h3>
+              <p class="text-xs text-purple-100 mt-0.5">
+                Ditemukan data laporan keuangan yang pernah diinput (oleh Anda maupun pegawai lain). Pilih data yang ingin langsung dipakai.
+              </p>
+            </div>
+          </div>
+          <button type="button" onclick="document.getElementById('lapor-history-picker-modal').remove()" class="p-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white transition shrink-0 cursor-pointer">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Body: List of Previous Entries -->
+        <div class="p-5 space-y-3 overflow-y-auto text-xs bg-slate-50/70">
+          ${choices.map((ch, idx) => {
+            const isSelf = curNameLow && (ch.savedBy || '').toLowerCase().includes(curNameLow);
+            const totalAset = Number(ch.data2?.totalAset || ch.data2?.asetLancar || 0);
+            const totalEkuitas = Number(ch.data2?.totalEkuitas || ch.data2?.ekuitas || 0);
+            const labaBersih = Number(ch.data2?.labaBersih || 0);
+            const dtText = ch.savedAt ? new Date(ch.savedAt).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+            return `
+              <div class="bg-white rounded-2xl border ${idx === 0 ? 'border-purple-300 ring-1 ring-purple-100' : 'border-slate-200'} p-4 shadow-sm hover:border-purple-400 transition space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                  <div class="space-y-1 min-w-0">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      ${ch.isLatest ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-600 text-white uppercase">Versi Terbaru</span>` : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">Riwayat Versi</span>`}
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${isSelf ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-blue-50 text-blue-800 border-blue-200'}">
+                        ${isSelf ? 'Inputan Anda Sendiri' : `Inputan: ${this.escapeHtml(ch.savedBy)}`}
+                      </span>
+                      ${ch.branch ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600">${this.escapeHtml(ch.branch)}</span>` : ''}
+                    </div>
+                    <h4 class="text-sm font-black text-slate-900">${this.escapeHtml(ch.rec.companyName)}</h4>
+                    <p class="text-[11px] text-slate-500">
+                      Periode <strong class="text-slate-800">Th ${this.escapeHtml(ch.year1)} &ndash; ${this.escapeHtml(ch.year2)}</strong>
+                      &bull; Disimpan: <strong class="text-slate-700">${this.escapeHtml(dtText)}</strong>
+                      &bull; Audit: <strong class="text-slate-700 uppercase">${this.escapeHtml(ch.auditStatus || '-')}</strong>
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onclick="window.LaporModule.applyPickedPreviousData(${idx}, '${context}')"
+                    class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md shadow-purple-500/20 transition shrink-0 cursor-pointer"
+                  >
+                    <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                    <span>Gunakan Data Ini</span>
+                  </button>
+                </div>
+
+                <!-- Key Figures Strip -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100 text-[11px]">
+                  <div class="p-2 rounded-xl bg-slate-50 border border-slate-200/70">
+                    <span class="block text-[9px] font-bold uppercase text-slate-400">Nilai Proyek</span>
+                    <span class="font-bold text-slate-800">${this.fmtRp(ch.projectVal || 0, true)}</span>
+                  </div>
+                  <div class="p-2 rounded-xl bg-slate-50 border border-slate-200/70">
+                    <span class="block text-[9px] font-bold uppercase text-slate-400">Skor &amp; Grade</span>
+                    <span class="font-bold text-purple-800">${Number(ch.score || 0).toFixed(1)} (${this.escapeHtml(ch.grade || '-')})</span>
+                  </div>
+                  <div class="p-2 rounded-xl bg-slate-50 border border-slate-200/70">
+                    <span class="block text-[9px] font-bold uppercase text-slate-400">Aset / Ekuitas (${this.escapeHtml(ch.year2)})</span>
+                    <span class="font-bold text-slate-800">${totalAset ? this.fmtRp(totalAset, true) : (totalEkuitas ? this.fmtRp(totalEkuitas, true) : '-')}</span>
+                  </div>
+                  <div class="p-2 rounded-xl bg-slate-50 border border-slate-200/70">
+                    <span class="block text-[9px] font-bold uppercase text-slate-400">Laba Bersih / RAC</span>
+                    <span class="font-bold ${ch.racFailCount === 0 ? 'text-emerald-700' : 'text-amber-700'}">${labaBersih ? this.fmtRp(labaBersih, true) : `${ch.racPassCount} Lulus RAC`}</span>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+
+        <!-- Footer -->
+        <div class="p-4 bg-white border-t border-slate-200 flex items-center justify-between gap-2 shrink-0 text-xs">
+          <span class="text-[11px] text-slate-400">Ingin mengisi angka baru dari awal?</span>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="document.getElementById('lapor-history-picker-modal').remove()" class="px-4 py-2 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition cursor-pointer">
+              Tutup / Lanjut Input Baru
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    if (window.lucide) window.lucide.createIcons();
+  },
+
+  applyPickedPreviousData(choiceIdx, context = 'workspace') {
+    const ch = (this._pickerChoices || [])[choiceIdx];
+    if (!ch || !ch.rec) return;
+
+    if (window.CeklistModule?.guardEntitySubmission({ companyName: ch.rec.companyName, contextApp: 'LAPOR (Analisa Keuangan)' })) {
+      return;
+    }
+
+    document.getElementById('lapor-history-picker-modal')?.remove();
+
+    const rec = ch.rec;
+    const snap = ch.snapshot || null;
+
+    if (context === 'modal') {
+      this.closeNewAnalysisModal();
+      this.loadCompanyAnalysisById(rec.id, snap?.snapshotId || null);
+      return;
     }
 
     this.preAutoMatchState = null;
     this.autoLoadedCompanyId = null;
-    this.populateFormFromAnalysisRecord(rec, { toast: true });
+    this.populateFormFromAnalysisRecord(rec, {
+      snapshot: snap,
+      toast: true,
+      toastMessage: `Data "${rec.companyName}" (Th ${ch.year1}–${ch.year2}, penginput: ${ch.savedBy}) berhasil dimuat!`
+    });
   },
 
   handleCompanyInput(val) {

@@ -1239,15 +1239,33 @@ class AskrindoDB {
     if (!query || !query.trim()) return list;
     const q = query.trim().toLowerCase();
     const qNorm = this.normalizeCompanyId(query).toLowerCase();
-    return list.filter(item =>
-      (item.companyName || '').toLowerCase().includes(q) ||
-      (item.id || '').toLowerCase().includes(q) ||
-      (qNorm && (item.id || '').toLowerCase().includes(qNorm)) ||
-      (item.kapName || '').toLowerCase().includes(q) ||
-      (item.sector || '').toLowerCase().includes(q) ||
-      String(item.year1 || '').includes(q) ||
-      String(item.year2 || '').includes(q)
-    );
+    const qTokens = q
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .split(/\s+/)
+      .filter(t => t.length >= 2 && !['pt', 'cv', 'ud', 'fa', 'tbk', 'persero', 'kso', 'koperasi'].includes(t));
+
+    return list.filter(item => {
+      const nameLow = (item.companyName || '').toLowerCase();
+      const idLow = (item.id || '').toLowerCase();
+      if (
+        nameLow.includes(q) ||
+        idLow.includes(q) ||
+        (qNorm && idLow.includes(qNorm)) ||
+        (item.kapName || '').toLowerCase().includes(q) ||
+        (item.sector || '').toLowerCase().includes(q) ||
+        (item.createdBy || '').toLowerCase().includes(q) ||
+        String(item.year1 || '').includes(q) ||
+        String(item.year2 || '').includes(q)
+      ) {
+        return true;
+      }
+      if (qTokens.length > 0) {
+        const nameTokens = nameLow.replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean);
+        const hitCount = qTokens.filter(qt => nameTokens.some(nt => nt.includes(qt) || qt.includes(nt))).length;
+        if (hitCount >= Math.min(2, qTokens.length)) return true;
+      }
+      return false;
+    });
   }
 
   _mergeSnapshots(listA = [], listB = []) {
