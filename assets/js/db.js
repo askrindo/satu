@@ -1677,14 +1677,63 @@ class AskrindoDB {
     }
   }
 
-  // --- App Proposals (Pengajuan Modul Aplikasi Baru -> Masuk ke Portal Web Admin) ---
-  getAppProposals() {
+  // --- App Proposals & CEKLIST Approval Requests (tersimpan di Supabase public.app_proposals) ---
+  getAllRawProposals() {
     try {
       const list = JSON.parse(localStorage.getItem(DB_KEYS.APP_PROPOSALS) || '[]');
       return Array.isArray(list) ? list : [];
     } catch (e) {
       return [];
     }
+  }
+
+  getAppProposals() {
+    return this.getAllRawProposals().filter(p => p.category !== '__CEKLIST_APPROVAL__');
+  }
+
+  getCeklistApprovalRequests() {
+    return this.getAllRawProposals()
+      .filter(p => p.category === '__CEKLIST_APPROVAL__')
+      .map(p => {
+        let meta = {};
+        try { meta = JSON.parse(p.proposedFeatures || '{}'); } catch (_) {}
+        return {
+          ...p,
+          entryId: meta.entryId || '',
+          actionType: meta.actionType || 'delete', // 'delete' | 'deactivate'
+          companyName: meta.companyName || p.moduleName || '',
+          currentStatus: meta.currentStatus || 'Terblokir Aktif',
+          unitKerja: meta.unitKerja || '',
+          reasonText: p.problemStatement || ''
+        };
+      });
+  }
+
+  saveCeklistApprovalRequest({ entryId, actionType, companyName, currentStatus, unitKerja, reasonText, proposer }) {
+    const user = proposer || (window.authService?.getCurrentUser?.() || {});
+    const userUnit = this.getUserUnitKerja ? this.getUserUnitKerja(user) : (user.branch || user.division || '-');
+    return this.saveAppProposal({
+      id: `CEKREQ-${Date.now()}`,
+      moduleName: companyName || '-',
+      category: '__CEKLIST_APPROVAL__',
+      priority: actionType === 'delete' ? 'Hapus Permanen' : 'Nonaktifkan (Dipulihkan)',
+      problemStatement: (reasonText || '').trim(),
+      proposedFeatures: JSON.stringify({
+        entryId,
+        actionType,
+        companyName,
+        currentStatus: currentStatus || 'Terblokir Aktif',
+        unitKerja: unitKerja || ''
+      }),
+      targetUsers: unitKerja || userUnit,
+      expectedBenefit: actionType === 'delete' ? 'Penghapusan dari Daftar Hitam CEKLIST' : 'Penonaktifan (Status Dipulihkan) di CEKLIST',
+      proposerId: user.id || '',
+      proposerNip: user.nip || '',
+      proposerName: user.name || 'Pengguna',
+      proposerRole: user.role || '',
+      proposerUnit: userUnit,
+      status: 'Menunggu Persetujuan'
+    });
   }
 
   async syncAppProposalsWithSupabase() {
@@ -1718,7 +1767,7 @@ class AskrindoDB {
       }));
 
       // Merge any local-only proposals not yet in cloud
-      const localList = this.getAppProposals();
+      const localList = this.getAllRawProposals();
       localList.forEach(lp => {
         if (!mapped.some(mp => mp.id === lp.id)) {
           mapped.unshift(lp);
@@ -1732,7 +1781,7 @@ class AskrindoDB {
   }
 
   saveAppProposal(data) {
-    const proposals = this.getAppProposals();
+    const proposals = this.getAllRawProposals();
     const nowIso = new Date().toISOString();
     const record = {
       id: data.id || `PROP-${Date.now()}`,
@@ -1789,7 +1838,7 @@ class AskrindoDB {
   }
 
   updateAppProposalStatus(id, status, adminNotes = '', reviewedBy = '') {
-    const proposals = this.getAppProposals();
+    const proposals = this.getAllRawProposals();
     const idx = proposals.findIndex(p => p.id === id);
     if (idx === -1) return null;
 
@@ -1817,7 +1866,7 @@ class AskrindoDB {
   }
 
   deleteAppProposal(id) {
-    const proposals = this.getAppProposals().filter(p => p.id !== id);
+    const proposals = this.getAllRawProposals().filter(p => p.id !== id);
     localStorage.setItem(DB_KEYS.APP_PROPOSALS, JSON.stringify(proposals));
 
     if (this.supabase && this.cloudStatus === 'connected') {

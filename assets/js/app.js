@@ -469,12 +469,16 @@ class AskrindoApp {
       badgeEl.className = `sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${allowed ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}`;
     });
 
-    // Sync pending new-module proposals badge on Web Admin Portal link
+    // Sync pending inbox count badge on Web Admin Portal link (Usulan Modul + Persetujuan CEKLIST)
     const propBadge = document.getElementById('nav-badge-admin-proposals');
     if (propBadge && window.askrindoDB?.getAppProposals) {
-      const pendingCount = window.askrindoDB.getAppProposals().filter(p => (p.status || 'Menunggu Review') === 'Menunggu Review').length;
-      if (pendingCount > 0) {
-        propBadge.innerText = `${pendingCount} Usulan`;
+      const pendingProps = window.askrindoDB.getAppProposals().filter(p => (p.status || 'Menunggu Review') === 'Menunggu Review').length;
+      const pendingCek = window.askrindoDB.getCeklistApprovalRequests
+        ? window.askrindoDB.getCeklistApprovalRequests().filter(r => r.status === 'Menunggu Persetujuan').length
+        : 0;
+      const totalPending = pendingProps + pendingCek;
+      if (totalPending > 0) {
+        propBadge.innerText = `${totalPending} Pending`;
         propBadge.classList.remove('hidden');
       } else {
         propBadge.classList.add('hidden');

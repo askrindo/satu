@@ -413,7 +413,10 @@ window.CeklistModule = {
               <label class="block font-bold text-slate-700 mb-1">Status Blokir</label>
               <select id="bl-status" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-rose-500 font-semibold text-slate-800">
                 <option value="">-- Pilih Status --</option>
-                ${['Terblokir Aktif', 'Dalam Pengawasan', 'Dipulihkan'].map(st => `<option value="${st}" ${(existingEntry?.status || '') === st ? 'selected' : ''}>${st}</option>`).join('')}
+                ${['Terblokir Aktif', 'Dalam Pengawasan', 'Dipulihkan'].map(st => {
+                  const label = (st === 'Dipulihkan' && !this.isAdmin()) ? 'Dipulihkan / Nonaktif (Perlu Persetujuan Admin)' : st;
+                  return `<option value="${st}" ${(existingEntry?.status || '') === st ? 'selected' : ''}>${label}</option>`;
+                }).join('')}
               </select>
             </div>
 
@@ -552,6 +555,10 @@ window.CeklistModule = {
       ? window.askrindoDB.getUserUnitKerja(curUser)
       : (curUser?.branch || curUser?.division || '');
     const unitKerja = (document.getElementById('bl-unit-kerja')?.value || '').trim() || fallbackUnit;
+    const prevEntry = existingId ? this.entries.find(x => x.id === existingId) : null;
+    const wantsDeactivate = !this.isAdmin() && status === 'Dipulihkan' && (!prevEntry || prevEntry.status !== 'Dipulihkan');
+    const effectiveStatus = wantsDeactivate ? (prevEntry?.status || 'Terblokir Aktif') : status;
+
     const entry = {
       id: existingId || `BL-${Date.now()}`,
       companyName,
@@ -559,7 +566,7 @@ window.CeklistModule = {
       address: unitKerja,
       unitKerja,
       reason,
-      status,
+      status: effectiveStatus,
       blacklistDate,
       notes,
       officers,
@@ -578,34 +585,231 @@ window.CeklistModule = {
     this.upsertEntryToCloud(entry);
 
     if (window.askrindoDB?.logActivity) {
-      window.askrindoDB.logActivity('CEKLIST', existingId ? 'Edit Blacklist' : 'Tambah Blacklist', `${companyName} (${officers.length} pengurus, status: ${status})`);
+      window.askrindoDB.logActivity('CEKLIST', existingId ? 'Edit Blacklist' : 'Tambah Blacklist', `${companyName} (${officers.length} pengurus, status: ${effectiveStatus})`);
     }
 
     document.getElementById('ceklist-entry-modal')?.remove();
     this.activeTab = 'blacklist';
     this.updateView();
+
+    if (wantsDeactivate) {
+      if (window.askrindoApp) {
+        window.askrindoApp.showToast('Penonaktifan (Dipulihkan) memerlukan persetujuan Admin. Silakan isi alasan permohonan.', 'warning');
+      }
+      this.openApprovalRequestModal(entry.id, 'deactivate');
+      return;
+    }
+
     if (window.askrindoApp) {
       window.askrindoApp.showToast(`Entitas "${companyName}" berhasil disimpan ke Daftar Hitam (${officers.length} pengurus).`, 'success');
     }
   },
 
+  isAdmin() {
+    return !!window.authService?.canAccessAdmin?.();
+  },
+
+  getPendingApprovalForEntry(entryId) {
+    if (!window.askrindoDB?.getCeklistApprovalRequests) return null;
+    return window.askrindoDB.getCeklistApprovalRequests().find(
+      r => r.entryId === entryId && r.status === 'Menunggu Persetujuan'
+    ) || null;
+  },
+
+  requestDeactivateEntry(id) {
+    const target = this.entries.find(e => e.id === id);
+    if (!target) return;
+    if (target.status === 'Dipulihkan') {
+      if (window.askrindoApp) window.askrindoApp.showToast(`"${target.companyName}" sudah berstatus Dipulihkan / Nonaktif.`, 'info');
+      return;
+    }
+    if (this.isAdmin()) {
+      if (!confirm(`Nonaktifkan (ubah status ke Dipulihkan) "${target.companyName}" dari Daftar Hitam?`)) return;
+      target.status = 'Dipulihkan';
+      target.updatedAt = new Date().toISOString();
+      this.saveLocal();
+      this.upsertEntryToCloud(target);
+      if (window.askrindoDB?.logActivity) {
+        window.askrindoDB.logActivity('CEKLIST', 'Nonaktifkan Blacklist (Admin)', `Menonaktifkan ${target.companyName} (status: Dipulihkan)`);
+      }
+      this.updateView();
+      if (window.askrindoApp) window.askrindoApp.showToast(`"${target.companyName}" dinonaktifkan (Dipulihkan).`, 'success');
+      return;
+    }
+    this.openApprovalRequestModal(id, 'deactivate');
+  },
+
   deleteEntry(id) {
     const target = this.entries.find(e => e.id === id);
     if (!target) return;
-    if (!confirm(`Hapus "${target.companyName}" dari daftar Principal Blacklist?`)) return;
+
+    if (!this.isAdmin()) {
+      this.openApprovalRequestModal(id, 'delete');
+      return;
+    }
+
+    if (!confirm(`Hapus permanen "${target.companyName}" dari daftar Principal Blacklist?`)) return;
 
     this.entries = this.entries.filter(e => e.id !== id);
     this.saveLocal();
     this.deleteEntryFromCloud(id);
 
     if (window.askrindoDB?.logActivity) {
-      window.askrindoDB.logActivity('CEKLIST', 'Hapus Blacklist', `Menghapus ${target.companyName} dari daftar hitam`);
+      window.askrindoDB.logActivity('CEKLIST', 'Hapus Blacklist (Admin)', `Menghapus permanen ${target.companyName} dari daftar hitam`);
     }
 
     this.updateView();
     if (window.askrindoApp) {
-      window.askrindoApp.showToast(`"${target.companyName}" dihapus dari Daftar Hitam.`, 'success');
+      window.askrindoApp.showToast(`"${target.companyName}" dihapus permanen dari Daftar Hitam.`, 'success');
     }
+  },
+
+  openApprovalRequestModal(entryId, actionType = 'delete') {
+    const target = this.entries.find(e => e.id === entryId);
+    if (!target) return;
+
+    const existingReq = this.getPendingApprovalForEntry(entryId);
+    if (existingReq) {
+      if (window.askrindoApp) {
+        window.askrindoApp.showToast(`Permohonan untuk "${target.companyName}" sudah diajukan dan sedang menunggu persetujuan Admin.`, 'warning');
+      }
+      return;
+    }
+
+    const old = document.getElementById('ceklist-approval-modal');
+    if (old) old.remove();
+
+    const isDelete = actionType === 'delete';
+    const modal = document.createElement('div');
+    modal.id = 'ceklist-approval-modal';
+    modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-slate-900/65 backdrop-blur-sm p-4 animate-fadeIn';
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+    modal.innerHTML = `
+      <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden">
+        <div class="bg-gradient-to-r ${isDelete ? 'from-rose-700 to-red-600' : 'from-amber-600 to-orange-600'} text-white p-5 flex items-start justify-between gap-3">
+          <div>
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/20 border border-white/20">
+              Memerlukan Persetujuan Admin
+            </span>
+            <h3 class="text-base font-black mt-1">
+              ${isDelete ? 'Ajukan Penghapusan Principal Blacklist' : 'Ajukan Penonaktifan (Pemulihan) Blacklist'}
+            </h3>
+            <p class="text-[11px] text-white/90 mt-0.5">
+              ${isDelete
+                ? 'Penghapusan data dari Daftar Hitam harus disetujui terlebih dahulu oleh Administrator.'
+                : 'Penonaktifan / perubahan status menjadi Dipulihkan harus disetujui terlebih dahulu oleh Administrator.'}
+            </p>
+          </div>
+          <button type="button" onclick="document.getElementById('ceklist-approval-modal').remove()" class="p-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white transition shrink-0">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <form onsubmit="window.CeklistModule.submitApprovalRequest(event, '${this.escapeHtml(entryId)}', '${actionType}')" class="p-5 space-y-4 text-xs">
+          <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+            <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Entitas yang Diajukan</p>
+            <p class="text-sm font-black text-slate-900">${this.escapeHtml(target.companyName)}</p>
+            <div class="flex items-center gap-2 flex-wrap pt-0.5">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">${this.escapeHtml(target.status || 'Terblokir Aktif')}</span>
+              ${(target.unitKerja || target.address) ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">${this.escapeHtml(target.unitKerja || target.address)}</span>` : ''}
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">
+              Alasan / Dasar ${isDelete ? 'Penghapusan' : 'Penonaktifan (Pemulihan)'} <span class="text-rose-500">*</span>
+            </label>
+            <textarea
+              id="ceklist-approval-reason"
+              rows="3"
+              required
+              placeholder="Jelaskan dasar permohonan secara rinci (misal: nomor surat pelunasan subrogasi, berita acara, atau kesalahan input data)..."
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-rose-500 text-slate-800 leading-relaxed"
+            ></textarea>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+            <button type="button" onclick="document.getElementById('ceklist-approval-modal').remove()" class="px-4 py-2 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer">
+              Batal
+            </button>
+            <button type="submit" class="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl font-bold text-white ${isDelete ? 'bg-rose-600 hover:bg-rose-700' : 'bg-amber-600 hover:bg-amber-700'} shadow-md transition cursor-pointer">
+              <i data-lucide="send" class="w-3.5 h-3.5"></i>
+              <span>Kirim Permohonan ke Admin</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    if (window.lucide) window.lucide.createIcons();
+    setTimeout(() => document.getElementById('ceklist-approval-reason')?.focus(), 50);
+  },
+
+  submitApprovalRequest(e, entryId, actionType) {
+    if (e) e.preventDefault();
+    const target = this.entries.find(x => x.id === entryId);
+    if (!target) return;
+    const reasonText = (document.getElementById('ceklist-approval-reason')?.value || '').trim();
+    if (!reasonText) {
+      if (window.askrindoApp) window.askrindoApp.showToast('Alasan permohonan wajib diisi.', 'warning');
+      return;
+    }
+
+    const req = window.askrindoDB.saveCeklistApprovalRequest({
+      entryId: target.id,
+      actionType,
+      companyName: target.companyName,
+      currentStatus: target.status || 'Terblokir Aktif',
+      unitKerja: target.unitKerja || target.address || '',
+      reasonText
+    });
+
+    if (window.askrindoDB?.logActivity) {
+      window.askrindoDB.logActivity(
+        'CEKLIST',
+        actionType === 'delete' ? 'Ajukan Hapus Blacklist' : 'Ajukan Nonaktifkan Blacklist',
+        `Mengajukan ${actionType === 'delete' ? 'penghapusan' : 'penonaktifan'} ${target.companyName} ke Admin (ID: ${req.id}). Alasan: ${reasonText}`
+      );
+    }
+
+    document.getElementById('ceklist-approval-modal')?.remove();
+    if (window.askrindoApp) {
+      window.askrindoApp.updateActiveNavs();
+      window.askrindoApp.showToast(`Permohonan ${actionType === 'delete' ? 'penghapusan' : 'penonaktifan'} "${target.companyName}" terkirim ke Admin untuk persetujuan.`, 'success');
+    }
+    this.updateView();
+  },
+
+  executeApprovedAction(req) {
+    if (!req || !req.entryId) return false;
+    this.ensureLoaded();
+    const target = this.entries.find(e => e.id === req.entryId);
+
+    if (req.actionType === 'delete') {
+      this.entries = this.entries.filter(e => e.id !== req.entryId);
+      this.saveLocal();
+      this.deleteEntryFromCloud(req.entryId);
+      return true;
+    }
+
+    if (req.actionType === 'deactivate') {
+      if (target) {
+        target.status = 'Dipulihkan';
+        target.updatedAt = new Date().toISOString();
+        this.saveLocal();
+        this.upsertEntryToCloud(target);
+      } else {
+        // Fallback update langsung di Supabase jika belum ada di cache lokal
+        const sb = this.getSupabaseClient();
+        if (sb) {
+          sb.from('ceklist_blacklist').update({ status: 'Dipulihkan', updated_at: new Date().toISOString() }).eq('id', req.entryId).then(() => {});
+        }
+      }
+      return true;
+    }
+    return false;
   },
 
   // --- AI OCR AKTA UPLOAD & DETECTION ---
@@ -1295,16 +1499,29 @@ ATURAN:
                             <span>${this.escapeHtml(e.unitKerja || e.address)}</span>
                           </span>
                         ` : ''}
+                        ${(() => {
+                          const pendingReq = this.getPendingApprovalForEntry(e.id);
+                          if (!pendingReq) return '';
+                          return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-300 animate-pulse">
+                            <i data-lucide="clock" class="w-3 h-3 shrink-0"></i>
+                            <span>Menunggu Persetujuan Admin (${pendingReq.actionType === 'delete' ? 'Hapus' : 'Nonaktif'})</span>
+                          </span>`;
+                        })()}
                         ${e.blacklistDate ? `<span class="text-[10px] text-slate-400 font-medium">Sejak ${this.escapeHtml(e.blacklistDate)}</span>` : ''}
                       </div>
                       <h4 class="text-base font-black text-slate-900 break-words">${this.escapeHtml(e.companyName)}</h4>
                       <p class="text-[11px] text-rose-700 font-semibold mt-0.5">${this.escapeHtml(e.reason || 'Daftar Hitam')}${e.npwp ? ` &middot; <span class="text-slate-400 font-mono">NPWP: ${this.escapeHtml(e.npwp)}</span>` : ''}</p>
                     </div>
                     <div class="flex items-center gap-1 shrink-0">
-                      <button onclick="window.CeklistModule.openBlacklistModal('${e.id}')" title="Edit" class="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition">
+                      <button onclick="window.CeklistModule.openBlacklistModal('${e.id}')" title="Edit Data & Pengurus" class="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition cursor-pointer">
                         <i data-lucide="edit-3" class="w-4 h-4"></i>
                       </button>
-                      <button onclick="window.CeklistModule.deleteEntry('${e.id}')" title="Hapus" class="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition">
+                      ${e.status !== 'Dipulihkan' ? `
+                        <button onclick="window.CeklistModule.requestDeactivateEntry('${e.id}')" title="${this.isAdmin() ? 'Nonaktifkan (Pulihkan)' : 'Ajukan Nonaktifkan ke Admin'}" class="p-1.5 rounded-lg text-slate-500 hover:text-amber-600 hover:bg-amber-50 transition cursor-pointer">
+                          <i data-lucide="power-off" class="w-4 h-4"></i>
+                        </button>
+                      ` : ''}
+                      <button onclick="window.CeklistModule.deleteEntry('${e.id}')" title="${this.isAdmin() ? 'Hapus Permanen' : 'Ajukan Penghapusan ke Admin'}" class="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                       </button>
                     </div>

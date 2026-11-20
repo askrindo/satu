@@ -4,10 +4,11 @@
  */
 
 window.AdminModule = {
-  currentTab: 'users', // 'users' | 'matrix' | 'proposals' | 'audit' | 'settings'
+  currentTab: 'users', // 'users' | 'matrix' | 'proposals' | 'ceklist_approvals' | 'audit' | 'settings'
   searchQuery: '',
   roleFilter: 'all',
   proposalStatusFilter: 'all',
+  ceklistApprovalFilter: 'all',
 
   STANDARD_ROLES: [
     'Super Administrator',
@@ -40,6 +41,8 @@ window.AdminModule = {
     const settings = window.askrindoDB.getSettings();
     const proposals = window.askrindoDB.getAppProposals ? window.askrindoDB.getAppProposals() : [];
     const pendingProposalsCount = proposals.filter(p => (p.status || 'Menunggu Review') === 'Menunggu Review').length;
+    const ceklistRequests = window.askrindoDB.getCeklistApprovalRequests ? window.askrindoDB.getCeklistApprovalRequests() : [];
+    const pendingCeklistCount = ceklistRequests.filter(r => r.status === 'Menunggu Persetujuan').length;
 
     // Filtered users for tab 1
     const filteredUsers = users.filter(u => {
@@ -146,6 +149,11 @@ window.AdminModule = {
               <span>Usulan Modul Baru</span>
               <span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${pendingProposalsCount > 0 ? 'bg-orange-500 text-white' : 'bg-slate-100 text-slate-600'}">${pendingProposalsCount > 0 ? `${pendingProposalsCount} Baru` : proposals.length}</span>
             </button>
+            <button onclick="window.AdminModule.setTab('ceklist_approvals')" class="pb-3 border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${this.currentTab === 'ceklist_approvals' ? 'border-rose-500 text-rose-600' : 'border-transparent text-slate-500 hover:text-slate-800'}">
+              <i data-lucide="shield-alert" class="w-4 h-4"></i>
+              <span>Persetujuan CEKLIST</span>
+              <span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${pendingCeklistCount > 0 ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-600'}">${pendingCeklistCount > 0 ? `${pendingCeklistCount} Pending` : ceklistRequests.length}</span>
+            </button>
             <button onclick="window.AdminModule.setTab('audit')" class="pb-3 border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${this.currentTab === 'audit' ? 'border-orange-500 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-800'}">
               <i data-lucide="history" class="w-4 h-4"></i>
               <span>Audit Trail & Log Aktivitas</span>
@@ -158,7 +166,7 @@ window.AdminModule = {
 
           <!-- Tab Contents -->
           <div class="p-6">
-            ${this.renderActiveTab(filteredUsers, users, uniqueRoles, auditLogs, settings, proposals)}
+            ${this.renderActiveTab(filteredUsers, users, uniqueRoles, auditLogs, settings, proposals, ceklistRequests)}
           </div>
         </div>
 
@@ -168,18 +176,182 @@ window.AdminModule = {
     `;
   },
 
-  renderActiveTab(filteredUsers, allUsers, roles, auditLogs, settings, proposals = []) {
+  renderActiveTab(filteredUsers, allUsers, roles, auditLogs, settings, proposals = [], ceklistRequests = []) {
     if (this.currentTab === 'users') {
       return this.renderUsersTab(filteredUsers, roles);
     } else if (this.currentTab === 'matrix') {
       return this.renderMatrixTab(allUsers);
     } else if (this.currentTab === 'proposals') {
       return this.renderProposalsTab(proposals);
+    } else if (this.currentTab === 'ceklist_approvals') {
+      return this.renderCeklistApprovalsTab(ceklistRequests);
     } else if (this.currentTab === 'audit') {
       return this.renderAuditTab(auditLogs);
     } else if (this.currentTab === 'settings') {
       return this.renderSettingsTab(settings);
     }
+  },
+
+  renderCeklistApprovalsTab(requests = []) {
+    const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const statuses = ['Menunggu Persetujuan', 'Disetujui', 'Ditolak'];
+    const filtered = this.ceklistApprovalFilter === 'all'
+      ? requests
+      : requests.filter(r => r.status === this.ceklistApprovalFilter);
+
+    const statusBadge = (st) => {
+      if (st === 'Disetujui') return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      if (st === 'Ditolak') return 'bg-rose-100 text-rose-800 border-rose-200';
+      return 'bg-amber-100 text-amber-800 border-amber-300';
+    };
+
+    return `
+      <div class="space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-rose-50 to-amber-50/60 border border-rose-200 p-4 rounded-xl">
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0">
+              <i data-lucide="shield-alert" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h4 class="text-xs font-extrabold text-slate-900">Persetujuan Hapus &amp; Nonaktifkan Principal Blacklist (CEKLIST)</h4>
+              <p class="text-[11px] text-slate-600 mt-0.5">
+                Penghapusan atau penonaktifan (pemulihan) perusahaan dari Daftar Hitam oleh pegawai cabang wajib mendapat persetujuan Admin sebelum dieksekusi.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <label class="text-xs font-semibold text-slate-600">Filter:</label>
+            <select onchange="window.AdminModule.handleCeklistApprovalFilter(this.value)" class="text-xs px-3 py-1.5 rounded-xl border border-rose-200 bg-white font-semibold text-slate-700 focus:outline-none focus:border-rose-500">
+              <option value="all" ${this.ceklistApprovalFilter === 'all' ? 'selected' : ''}>Semua (${requests.length})</option>
+              ${statuses.map(st => `<option value="${st}" ${this.ceklistApprovalFilter === st ? 'selected' : ''}>${st}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+
+        ${filtered.length === 0 ? `
+          <div class="rounded-2xl border border-dashed border-slate-300 p-12 text-center space-y-2 bg-slate-50/50">
+            <i data-lucide="shield-check" class="w-9 h-9 text-slate-300 mx-auto"></i>
+            <h4 class="text-sm font-bold text-slate-700">Belum Ada Permohonan Persetujuan CEKLIST</h4>
+            <p class="text-xs text-slate-400">Permohonan hapus atau nonaktifkan blacklist dari pegawai cabang akan tampil di sini.</p>
+          </div>
+        ` : `
+          <div class="space-y-4">
+            ${filtered.map(r => {
+              const isDelete = r.actionType === 'delete';
+              const isPending = r.status === 'Menunggu Persetujuan';
+              return `
+                <div class="bg-white rounded-2xl border ${isPending ? 'border-rose-200' : 'border-slate-200'} shadow-sm p-5 space-y-3.5">
+                  <div class="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-slate-100 pb-3">
+                    <div class="space-y-1.5 min-w-0">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border ${statusBadge(r.status)}">
+                          ${esc(r.status)}
+                        </span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${isDelete ? 'bg-rose-600 text-white' : 'bg-amber-500 text-white'}">
+                          ${isDelete ? 'HAPUS PERMANEN' : 'NONAKTIFKAN (DIPULIHKAN)'}
+                        </span>
+                        ${r.unitKerja ? `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">Cabang: ${esc(r.unitKerja)}</span>` : ''}
+                        <span class="text-[10px] font-mono text-slate-400">${esc(r.id)}</span>
+                      </div>
+                      <h3 class="text-base font-black text-slate-900">${esc(r.companyName)}</h3>
+                      <div class="flex items-center gap-2 flex-wrap text-[11px] text-slate-500">
+                        <span>Pemohon: <strong class="text-slate-700">${esc(r.proposerName)}</strong></span>
+                        ${r.proposerNip ? `<span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">NIP ${esc(r.proposerNip)}</span>` : ''}
+                        ${r.proposerUnit ? `<span>&middot; ${esc(r.proposerUnit)}</span>` : ''}
+                        <span>&middot; ${new Date(r.createdAt).toLocaleString('id-ID')}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs space-y-1">
+                    <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Alasan / Dasar Permohonan</p>
+                    <p class="text-slate-800 whitespace-pre-line leading-relaxed font-medium">${esc(r.reasonText || '-')}</p>
+                  </div>
+
+                  ${isPending ? `
+                    <div class="pt-2 flex flex-col lg:flex-row lg:items-center gap-2.5 text-xs">
+                      <input
+                        id="cekreq-notes-${esc(r.id)}"
+                        type="text"
+                        placeholder="Catatan keputusan Admin (opsional)..."
+                        class="flex-1 px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-rose-500 text-slate-700"
+                      />
+                      <div class="flex items-center gap-2 shrink-0">
+                        <button type="button" onclick="window.AdminModule.decideCeklistApproval('${esc(r.id)}', 'approve')" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition cursor-pointer">
+                          <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
+                          <span>Setujui &amp; ${isDelete ? 'Hapus' : 'Nonaktifkan'}</span>
+                        </button>
+                        <button type="button" onclick="window.AdminModule.decideCeklistApproval('${esc(r.id)}', 'reject')" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition cursor-pointer">
+                          <i data-lucide="x-circle" class="w-3.5 h-3.5"></i>
+                          <span>Tolak</span>
+                        </button>
+                      </div>
+                    </div>
+                  ` : `
+                    <div class="pt-1 flex items-center justify-between gap-2 text-[11px] text-slate-500">
+                      <div>
+                        Diputuskan oleh <strong class="text-slate-700">${esc(r.reviewedBy || 'Admin')}</strong>
+                        ${r.adminNotes ? ` &middot; Catatan: <span class="italic text-slate-700">"${esc(r.adminNotes)}"</span>` : ''}
+                      </div>
+                      <button type="button" onclick="window.AdminModule.deleteCeklistApprovalRecord('${esc(r.id)}')" class="text-slate-400 hover:text-rose-600 font-semibold cursor-pointer">Hapus Riwayat</button>
+                    </div>
+                  `}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `}
+      </div>
+    `;
+  },
+
+  handleCeklistApprovalFilter(val) {
+    this.ceklistApprovalFilter = val;
+    window.askrindoApp.renderCurrentRoute();
+  },
+
+  decideCeklistApproval(reqId, decision) {
+    const requests = window.askrindoDB.getCeklistApprovalRequests ? window.askrindoDB.getCeklistApprovalRequests() : [];
+    const req = requests.find(r => r.id === reqId);
+    if (!req) return;
+
+    const notes = (document.getElementById(`cekreq-notes-${reqId}`)?.value || '').trim();
+    const adminUser = window.authService?.getCurrentUser?.();
+    const reviewedBy = adminUser ? `${adminUser.name} (${adminUser.nip})` : 'Admin';
+    const isDelete = req.actionType === 'delete';
+
+    if (decision === 'approve') {
+      if (!confirm(`Setujui permohonan ${isDelete ? 'HAPUS PERMANEN' : 'NONAKTIFKAN (DIPULIHKAN)'} untuk "${req.companyName}"?`)) return;
+      if (window.CeklistModule?.executeApprovedAction) {
+        window.CeklistModule.executeApprovedAction(req);
+      }
+      window.askrindoDB.updateAppProposalStatus(reqId, 'Disetujui', notes || `Disetujui & dieksekusi oleh ${reviewedBy}`, reviewedBy);
+      window.askrindoDB.logActivity(
+        'CEKLIST',
+        isDelete ? 'Setujui Hapus Blacklist' : 'Setujui Nonaktifkan Blacklist',
+        `Admin menyetujui ${isDelete ? 'penghapusan permanen' : 'penonaktifan (Dipulihkan)'} "${req.companyName}" (Pemohon: ${req.proposerName})`
+      );
+      window.askrindoApp.showToast(`Permohonan ${isDelete ? 'penghapusan' : 'penonaktifan'} "${req.companyName}" disetujui & dieksekusi!`, 'success');
+    } else {
+      window.askrindoDB.updateAppProposalStatus(reqId, 'Ditolak', notes || 'Permohonan ditolak oleh Admin.', reviewedBy);
+      window.askrindoDB.logActivity(
+        'CEKLIST',
+        'Tolak Permohonan Blacklist',
+        `Admin menolak permohonan ${isDelete ? 'hapus' : 'nonaktifkan'} "${req.companyName}" (Pemohon: ${req.proposerName})`
+      );
+      window.askrindoApp.showToast(`Permohonan untuk "${req.companyName}" ditolak. Perusahaan tetap Terblokir Aktif.`, 'info');
+    }
+
+    window.askrindoApp.updateActiveNavs();
+    window.askrindoApp.renderCurrentRoute();
+  },
+
+  deleteCeklistApprovalRecord(reqId) {
+    if (!confirm('Hapus riwayat permohonan persetujuan ini?')) return;
+    window.askrindoDB.deleteAppProposal(reqId);
+    window.askrindoApp.updateActiveNavs();
+    window.askrindoApp.renderCurrentRoute();
   },
 
   renderProposalsTab(proposals = []) {
