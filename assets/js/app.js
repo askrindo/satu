@@ -253,9 +253,12 @@ class AskrindoApp {
                 ${canAdmin ? `
                   <div class="space-y-1">
                     <p class="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">Administrasi &amp; User</p>
-                    <a href="#/admin" id="nav-admin" title="Web Admin Portal" class="flex items-center gap-3 px-3 py-1.5 rounded-xl transition text-slate-600 hover:text-amber-700 hover:bg-amber-50">
-                      <i data-lucide="shield-check" class="w-4 h-4 text-amber-500 shrink-0"></i>
-                      <span class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">Web Admin Portal</span>
+                    <a href="#/admin" id="nav-admin" title="Web Admin Portal" class="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl transition text-slate-600 hover:text-amber-700 hover:bg-amber-50">
+                      <div class="flex items-center gap-3 min-w-0">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-amber-500 shrink-0"></i>
+                        <span class="sidebar-text ${this.sidebarCollapsed ? 'lg:hidden' : ''}">Web Admin Portal</span>
+                      </div>
+                      <span id="nav-badge-admin-proposals" class="hidden sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded-full text-[9px] font-black bg-orange-500 text-white"></span>
                     </a>
                   </div>
                 ` : ''}
@@ -465,6 +468,18 @@ class AskrindoApp {
       badgeEl.innerText = allowed ? 'Aktif' : 'Terkunci';
       badgeEl.className = `sidebar-text shrink-0 ${this.sidebarCollapsed ? 'lg:hidden' : ''} px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${allowed ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-200'}`;
     });
+
+    // Sync pending new-module proposals badge on Web Admin Portal link
+    const propBadge = document.getElementById('nav-badge-admin-proposals');
+    if (propBadge && window.askrindoDB?.getAppProposals) {
+      const pendingCount = window.askrindoDB.getAppProposals().filter(p => (p.status || 'Menunggu Review') === 'Menunggu Review').length;
+      if (pendingCount > 0) {
+        propBadge.innerText = `${pendingCount} Usulan`;
+        propBadge.classList.remove('hidden');
+      } else {
+        propBadge.classList.add('hidden');
+      }
+    }
 
     if (window.lucide) window.lucide.createIcons();
   }
@@ -987,12 +1002,211 @@ class AskrindoApp {
   }
 
   requestNewAppModal() {
-    const prompt = window.prompt('Masukkan nama dan penjelasan singkat aplikasi kerja baru yang ingin diusulkan ke Askrindo SATU:');
-    if (prompt) {
-      const user = window.authService.getCurrentUser();
-      window.askrindoDB.logActivity('SYSTEM', 'Pengajuan Modul Baru', `Pengguna ${user.name} mengusulkan modul: "${prompt}"`);
-      this.showToast('Usulan aplikasi baru berhasil dicatat dan diteruskan ke Tim TI Askrindo!', 'success');
+    const modal = document.getElementById('global-modal-container');
+    if (!modal) return;
+
+    const user = window.authService?.getCurrentUser?.() || {};
+    const unitKerja = window.askrindoDB?.getUserUnitKerja ? window.askrindoDB.getUserUnitKerja(user) : (user.branch || user.division || '-');
+    const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    modal.innerHTML = `
+      <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/65 backdrop-blur-sm animate-fadeIn" onclick="if(event.target===this) window.askrindoApp.closeAllModals()">
+        <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden max-h-[92vh] flex flex-col">
+          <!-- Gradient Header -->
+          <div class="bg-gradient-to-r from-[#002B49] via-[#0A3D62] to-[#F37021] text-white p-5 sm:p-6 flex items-start justify-between gap-4 shrink-0">
+            <div class="flex items-start gap-3.5">
+              <div class="w-12 h-12 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0 shadow-inner">
+                <i data-lucide="sparkles" class="w-6 h-6 text-amber-300"></i>
+              </div>
+              <div>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-white/15 border border-white/20 text-amber-200">
+                  Inovasi Portal Askrindo SATU
+                </span>
+                <h3 class="text-lg sm:text-xl font-black mt-1 tracking-tight">Ajukan Modul Aplikasi Baru</h3>
+                <p class="text-xs text-slate-100/90 mt-0.5 leading-relaxed">
+                  Sampaikan ide atau kebutuhan aplikasi kerja Anda secara rinci. Pengajuan akan langsung masuk ke <strong>Portal Web Admin</strong> untuk ditinjau &amp; ditindaklanjuti.
+                </p>
+              </div>
+            </div>
+            <button type="button" onclick="window.askrindoApp.closeAllModals()" class="p-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white transition shrink-0 cursor-pointer">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- Form Body -->
+          <form onsubmit="window.askrindoApp.submitNewAppProposal(event)" class="p-5 sm:p-6 space-y-4 text-xs overflow-y-auto">
+            <!-- Pengusul Info Banner -->
+            <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/90 flex items-center justify-between gap-3 flex-wrap">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
+                  <i data-lucide="user-check" class="w-4 h-4"></i>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Identitas Pengusul (Otomatis)</p>
+                  <p class="font-bold text-slate-800 truncate">${esc(user.name || 'Pengguna')} <span class="font-mono text-slate-500 font-semibold">(NIP: ${esc(user.nip || '-')})</span></p>
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-[10px] font-bold text-slate-700">${esc(user.role || '-')}</span>
+                <span class="px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-[10px] font-bold text-blue-700">${esc(unitKerja)}</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
+              <div class="sm:col-span-12">
+                <label class="block font-bold text-slate-700 mb-1">
+                  Nama / Usulan Singkatan Modul Aplikasi <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  id="prop-module-name"
+                  type="text"
+                  required
+                  placeholder="Contoh: SIAGA — Sistem Monitoring Klaim & Subrogasi Terintegrasi"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-orange-500 font-semibold text-slate-800"
+                />
+                <p class="text-[10px] text-slate-400 mt-1">Boleh berupa akronim + kepanjangan atau nama fitur yang mudah dipahami.</p>
+              </div>
+
+              <div class="sm:col-span-6">
+                <label class="block font-bold text-slate-700 mb-1">Kategori / Bidang Kerja <span class="text-rose-500">*</span></label>
+                <select id="prop-category" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-orange-500 font-semibold text-slate-800">
+                  <option value="">-- Pilih Kategori Bidang --</option>
+                  <option value="Underwriting & Penjaminan">Underwriting &amp; Penjaminan</option>
+                  <option value="Suretyship & SPKMGR">Suretyship &amp; SPKMGR</option>
+                  <option value="Klaim & Subrogasi">Klaim &amp; Subrogasi</option>
+                  <option value="KUR & UMKM">KUR &amp; UMKM</option>
+                  <option value="Keuangan & Akuntansi">Keuangan &amp; Akuntansi</option>
+                  <option value="Kepatuhan & Manajemen Risiko">Kepatuhan &amp; Manajemen Risiko</option>
+                  <option value="Operasional & Administrasi Cabang">Operasional &amp; Administrasi Cabang</option>
+                  <option value="Pemasaran & Relationship">Pemasaran &amp; Relationship</option>
+                  <option value="Lainnya">Lainnya</option>
+                </select>
+              </div>
+
+              <div class="sm:col-span-6">
+                <label class="block font-bold text-slate-700 mb-1">Tingkat Urgensi / Prioritas <span class="text-rose-500">*</span></label>
+                <select id="prop-priority" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-orange-500 font-semibold text-slate-800">
+                  <option value="">-- Pilih Prioritas --</option>
+                  <option value="Tinggi">Tinggi (Mendesak / Operasional Harian)</option>
+                  <option value="Sedang">Sedang (Kebutuhan Rutin Berkala)</option>
+                  <option value="Rendah">Rendah (Inovasi Jangka Panjang)</option>
+                </select>
+              </div>
+
+              <div class="sm:col-span-12">
+                <label class="block font-bold text-slate-700 mb-1">
+                  Latar Belakang &amp; Kendala Saat Ini <span class="text-rose-500">*</span>
+                </label>
+                <textarea
+                  id="prop-problem"
+                  rows="3"
+                  required
+                  placeholder="Jelaskan proses kerja manual atau kendala yang sering terjadi saat ini (misal: pengecekan berkas masih manual di banyak file Excel sehingga rawan terlewat dan memakan waktu lama)..."
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-orange-500 text-slate-800 leading-relaxed"
+                ></textarea>
+              </div>
+
+              <div class="sm:col-span-12">
+                <label class="block font-bold text-slate-700 mb-1">
+                  Fitur Utama yang Diharapkan <span class="text-rose-500">*</span>
+                </label>
+                <textarea
+                  id="prop-features"
+                  rows="3"
+                  required
+                  placeholder="Sebutkan fitur-fitur yang diinginkan, misalnya:&#10;1. Form input & pencarian cepat data nasabah&#10;2. Sinkronisasi otomatis ke Google Sheets / Excel&#10;3. Upload dokumen PDF dengan AI OCR & notifikasi otomatis&#10;4. Cetak laporan ringkasan PDF"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-orange-500 text-slate-800 leading-relaxed"
+                ></textarea>
+              </div>
+
+              <div class="sm:col-span-6">
+                <label class="block font-bold text-slate-700 mb-1">Target Pengguna / Unit Kerja</label>
+                <input
+                  id="prop-target-users"
+                  type="text"
+                  placeholder="Contoh: Underwriter, RM, Seluruh Branch Office"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-orange-500 text-slate-800"
+                />
+              </div>
+
+              <div class="sm:col-span-6">
+                <label class="block font-bold text-slate-700 mb-1">Manfaat / Dampak yang Diharapkan</label>
+                <input
+                  id="prop-benefit"
+                  type="text"
+                  placeholder="Contoh: Memangkas waktu proses dari 2 hari jadi 10 menit"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-orange-500 text-slate-800"
+                />
+              </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="flex items-center justify-between gap-3 pt-4 border-t border-slate-100">
+              <span class="text-[11px] text-slate-400 flex items-center gap-1.5">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-500"></i>
+                Terkirim langsung ke Inbox Admin
+              </span>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="window.askrindoApp.closeAllModals()" class="px-4 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer">
+                  Batal
+                </button>
+                <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-white bg-gradient-to-r from-[#002B49] via-[#0A3D62] to-[#F37021] hover:opacity-95 shadow-md transition cursor-pointer">
+                  <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                  <span>Kirim Pengajuan ke Admin</span>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    if (window.lucide) window.lucide.createIcons();
+    setTimeout(() => document.getElementById('prop-module-name')?.focus(), 60);
+  }
+
+  submitNewAppProposal(e) {
+    if (e) e.preventDefault();
+    const moduleName = (document.getElementById('prop-module-name')?.value || '').trim();
+    const category = (document.getElementById('prop-category')?.value || '').trim();
+    const priority = (document.getElementById('prop-priority')?.value || '').trim();
+    const problemStatement = (document.getElementById('prop-problem')?.value || '').trim();
+    const proposedFeatures = (document.getElementById('prop-features')?.value || '').trim();
+    const targetUsers = (document.getElementById('prop-target-users')?.value || '').trim();
+    const expectedBenefit = (document.getElementById('prop-benefit')?.value || '').trim();
+
+    if (!moduleName || !problemStatement || !proposedFeatures) {
+      this.showToast('Harap lengkapi Nama Modul, Latar Belakang, dan Fitur Utama yang Diharapkan.', 'warning');
+      return;
     }
+
+    const user = window.authService?.getCurrentUser?.() || {};
+    const unitKerja = window.askrindoDB?.getUserUnitKerja ? window.askrindoDB.getUserUnitKerja(user) : (user.branch || user.division || '-');
+
+    const saved = window.askrindoDB.saveAppProposal({
+      moduleName,
+      category,
+      priority: priority || 'Sedang',
+      problemStatement,
+      proposedFeatures,
+      targetUsers,
+      expectedBenefit,
+      proposerId: user.id || '',
+      proposerNip: user.nip || '',
+      proposerName: user.name || 'Pengguna',
+      proposerRole: user.role || '',
+      proposerUnit: unitKerja
+    });
+
+    window.askrindoDB.logActivity(
+      'SYSTEM',
+      'Pengajuan Modul Baru',
+      `Pengguna ${user.name || 'Pengguna'} (NIP ${user.nip || '-'}) mengajukan modul "${moduleName}" [${category || 'Umum'} · Prioritas ${priority || 'Sedang'}] (ID: ${saved.id})`
+    );
+
+    this.closeAllModals();
+    this.updateActiveNavs();
+    this.showToast(`Usulan modul "${moduleName}" berhasil dikirim ke akun Admin!`, 'success');
   }
 
   closeAllModals() {

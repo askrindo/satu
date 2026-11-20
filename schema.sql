@@ -186,6 +186,34 @@ ALTER TABLE public.ceklist_blacklist ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow public all access on ceklist_blacklist" ON public.ceklist_blacklist;
 CREATE POLICY "Allow public all access on ceklist_blacklist" ON public.ceklist_blacklist FOR ALL USING (true) WITH CHECK (true);
 
+-- 9. Tabel Pengajuan Modul Aplikasi Baru (app_proposals)
+CREATE TABLE IF NOT EXISTS public.app_proposals (
+    id TEXT PRIMARY KEY,
+    module_name TEXT NOT NULL,
+    category TEXT,
+    priority TEXT NOT NULL DEFAULT 'Sedang',
+    problem_statement TEXT,
+    proposed_features TEXT,
+    target_users TEXT,
+    expected_benefit TEXT,
+    proposer_id TEXT,
+    proposer_nip TEXT,
+    proposer_name TEXT NOT NULL,
+    proposer_role TEXT,
+    proposer_unit TEXT,
+    status TEXT NOT NULL DEFAULT 'Menunggu Review',
+    admin_notes TEXT,
+    reviewed_by TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_app_proposals_status ON public.app_proposals (status);
+ALTER TABLE public.app_proposals ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow public all access on app_proposals" ON public.app_proposals;
+CREATE POLICY "Allow public all access on app_proposals" ON public.app_proposals FOR ALL USING (true) WITH CHECK (true);
+
 -- ========================================================
 -- SEED DATA AWAL (Pengguna & Data SPPA Bawaan Askrindo SATU)
 -- ========================================================

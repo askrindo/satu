@@ -4,9 +4,10 @@
  */
 
 window.AdminModule = {
-  currentTab: 'users', // 'users' | 'matrix' | 'audit' | 'settings'
+  currentTab: 'users', // 'users' | 'matrix' | 'proposals' | 'audit' | 'settings'
   searchQuery: '',
   roleFilter: 'all',
+  proposalStatusFilter: 'all',
 
   STANDARD_ROLES: [
     'Super Administrator',
@@ -37,6 +38,8 @@ window.AdminModule = {
     const activeCount = users.filter(u => u.status === 'active').length;
     const auditLogs = window.askrindoDB.getAuditLogs();
     const settings = window.askrindoDB.getSettings();
+    const proposals = window.askrindoDB.getAppProposals ? window.askrindoDB.getAppProposals() : [];
+    const pendingProposalsCount = proposals.filter(p => (p.status || 'Menunggu Review') === 'Menunggu Review').length;
 
     // Filtered users for tab 1
     const filteredUsers = users.filter(u => {
@@ -127,18 +130,23 @@ window.AdminModule = {
 
         <!-- Admin Tab Navigation -->
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-          <div class="flex items-center border-b border-slate-200 px-6 pt-3 gap-6 text-sm font-semibold">
+          <div class="flex items-center overflow-x-auto border-b border-slate-200 px-6 pt-3 gap-6 text-sm font-semibold">
             <button onclick="window.AdminModule.setTab('users')" class="pb-3 border-b-2 transition-all flex items-center gap-2 ${this.currentTab === 'users' ? 'border-orange-500 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-800'}">
               <i data-lucide="users" class="w-4 h-4"></i>
               <span>Manajemen Pengguna</span>
               <span class="px-2 py-0.5 rounded-full text-[11px] bg-slate-100 text-slate-600">${users.length}</span>
             </button>
-            <button onclick="window.AdminModule.setTab('matrix')" class="pb-3 border-b-2 transition-all flex items-center gap-2 ${this.currentTab === 'matrix' ? 'border-orange-500 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-800'}">
+            <button onclick="window.AdminModule.setTab('matrix')" class="pb-3 border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${this.currentTab === 'matrix' ? 'border-orange-500 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-800'}">
               <i data-lucide="table-2" class="w-4 h-4"></i>
               <span>Matriks Hak Akses Sub-Aplikasi</span>
               <span class="px-2 py-0.5 rounded-full text-[11px] bg-amber-50 text-amber-700 font-bold">Live Matrix</span>
             </button>
-            <button onclick="window.AdminModule.setTab('audit')" class="pb-3 border-b-2 transition-all flex items-center gap-2 ${this.currentTab === 'audit' ? 'border-orange-500 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-800'}">
+            <button onclick="window.AdminModule.setTab('proposals')" class="pb-3 border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${this.currentTab === 'proposals' ? 'border-orange-500 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-800'}">
+              <i data-lucide="lightbulb" class="w-4 h-4"></i>
+              <span>Usulan Modul Baru</span>
+              <span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${pendingProposalsCount > 0 ? 'bg-orange-500 text-white' : 'bg-slate-100 text-slate-600'}">${pendingProposalsCount > 0 ? `${pendingProposalsCount} Baru` : proposals.length}</span>
+            </button>
+            <button onclick="window.AdminModule.setTab('audit')" class="pb-3 border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${this.currentTab === 'audit' ? 'border-orange-500 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-800'}">
               <i data-lucide="history" class="w-4 h-4"></i>
               <span>Audit Trail & Log Aktivitas</span>
             </button>
@@ -150,7 +158,7 @@ window.AdminModule = {
 
           <!-- Tab Contents -->
           <div class="p-6">
-            ${this.renderActiveTab(filteredUsers, users, uniqueRoles, auditLogs, settings)}
+            ${this.renderActiveTab(filteredUsers, users, uniqueRoles, auditLogs, settings, proposals)}
           </div>
         </div>
 
@@ -160,16 +168,179 @@ window.AdminModule = {
     `;
   },
 
-  renderActiveTab(filteredUsers, allUsers, roles, auditLogs, settings) {
+  renderActiveTab(filteredUsers, allUsers, roles, auditLogs, settings, proposals = []) {
     if (this.currentTab === 'users') {
       return this.renderUsersTab(filteredUsers, roles);
     } else if (this.currentTab === 'matrix') {
       return this.renderMatrixTab(allUsers);
+    } else if (this.currentTab === 'proposals') {
+      return this.renderProposalsTab(proposals);
     } else if (this.currentTab === 'audit') {
       return this.renderAuditTab(auditLogs);
     } else if (this.currentTab === 'settings') {
       return this.renderSettingsTab(settings);
     }
+  },
+
+  renderProposalsTab(proposals = []) {
+    const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const statuses = ['Menunggu Review', 'Sedang Dikaji', 'Disetujui / Roadmap', 'Selesai Dibangun', 'Ditolak'];
+    const filtered = this.proposalStatusFilter === 'all'
+      ? proposals
+      : proposals.filter(p => (p.status || 'Menunggu Review') === this.proposalStatusFilter);
+
+    const priorityStyle = (p) => {
+      if (p === 'Tinggi') return 'bg-rose-100 text-rose-800 border-rose-200';
+      if (p === 'Rendah') return 'bg-slate-100 text-slate-700 border-slate-200';
+      return 'bg-amber-100 text-amber-800 border-amber-200';
+    };
+
+    const statusStyle = (st) => {
+      if (st === 'Disetujui / Roadmap') return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      if (st === 'Selesai Dibangun') return 'bg-blue-100 text-blue-800 border-blue-200';
+      if (st === 'Sedang Dikaji') return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+      if (st === 'Ditolak') return 'bg-rose-100 text-rose-800 border-rose-200';
+      return 'bg-orange-100 text-orange-800 border-orange-200';
+    };
+
+    return `
+      <div class="space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-orange-50 to-amber-50/60 border border-orange-200 p-4 rounded-xl">
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-xl bg-orange-500 text-white flex items-center justify-center shrink-0">
+              <i data-lucide="lightbulb" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h4 class="text-xs font-extrabold text-slate-900">Inbox Pengajuan Modul Aplikasi Baru</h4>
+              <p class="text-[11px] text-slate-600 mt-0.5">
+                Seluruh usulan modul kerja baru dari pegawai di seluruh unit kerja akan masuk otomatis ke sini untuk dikaji oleh Administrator.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <label class="text-xs font-semibold text-slate-600">Filter Status:</label>
+            <select onchange="window.AdminModule.handleProposalFilter(this.value)" class="text-xs px-3 py-1.5 rounded-xl border border-orange-200 bg-white font-semibold text-slate-700 focus:outline-none focus:border-orange-500">
+              <option value="all" ${this.proposalStatusFilter === 'all' ? 'selected' : ''}>Semua Status (${proposals.length})</option>
+              ${statuses.map(st => `<option value="${st}" ${this.proposalStatusFilter === st ? 'selected' : ''}>${st}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+
+        ${filtered.length === 0 ? `
+          <div class="rounded-2xl border border-dashed border-slate-300 p-12 text-center space-y-2 bg-slate-50/50">
+            <i data-lucide="inbox" class="w-9 h-9 text-slate-300 mx-auto"></i>
+            <h4 class="text-sm font-bold text-slate-700">Belum Ada Pengajuan Modul Baru</h4>
+            <p class="text-xs text-slate-400">Usulan aplikasi baru yang dikirim pengguna dari halaman Beranda akan tampil di sini.</p>
+          </div>
+        ` : `
+          <div class="space-y-4">
+            ${filtered.map(p => `
+              <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 space-y-4">
+                <!-- Card Top -->
+                <div class="flex flex-col md:flex-row md:items-start justify-between gap-3 border-b border-slate-100 pb-3.5">
+                  <div class="space-y-1.5 min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border ${statusStyle(p.status || 'Menunggu Review')}">
+                        ${esc(p.status || 'Menunggu Review')}
+                      </span>
+                      <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${priorityStyle(p.priority || 'Sedang')}">
+                        Prioritas ${esc(p.priority || 'Sedang')}
+                      </span>
+                      ${p.category ? `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">${esc(p.category)}</span>` : ''}
+                      <span class="text-[10px] font-mono text-slate-400">${esc(p.id)}</span>
+                    </div>
+                    <h3 class="text-base font-black text-slate-900">${esc(p.moduleName)}</h3>
+                    <div class="flex items-center gap-2 flex-wrap text-[11px] text-slate-500">
+                      <span class="font-bold text-slate-700">${esc(p.proposerName)}</span>
+                      ${p.proposerNip ? `<span class="font-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">NIP ${esc(p.proposerNip)}</span>` : ''}
+                      ${p.proposerRole ? `<span>&middot; ${esc(p.proposerRole)}</span>` : ''}
+                      ${p.proposerUnit ? `<span>&middot; ${esc(p.proposerUnit)}</span>` : ''}
+                      <span>&middot; ${new Date(p.createdAt).toLocaleString('id-ID')}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Descriptive Details Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-3.5 text-xs">
+                  <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+                    <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Latar Belakang &amp; Kendala Saat Ini</p>
+                    <p class="text-slate-700 whitespace-pre-line leading-relaxed">${esc(p.problemStatement || '-')}</p>
+                  </div>
+                  <div class="p-3.5 rounded-xl bg-blue-50/50 border border-blue-200/70 space-y-1">
+                    <p class="text-[10px] font-extrabold uppercase tracking-wider text-blue-600">Fitur Utama yang Diharapkan</p>
+                    <p class="text-slate-700 whitespace-pre-line leading-relaxed">${esc(p.proposedFeatures || '-')}</p>
+                  </div>
+                  ${p.targetUsers ? `
+                    <div class="p-3 rounded-xl bg-white border border-slate-200/80">
+                      <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Target Pengguna / Unit Kerja</span>
+                      <span class="font-semibold text-slate-800">${esc(p.targetUsers)}</span>
+                    </div>
+                  ` : ''}
+                  ${p.expectedBenefit ? `
+                    <div class="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200/70">
+                      <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 block">Dampak / Manfaat yang Diharapkan</span>
+                      <span class="font-semibold text-emerald-900">${esc(p.expectedBenefit)}</span>
+                    </div>
+                  ` : ''}
+                </div>
+
+                <!-- Admin Action Bar -->
+                <div class="pt-3 border-t border-slate-100 flex flex-col lg:flex-row lg:items-center gap-2.5 text-xs">
+                  <select id="prop-status-${esc(p.id)}" class="px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-bold text-slate-700 focus:outline-none focus:border-orange-500">
+                    ${statuses.map(st => `<option value="${st}" ${(p.status || 'Menunggu Review') === st ? 'selected' : ''}>${st}</option>`).join('')}
+                  </select>
+                  <input
+                    id="prop-notes-${esc(p.id)}"
+                    type="text"
+                    value="${esc(p.adminNotes || '')}"
+                    placeholder="Tambahkan catatan review / tanggapan Admin..."
+                    class="flex-1 px-3 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-orange-500 text-slate-700"
+                  />
+                  <div class="flex items-center gap-2 shrink-0">
+                    <button type="button" onclick="window.AdminModule.saveProposalReview('${esc(p.id)}')" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold bg-orange-600 hover:bg-orange-700 text-white transition cursor-pointer">
+                      <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                      <span>Simpan Review</span>
+                    </button>
+                    <button type="button" onclick="window.AdminModule.deleteProposal('${esc(p.id)}', '${esc(p.moduleName)}')" title="Hapus Usulan" class="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition cursor-pointer">
+                      <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `}
+      </div>
+    `;
+  },
+
+  handleProposalFilter(val) {
+    this.proposalStatusFilter = val;
+    window.askrindoApp.renderCurrentRoute();
+  },
+
+  saveProposalReview(id) {
+    const status = document.getElementById(`prop-status-${id}`)?.value || 'Menunggu Review';
+    const notes = document.getElementById(`prop-notes-${id}`)?.value || '';
+    const adminUser = window.authService?.getCurrentUser?.();
+    const reviewedBy = adminUser ? `${adminUser.name} (${adminUser.nip})` : 'Admin';
+    const updated = window.askrindoDB.updateAppProposalStatus(id, status, notes, reviewedBy);
+    if (updated) {
+      window.askrindoDB.logActivity('ADMIN', 'Review Usulan Modul', `Status usulan "${updated.moduleName}" diubah menjadi: ${status}`);
+      window.askrindoApp.updateActiveNavs();
+      window.askrindoApp.renderCurrentRoute();
+      window.askrindoApp.showToast(`Status usulan "${updated.moduleName}" diperbarui menjadi ${status}.`, 'success');
+    }
+  },
+
+  deleteProposal(id, name) {
+    if (!confirm(`Hapus usulan modul "${name}" dari inbox Admin?`)) return;
+    window.askrindoDB.deleteAppProposal(id);
+    window.askrindoDB.logActivity('ADMIN', 'Hapus Usulan Modul', `Menghapus usulan modul "${name}" (${id})`);
+    window.askrindoApp.updateActiveNavs();
+    window.askrindoApp.renderCurrentRoute();
+    window.askrindoApp.showToast(`Usulan "${name}" berhasil dihapus.`, 'info');
   },
 
   renderUsersTab(filteredUsers, roles) {

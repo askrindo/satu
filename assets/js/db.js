@@ -19,7 +19,8 @@ const DB_KEYS = {
   LAPOR: 'askrindo_satu_lapor_v1',
   AUDIT: 'askrindo_satu_audit_v1',
   SETTINGS: 'askrindo_satu_settings_v1',
-  USER_OVERRIDES: 'askrindo_satu_user_overrides_v1'
+  USER_OVERRIDES: 'askrindo_satu_user_overrides_v1',
+  APP_PROPOSALS: 'askrindo_satu_app_proposals_v1'
 };
 
 // Standard Default Avatar for All Users
@@ -647,6 +648,9 @@ class AskrindoDB {
 
       // Sync LAPOR company financial analyses if cloud table exists
       await this.syncLaporWithSupabase();
+
+      // Sync App Proposals (Pengajuan Modul Baru) if cloud table exists
+      await this.syncAppProposalsWithSupabase();
 
       // Trigger event update UI
       window.dispatchEvent(new CustomEvent('askrindo:db-synced'));
@@ -1662,8 +1666,6 @@ class AskrindoDB {
       this.supabase.from('audit_logs').insert({
         id: newLog.id,
         timestamp: newLog.timestamp,
-        user_id: newLog.userId,
-        user_nip: newLog.userNip,
         user_name: newLog.user,
         role: newLog.role,
         sub_app: newLog.subApp,
@@ -1671,6 +1673,156 @@ class AskrindoDB {
         details: newLog.details
       }).then(({ error }) => {
         if (error) console.warn('[Supabase Log Activity Error]:', error);
+      });
+    }
+  }
+
+  // --- App Proposals (Pengajuan Modul Aplikasi Baru -> Masuk ke Portal Web Admin) ---
+  getAppProposals() {
+    try {
+      const list = JSON.parse(localStorage.getItem(DB_KEYS.APP_PROPOSALS) || '[]');
+      return Array.isArray(list) ? list : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  async syncAppProposalsWithSupabase() {
+    if (!this.supabase) return;
+    try {
+      const { data, error } = await this.supabase
+        .from('app_proposals')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error || !Array.isArray(data)) return;
+
+      const mapped = data.map(p => ({
+        id: p.id,
+        moduleName: p.module_name || '',
+        category: p.category || '',
+        priority: p.priority || 'Sedang',
+        problemStatement: p.problem_statement || '',
+        proposedFeatures: p.proposed_features || '',
+        targetUsers: p.target_users || '',
+        expectedBenefit: p.expected_benefit || '',
+        proposerId: p.proposer_id || '',
+        proposerNip: p.proposer_nip || '',
+        proposerName: p.proposer_name || 'Pengguna',
+        proposerRole: p.proposer_role || '',
+        proposerUnit: p.proposer_unit || '',
+        status: p.status || 'Menunggu Review',
+        adminNotes: p.admin_notes || '',
+        reviewedBy: p.reviewed_by || '',
+        createdAt: p.created_at || new Date().toISOString(),
+        updatedAt: p.updated_at || p.created_at || new Date().toISOString()
+      }));
+
+      // Merge any local-only proposals not yet in cloud
+      const localList = this.getAppProposals();
+      localList.forEach(lp => {
+        if (!mapped.some(mp => mp.id === lp.id)) {
+          mapped.unshift(lp);
+        }
+      });
+
+      localStorage.setItem(DB_KEYS.APP_PROPOSALS, JSON.stringify(mapped));
+    } catch (e) {
+      // Abaikan jika tabel belum dibuat
+    }
+  }
+
+  saveAppProposal(data) {
+    const proposals = this.getAppProposals();
+    const nowIso = new Date().toISOString();
+    const record = {
+      id: data.id || `PROP-${Date.now()}`,
+      moduleName: (data.moduleName || '').trim(),
+      category: (data.category || '').trim(),
+      priority: (data.priority || 'Sedang').trim(),
+      problemStatement: (data.problemStatement || '').trim(),
+      proposedFeatures: (data.proposedFeatures || '').trim(),
+      targetUsers: (data.targetUsers || '').trim(),
+      expectedBenefit: (data.expectedBenefit || '').trim(),
+      proposerId: data.proposerId || '',
+      proposerNip: data.proposerNip || '',
+      proposerName: data.proposerName || 'Pengguna',
+      proposerRole: data.proposerRole || '',
+      proposerUnit: data.proposerUnit || '',
+      status: data.status || 'Menunggu Review',
+      adminNotes: data.adminNotes || '',
+      reviewedBy: data.reviewedBy || '',
+      createdAt: data.createdAt || nowIso,
+      updatedAt: nowIso
+    };
+
+    const idx = proposals.findIndex(p => p.id === record.id);
+    if (idx !== -1) proposals[idx] = record;
+    else proposals.unshift(record);
+    localStorage.setItem(DB_KEYS.APP_PROPOSALS, JSON.stringify(proposals));
+
+    if (this.supabase && this.cloudStatus === 'connected') {
+      this.supabase.from('app_proposals').upsert({
+        id: record.id,
+        module_name: record.moduleName,
+        category: record.category,
+        priority: record.priority,
+        problem_statement: record.problemStatement,
+        proposed_features: record.proposedFeatures,
+        target_users: record.targetUsers,
+        expected_benefit: record.expectedBenefit,
+        proposer_id: record.proposerId,
+        proposer_nip: record.proposerNip,
+        proposer_name: record.proposerName,
+        proposer_role: record.proposerRole,
+        proposer_unit: record.proposerUnit,
+        status: record.status,
+        admin_notes: record.adminNotes,
+        reviewed_by: record.reviewedBy,
+        created_at: record.createdAt,
+        updated_at: record.updatedAt
+      }).then(({ error }) => {
+        if (error) console.warn('[Supabase App Proposal Error]:', error);
+      });
+    }
+
+    return record;
+  }
+
+  updateAppProposalStatus(id, status, adminNotes = '', reviewedBy = '') {
+    const proposals = this.getAppProposals();
+    const idx = proposals.findIndex(p => p.id === id);
+    if (idx === -1) return null;
+
+    proposals[idx] = {
+      ...proposals[idx],
+      status,
+      adminNotes: (adminNotes || '').trim(),
+      reviewedBy: reviewedBy || proposals[idx].reviewedBy || 'Admin',
+      updatedAt: new Date().toISOString()
+    };
+    localStorage.setItem(DB_KEYS.APP_PROPOSALS, JSON.stringify(proposals));
+
+    if (this.supabase && this.cloudStatus === 'connected') {
+      this.supabase.from('app_proposals').update({
+        status: proposals[idx].status,
+        admin_notes: proposals[idx].adminNotes,
+        reviewed_by: proposals[idx].reviewedBy,
+        updated_at: proposals[idx].updatedAt
+      }).eq('id', id).then(({ error }) => {
+        if (error) console.warn('[Supabase Update Proposal Error]:', error);
+      });
+    }
+
+    return proposals[idx];
+  }
+
+  deleteAppProposal(id) {
+    const proposals = this.getAppProposals().filter(p => p.id !== id);
+    localStorage.setItem(DB_KEYS.APP_PROPOSALS, JSON.stringify(proposals));
+
+    if (this.supabase && this.cloudStatus === 'connected') {
+      this.supabase.from('app_proposals').delete().eq('id', id).then(({ error }) => {
+        if (error) console.warn('[Supabase Delete Proposal Error]:', error);
       });
     }
   }
